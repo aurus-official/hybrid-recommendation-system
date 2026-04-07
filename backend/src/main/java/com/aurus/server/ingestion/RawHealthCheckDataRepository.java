@@ -1,5 +1,7 @@
 package com.aurus.server.ingestion;
 
-public interface RawHealthCheckDataRepository {
+import org.springframework.data.repository.CrudRepository;
+
+public interface RawHealthCheckDataRepository extends CrudRepository<RawHealthCheckDataModel, Long> {
 
 }

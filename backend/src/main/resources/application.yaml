@@ -1,6 +1,24 @@
 spring:
   application:
     name: hybrid-recommendation-server
+  datasource:
+    username: hybrid
+    password: hybrid
+    url: jdbc:h2:file:~/Programming/hybrid-recommendation-system/database/hybrid-db
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect 
+    hibernate:
+      ddl-auto: update
+  h2:
+    console:
+      enabled: true
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+    
 server:
   address: 0.0.0.0
   port: 8080
