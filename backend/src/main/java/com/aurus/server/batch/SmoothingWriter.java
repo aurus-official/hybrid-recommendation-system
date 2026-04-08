@@ -14,7 +14,6 @@ public class SmoothingWriter implements ItemWriter<ProcessedSensorDataModel> {
     @Override
     public void write(Chunk<? extends ProcessedSensorDataModel> chunk) throws Exception {
         processedSensorDataRepository.saveAll(chunk.getItems());
-        // System.out.println("THIS WILL WORK I THINK!");
     }
 
 }

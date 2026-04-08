@@ -13,8 +13,8 @@ import org.springframework.batch.infrastructure.item.ItemReader;
 public class SmoothingReader implements ItemReader<RawSensorDataModel>, StepExecutionListener {
 
     private final RawSensorDataRepository rawSensorDataRepository;
-    private Long id;
-    private Long lastSeenId;
+    private long id;
+    private long lastSeenId;
 
     public SmoothingReader(RawSensorDataRepository rawSensorDataRepository) {
         this.rawSensorDataRepository = rawSensorDataRepository;
@@ -29,7 +29,7 @@ public class SmoothingReader implements ItemReader<RawSensorDataModel>, StepExec
     @Override
     public @Nullable RawSensorDataModel read() throws Exception {
         Optional<RawSensorDataModel> rawSensorDataModel = rawSensorDataRepository.findById(id);
-        if (id.equals(lastSeenId))
+        if (id == lastSeenId)
             return null;
         lastSeenId = rawSensorDataModel.get().getId();
         return rawSensorDataModel.orElse(null);

@@ -1,9 +1,6 @@
 package com.aurus.server.ingestion;
 
-import jakarta.transaction.Transactional;
-
-import com.aurus.server.batch.BatchEventListener;
-import com.aurus.server.batch.SmoothingEvent;
+import com.aurus.server.batch.BatchEventPublisher;
 
 import org.springframework.batch.core.job.parameters.InvalidJobParametersException;
 import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException;
@@ -16,13 +13,13 @@ public class IngestionService {
 
     private final RawSensorDataRepository rawSensorDataRepository;
     private final RawHealthCheckDataRepository rawHealthCheckDataRepository;
-    private final BatchEventListener batchEventListener;
+    private final BatchEventPublisher batchEventPublisher;
 
     IngestionService(RawSensorDataRepository rawSensorDataRepository,
-            RawHealthCheckDataRepository rawHealthCheckDataRepository, BatchEventListener batchEventListener) {
+            RawHealthCheckDataRepository rawHealthCheckDataRepository, BatchEventPublisher batchEventPublisher) {
         this.rawSensorDataRepository = rawSensorDataRepository;
         this.rawHealthCheckDataRepository = rawHealthCheckDataRepository;
-        this.batchEventListener = batchEventListener;
+        this.batchEventPublisher = batchEventPublisher;
     }
 
     boolean ingestRawSensorDataToDatabase(RawSensorDataDTO rawSensorDataDTO) throws JobInstanceAlreadyCompleteException,
@@ -39,7 +36,7 @@ public class IngestionService {
 
         RawSensorDataModel savedRawSensorDataModel = rawSensorDataRepository.save(rawSensorDataModel);
 
-        batchEventListener.listenSmoothingEvent(new SmoothingEvent(savedRawSensorDataModel.getId()));
+        batchEventPublisher.publishSmoothingEvent(savedRawSensorDataModel.getId());
         return true;
     }
 

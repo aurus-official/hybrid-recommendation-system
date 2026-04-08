@@ -30,6 +30,9 @@ public class RawSensorDataModel {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    public RawSensorDataModel() {
+    }
+
     public RawSensorDataModel(float soilTemp, float airTemp, float humidity, float pressure, float lux,
             float uvVolts, float tdsVolts, float prongMoisture, float capacitiveMoisture) {
         this.soilTemp = soilTemp;

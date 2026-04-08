@@ -10,14 +10,13 @@ public class BatchEventPublisher {
 
     public BatchEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         this.applicationEventPublisher = applicationEventPublisher;
-
     }
 
     public void publishSmoothingEvent(Long id) {
         applicationEventPublisher.publishEvent(new SmoothingEvent(id));
     }
 
-    // public void publishDeriveEvent(Long id) {
-    // applicationEventPublisher.publishEvent(new SmoothingEvent(id));
-    // }
+    public void publishDeriveEvent() {
+        applicationEventPublisher.publishEvent(new DerivingEvent());
+    }
 }

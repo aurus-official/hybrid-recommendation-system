@@ -11,9 +11,11 @@ import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.JobRestartException;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 
 @Component
+@EnableAsync
 public class BatchEventListener {
 
     private final JobOperator jobOperator;
@@ -29,10 +31,14 @@ public class BatchEventListener {
     public void listenSmoothingEvent(SmoothingEvent smoothingEvent) throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
         Job smoothingJob = jobRegistry.getJob("smoothing");
-
         JobParameters jobParameters = new JobParametersBuilder().addLong("id", smoothingEvent.id()).toJobParameters();
 
         jobOperator.start(smoothingJob, jobParameters);
-        System.out.println("WORKING SHEESH");
+    }
+
+    @EventListener
+    @Async
+    public void listenDerivingEvent(DerivingEvent derivingEvent) {
+        System.out.println("START DERIVINGGG");
     }
 }

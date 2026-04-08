@@ -16,6 +16,7 @@ import org.springframework.batch.infrastructure.item.ItemReader;
 import org.springframework.batch.infrastructure.item.ItemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -55,11 +56,13 @@ public class BatchConfig {
     }
 
     @Bean
-    ItemProcessor<RawSensorDataModel, ProcessedSensorDataModel> smoothingProcessor() {
-        return new SmoothingProcessor();
+    ItemProcessor<RawSensorDataModel, ProcessedSensorDataModel> smoothingProcessor(
+            RawSensorDataRepository rawSensorDataRepository) {
+        return new SmoothingProcessor(rawSensorDataRepository);
     }
 
     @Bean
+    @Primary
     TaskExecutor batchTaskExecutor() {
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
         executor.setVirtualThreads(true);
