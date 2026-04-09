@@ -1,4 +1,4 @@
-package com.aurus.server.batch;
+package com.aurus.server.batch.process;
 
 import java.util.Optional;
 
@@ -10,13 +10,13 @@ import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.infrastructure.item.ItemReader;
 
-public class SmoothingReader implements ItemReader<RawSensorDataModel>, StepExecutionListener {
+public class ProcessedSensorDataReader implements ItemReader<RawSensorDataModel>, StepExecutionListener {
 
     private final RawSensorDataRepository rawSensorDataRepository;
     private long id;
     private long lastSeenId;
 
-    public SmoothingReader(RawSensorDataRepository rawSensorDataRepository) {
+    public ProcessedSensorDataReader(RawSensorDataRepository rawSensorDataRepository) {
         this.rawSensorDataRepository = rawSensorDataRepository;
     }
 

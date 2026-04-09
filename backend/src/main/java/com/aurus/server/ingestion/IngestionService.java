@@ -36,7 +36,7 @@ public class IngestionService {
 
         RawSensorDataModel savedRawSensorDataModel = rawSensorDataRepository.save(rawSensorDataModel);
 
-        batchEventPublisher.publishSmoothingEvent(savedRawSensorDataModel.getId());
+        batchEventPublisher.publishProcessingEvent(savedRawSensorDataModel.getId());
         return true;
     }
 

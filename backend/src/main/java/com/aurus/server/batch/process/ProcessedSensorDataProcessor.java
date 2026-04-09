@@ -1,4 +1,4 @@
-package com.aurus.server.batch;
+package com.aurus.server.batch.process;
 
 import java.util.ArrayDeque;
 import java.util.Comparator;
@@ -12,11 +12,11 @@ import com.aurus.server.ingestion.RawSensorDataRepository;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.infrastructure.item.ItemProcessor;
 
-public class SmoothingProcessor implements ItemProcessor<RawSensorDataModel, ProcessedSensorDataModel> {
+public class ProcessedSensorDataProcessor implements ItemProcessor<RawSensorDataModel, ProcessedSensorDataModel> {
 
     private final RawSensorDataRepository rawSensorDataRepository;
 
-    public SmoothingProcessor(RawSensorDataRepository rawSensorDataRepository) {
+    public ProcessedSensorDataProcessor(RawSensorDataRepository rawSensorDataRepository) {
         this.rawSensorDataRepository = rawSensorDataRepository;
     }
 
@@ -65,17 +65,19 @@ public class SmoothingProcessor implements ItemProcessor<RawSensorDataModel, Pro
                         .collect(Collectors.toList())))
                 / (capacitiveMoistureDry - capacitiveMoistureWet)));
 
-        SensorStat soilTempStat = new SensorStat(toFourDigitsDecimal(soilTempValue), "°C");
-        SensorStat airTempStat = new SensorStat(toFourDigitsDecimal(airTempValue), "°C");
-        SensorStat humidityStat = new SensorStat(toFourDigitsDecimal(humidityValue), "%RH");
-        SensorStat pressureStat = new SensorStat(toFourDigitsDecimal(pressureValue), "°hPa");
+        ProcessedSensorDataDTO soilTempStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(soilTempValue), "°C");
+        ProcessedSensorDataDTO airTempStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(airTempValue), "°C");
+        ProcessedSensorDataDTO humidityStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(humidityValue), "%RH");
+        ProcessedSensorDataDTO pressureStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(pressureValue), "°hPa");
 
-        SensorStat luxStat = new SensorStat(toFourDigitsDecimal(luxValue), "lux");
-        SensorStat uvStat = new SensorStat(toFourDigitsDecimal(uvValue), "index");
-        SensorStat tdsStat = new SensorStat(toFourDigitsDecimal(tdsValue), "ppm");
+        ProcessedSensorDataDTO luxStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(luxValue), "lux");
+        ProcessedSensorDataDTO uvStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(uvValue), "index");
+        ProcessedSensorDataDTO tdsStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(tdsValue), "ppm");
 
-        SensorStat prongMoistureStat = new SensorStat(toFourDigitsDecimal(prongMoistureValue), "%");
-        SensorStat capacitiveMoistureStat = new SensorStat(toFourDigitsDecimal(capacitiveMoistureValue), "%");
+        ProcessedSensorDataDTO prongMoistureStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(prongMoistureValue),
+                "%");
+        ProcessedSensorDataDTO capacitiveMoistureStat = new ProcessedSensorDataDTO(
+                toFourDigitsDecimal(capacitiveMoistureValue), "%");
 
         ProcessedSensorDataModel processedSensorDataModel = new ProcessedSensorDataModel(soilTempStat, airTempStat,
                 humidityStat, pressureStat, luxStat, uvStat, tdsStat, prongMoistureStat, capacitiveMoistureStat,

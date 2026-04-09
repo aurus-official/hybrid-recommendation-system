@@ -1,5 +1,8 @@
 package com.aurus.server.batch;
 
+import com.aurus.server.batch.aggregate.AggregatingEvent;
+import com.aurus.server.batch.process.ProcessingEvent;
+
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.parameters.InvalidJobParametersException;
@@ -28,17 +31,23 @@ public class BatchEventListener {
 
     @EventListener
     @Async
-    public void listenSmoothingEvent(SmoothingEvent smoothingEvent) throws JobInstanceAlreadyCompleteException,
+    public void listenProcessingEvent(ProcessingEvent processingEvent) throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
-        Job smoothingJob = jobRegistry.getJob("smoothing");
-        JobParameters jobParameters = new JobParametersBuilder().addLong("id", smoothingEvent.id()).toJobParameters();
-
-        jobOperator.start(smoothingJob, jobParameters);
+        Job processingJob = jobRegistry.getJob("processing");
+        JobParameters jobParameters = new JobParametersBuilder().addLong("id", processingEvent.id()).toJobParameters();
+        jobOperator.start(processingJob, jobParameters);
     }
 
     @EventListener
     @Async
-    public void listenDerivingEvent(DerivingEvent derivingEvent) {
-        System.out.println("START DERIVINGGG");
+    public void listenAggregatingEvent(AggregatingEvent aggregatingEvent) throws JobInstanceAlreadyCompleteException,
+            JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
+        Job aggregatingJob = jobRegistry.getJob("aggregating");
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addLocalDateTime("startingWindow", aggregatingEvent.startingWindow())
+                .addLocalDateTime("endingWindow", aggregatingEvent.endingWindow()).toJobParameters();
+        jobOperator.start(aggregatingJob, jobParameters);
+        System.out.println("IS IT ASYNC OR NAH?");
+
     }
 }

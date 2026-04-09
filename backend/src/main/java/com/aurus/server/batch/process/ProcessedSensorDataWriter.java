@@ -1,13 +1,13 @@
-package com.aurus.server.batch;
+package com.aurus.server.batch.process;
 
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.batch.infrastructure.item.ItemWriter;
 
-public class SmoothingWriter implements ItemWriter<ProcessedSensorDataModel> {
+public class ProcessedSensorDataWriter implements ItemWriter<ProcessedSensorDataModel> {
 
     private final ProcessedSensorDataRepository processedSensorDataRepository;
 
-    public SmoothingWriter(ProcessedSensorDataRepository processedSensorDataRepository) {
+    public ProcessedSensorDataWriter(ProcessedSensorDataRepository processedSensorDataRepository) {
         this.processedSensorDataRepository = processedSensorDataRepository;
     }
 
