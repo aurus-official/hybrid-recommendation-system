@@ -23,7 +23,7 @@ public class ProcessedSensorDataReader implements ItemReader<RawSensorDataModel>
     @Override
     public void beforeStep(StepExecution stepExecution) {
         StepExecutionListener.super.beforeStep(stepExecution);
-        id = stepExecution.getJobParameters().getLong("id");
+        id = stepExecution.getJobParameters().getLong("processedSensorId");
     }
 
     @Override

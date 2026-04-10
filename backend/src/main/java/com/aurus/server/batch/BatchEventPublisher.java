@@ -3,6 +3,7 @@ package com.aurus.server.batch;
 import java.time.LocalDateTime;
 
 import com.aurus.server.batch.aggregate.AggregatingEvent;
+import com.aurus.server.batch.derive.DerivingEvent;
 import com.aurus.server.batch.process.ProcessingEvent;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -23,5 +24,9 @@ public class BatchEventPublisher {
 
     public void publishAggregatingEvent(LocalDateTime startingWindow, LocalDateTime endingWindow) {
         applicationEventPublisher.publishEvent(new AggregatingEvent(startingWindow, endingWindow));
+    }
+
+    public void publishDerivingEvent(Long id) {
+        applicationEventPublisher.publishEvent(new DerivingEvent(id));
     }
 }

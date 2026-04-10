@@ -1,6 +1,7 @@
 package com.aurus.server.batch;
 
 import com.aurus.server.batch.aggregate.AggregatingEvent;
+import com.aurus.server.batch.derive.DerivingEvent;
 import com.aurus.server.batch.process.ProcessingEvent;
 
 import org.springframework.batch.core.configuration.JobRegistry;
@@ -34,7 +35,9 @@ public class BatchEventListener {
     public void listenProcessingEvent(ProcessingEvent processingEvent) throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
         Job processingJob = jobRegistry.getJob("processing");
-        JobParameters jobParameters = new JobParametersBuilder().addLong("id", processingEvent.id()).toJobParameters();
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("processedSensorId", processingEvent.processedSensorId(), false)
+                .toJobParameters();
         jobOperator.start(processingJob, jobParameters);
     }
 
@@ -49,5 +52,16 @@ public class BatchEventListener {
         jobOperator.start(aggregatingJob, jobParameters);
         System.out.println("IS IT ASYNC OR NAH?");
 
+    }
+
+    @EventListener
+    @Async
+    public void listenDerivingEvent(DerivingEvent derivingEvent) throws JobInstanceAlreadyCompleteException,
+            JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
+        Job derivingJob = jobRegistry.getJob("deriving");
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("derivedSensorId", derivingEvent.derivedSensorId(), false)
+                .toJobParameters();
+        jobOperator.start(derivingJob, jobParameters);
     }
 }

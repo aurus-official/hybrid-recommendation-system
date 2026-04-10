@@ -20,8 +20,8 @@ public class AggregatedSensorDataProcessor
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
-        this.startingWindow = stepExecution.getJobParameters().getLocalDateTime("starting");
-        this.endingWindow = stepExecution.getJobParameters().getLocalDateTime("ending");
+        this.startingWindow = stepExecution.getJobParameters().getLocalDateTime("startingWindow");
+        this.endingWindow = stepExecution.getJobParameters().getLocalDateTime("endingWindow");
     }
 
     @Override
@@ -56,7 +56,7 @@ public class AggregatedSensorDataProcessor
         AggregatedSensorDataDTO soilTempStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(soilTempValue), "°C");
         AggregatedSensorDataDTO airTempStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(airTempValue), "°C");
         AggregatedSensorDataDTO humidityStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(humidityValue), "%RH");
-        AggregatedSensorDataDTO pressureStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(pressureValue), "°hPa");
+        AggregatedSensorDataDTO pressureStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(pressureValue), "hPa");
 
         AggregatedSensorDataDTO luxStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(luxValue), "lux");
         AggregatedSensorDataDTO uvStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(uvValue), "index");

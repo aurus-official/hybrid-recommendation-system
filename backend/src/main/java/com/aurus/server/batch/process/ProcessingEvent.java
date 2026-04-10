@@ -1,5 +1,5 @@
 package com.aurus.server.batch.process;
 
-public record ProcessingEvent(Long id) {
+public record ProcessingEvent(long processedSensorId) {
 
 }

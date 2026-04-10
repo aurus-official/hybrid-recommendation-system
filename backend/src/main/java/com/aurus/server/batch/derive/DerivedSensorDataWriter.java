@@ -1,22 +1,19 @@
 package com.aurus.server.batch.derive;
 
-import com.aurus.server.batch.aggregate.AggregatedSensorDataModel;
-import com.aurus.server.batch.aggregate.AggregatedSensorDataRepository;
-
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.batch.infrastructure.item.ItemWriter;
 
-public class DerivedSensorDataWriter implements ItemWriter<AggregatedSensorDataModel> {
+public class DerivedSensorDataWriter implements ItemWriter<DerivedSensorDataModel> {
 
-    private final AggregatedSensorDataRepository aggregatedSensorDataRepository;
+    private DerivedSensorDataRepository derivedSensorDataRepository;
 
-    public DerivedSensorDataWriter(AggregatedSensorDataRepository aggregatedSensorDataRepository) {
-        this.aggregatedSensorDataRepository = aggregatedSensorDataRepository;
+    public DerivedSensorDataWriter(DerivedSensorDataRepository derivedSensorDataRepository) {
+        this.derivedSensorDataRepository = derivedSensorDataRepository;
     }
 
     @Override
-    public void write(Chunk<? extends AggregatedSensorDataModel> chunk) throws Exception {
-        aggregatedSensorDataRepository.saveAll(chunk.getItems());
+    public void write(Chunk<? extends DerivedSensorDataModel> chunk) throws Exception {
+        derivedSensorDataRepository.saveAll(chunk.getItems());
 
     }
 

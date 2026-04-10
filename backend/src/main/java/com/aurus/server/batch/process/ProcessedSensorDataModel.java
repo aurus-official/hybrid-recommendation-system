@@ -49,6 +49,9 @@ public class ProcessedSensorDataModel {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    public ProcessedSensorDataModel() {
+    }
+
     public ProcessedSensorDataModel(
             ProcessedSensorDataDTO soilTempStat, ProcessedSensorDataDTO airTempStat,
             ProcessedSensorDataDTO humidityStat, ProcessedSensorDataDTO pressureStat,

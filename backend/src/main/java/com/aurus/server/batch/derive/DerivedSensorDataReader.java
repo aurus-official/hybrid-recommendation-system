@@ -1,43 +1,37 @@
 package com.aurus.server.batch.derive;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Optional;
 
-import com.aurus.server.batch.process.ProcessedSensorDataModel;
-import com.aurus.server.batch.process.ProcessedSensorDataRepository;
+import com.aurus.server.batch.aggregate.AggregatedSensorDataModel;
+import com.aurus.server.batch.aggregate.AggregatedSensorDataRepository;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.infrastructure.item.ItemReader;
 
-public class DerivedSensorDataReader implements ItemReader<List<ProcessedSensorDataModel>>, StepExecutionListener {
+public class DerivedSensorDataReader implements ItemReader<AggregatedSensorDataModel>, StepExecutionListener {
 
-    private final ProcessedSensorDataRepository processedSensorDataRepository;
-    private LocalDateTime startingWindow;
-    private LocalDateTime endingWindow;
-    private boolean isChecked = false;
+    private final AggregatedSensorDataRepository aggregatedSensorDataRepository;
+    private long id;
+    private long lastSeenId;
 
-    public DerivedSensorDataReader(ProcessedSensorDataRepository processedSensorDataRepository) {
-        this.processedSensorDataRepository = processedSensorDataRepository;
+    public DerivedSensorDataReader(AggregatedSensorDataRepository aggregatedSensorDataRepository) {
+        this.aggregatedSensorDataRepository = aggregatedSensorDataRepository;
     }
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
         StepExecutionListener.super.beforeStep(stepExecution);
-        this.startingWindow = stepExecution.getJobParameters().getLocalDateTime("startingWindow");
-        this.endingWindow = stepExecution.getJobParameters().getLocalDateTime("endingWindow");
+        id = stepExecution.getJobParameters().getLong("derivedSensorId");
     }
 
     @Override
-    public @Nullable List<ProcessedSensorDataModel> read() throws Exception {
-        if (isChecked)
+    public @Nullable AggregatedSensorDataModel read() throws Exception {
+        Optional<AggregatedSensorDataModel> aggregatedSensorDataModel = aggregatedSensorDataRepository.findById(id);
+        if (id == lastSeenId)
             return null;
-
-        List<ProcessedSensorDataModel> processedSensorDataModels = processedSensorDataRepository
-                .findAllProcessedSensorDataModelInAWindow(startingWindow, endingWindow);
-        isChecked = true;
-
-        return processedSensorDataModels;
+        lastSeenId = aggregatedSensorDataModel.get().getId();
+        return aggregatedSensorDataModel.orElse(null);
     }
 }

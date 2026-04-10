@@ -9,6 +9,11 @@ import com.aurus.server.batch.aggregate.AggregatedSensorDataProcessor;
 import com.aurus.server.batch.aggregate.AggregatedSensorDataReader;
 import com.aurus.server.batch.aggregate.AggregatedSensorDataRepository;
 import com.aurus.server.batch.aggregate.AggregatedSensorDataWriter;
+import com.aurus.server.batch.derive.DerivedSensorDataModel;
+import com.aurus.server.batch.derive.DerivedSensorDataProcessor;
+import com.aurus.server.batch.derive.DerivedSensorDataReader;
+import com.aurus.server.batch.derive.DerivedSensorDataRepository;
+import com.aurus.server.batch.derive.DerivedSensorDataWriter;
 import com.aurus.server.batch.process.ProcessedSensorDataModel;
 import com.aurus.server.batch.process.ProcessedSensorDataProcessor;
 import com.aurus.server.batch.process.ProcessedSensorDataReader;
@@ -86,11 +91,12 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     Step aggregatingStep(JobRepository jobRepository,
-            PlatformTransactionManager transactionManager, ItemReader<RawSensorDataModel> aggregatingReader,
-            ItemWriter<ProcessedSensorDataModel> aggregatingWriter,
-            ItemProcessor<RawSensorDataModel, ProcessedSensorDataModel> aggregatingProcessor) {
+            PlatformTransactionManager transactionManager, ItemReader<List<ProcessedSensorDataModel>> aggregatingReader,
+            ItemWriter<AggregatedSensorDataModel> aggregatingWriter,
+            ItemProcessor<List<ProcessedSensorDataModel>, AggregatedSensorDataModel> aggregatingProcessor) {
         return new StepBuilder(jobRepository)
-                .<RawSensorDataModel, ProcessedSensorDataModel>chunk(1).transactionManager(transactionManager)
+                .<List<ProcessedSensorDataModel>, AggregatedSensorDataModel>chunk(1)
+                .transactionManager(transactionManager)
                 .reader(aggregatingReader)
                 .processor(aggregatingProcessor)
                 .writer(aggregatingWriter)
@@ -110,8 +116,45 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     ItemWriter<AggregatedSensorDataModel> aggregatingWriter(
+            AggregatedSensorDataRepository aggregatedSensorDataRepository, BatchEventPublisher batchEventPublisher) {
+        return new AggregatedSensorDataWriter(aggregatedSensorDataRepository, batchEventPublisher);
+    }
+
+    @Bean
+    Job derivingJob(JobRepository jobRepository, Step derivingStep) {
+        return new JobBuilder("deriving", jobRepository)
+                .start(derivingStep)
+                .build();
+    }
+
+    @Bean
+    Step derivingStep(JobRepository jobRepository,
+            PlatformTransactionManager transactionManager, ItemReader<AggregatedSensorDataModel> derivingReader,
+            ItemWriter<DerivedSensorDataModel> derivingWriter,
+            ItemProcessor<AggregatedSensorDataModel, DerivedSensorDataModel> derivingProcessor) {
+        return new StepBuilder(jobRepository)
+                .<AggregatedSensorDataModel, DerivedSensorDataModel>chunk(1).transactionManager(transactionManager)
+                .reader(derivingReader)
+                .processor(derivingProcessor)
+                .writer(derivingWriter)
+                .build();
+    }
+
+    @Bean
+    ItemReader<AggregatedSensorDataModel> derivingReader(
             AggregatedSensorDataRepository aggregatedSensorDataRepository) {
-        return new AggregatedSensorDataWriter(aggregatedSensorDataRepository);
+        return new DerivedSensorDataReader(aggregatedSensorDataRepository);
+    }
+
+    @Bean
+    ItemProcessor<AggregatedSensorDataModel, DerivedSensorDataModel> derivingProcessor() {
+        return new DerivedSensorDataProcessor();
+    }
+
+    @Bean
+    ItemWriter<DerivedSensorDataModel> derivingWriter(
+            DerivedSensorDataRepository derivedSensorDataRepository) {
+        return new DerivedSensorDataWriter(derivedSensorDataRepository);
     }
 
     @Override

@@ -20,10 +20,11 @@ public class AggregatingScheduler {
     }
 
     // @Scheduled(cron = "0 5 * * * *")
-    @Scheduled(cron = "0 52 * * * *")
+    @Scheduled(cron = "0 48 * * * *")
     public void aggregate() {
-        LocalDateTime startingWindow = LocalDateTime.now();
-        LocalDateTime endingWindow = LocalDateTime.now().minus(1l, ChronoUnit.HOURS);
+        LocalDateTime startingWindow = LocalDateTime.now().minus(2l, ChronoUnit.HOURS);
+        LocalDateTime endingWindow = LocalDateTime.now();
         batchEventPublisher.publishAggregatingEvent(startingWindow, endingWindow);
+        System.out.println("hello");
     }
 }

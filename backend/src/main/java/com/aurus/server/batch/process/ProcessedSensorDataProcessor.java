@@ -68,7 +68,7 @@ public class ProcessedSensorDataProcessor implements ItemProcessor<RawSensorData
         ProcessedSensorDataDTO soilTempStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(soilTempValue), "°C");
         ProcessedSensorDataDTO airTempStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(airTempValue), "°C");
         ProcessedSensorDataDTO humidityStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(humidityValue), "%RH");
-        ProcessedSensorDataDTO pressureStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(pressureValue), "°hPa");
+        ProcessedSensorDataDTO pressureStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(pressureValue), "hPa");
 
         ProcessedSensorDataDTO luxStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(luxValue), "lux");
         ProcessedSensorDataDTO uvStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(uvValue), "index");

@@ -46,6 +46,9 @@ public class AggregatedSensorDataModel {
     private LocalDateTime startingWindow;
     private LocalDateTime endingWindow;
 
+    public AggregatedSensorDataModel() {
+    }
+
     public AggregatedSensorDataModel(
             AggregatedSensorDataDTO soilTempStat, AggregatedSensorDataDTO airTempStat,
             AggregatedSensorDataDTO humidityStat, AggregatedSensorDataDTO pressureStat,
@@ -123,78 +126,6 @@ public class AggregatedSensorDataModel {
 
     public long getId() {
         return id;
-    }
-
-    public float getSoilTemp() {
-        return soilTemp;
-    }
-
-    public String getSoilTempUnit() {
-        return soilTempUnit;
-    }
-
-    public float getAirTemp() {
-        return airTemp;
-    }
-
-    public String getAirTempUnit() {
-        return airTempUnit;
-    }
-
-    public float getHumidity() {
-        return humidity;
-    }
-
-    public String getHumidityUnit() {
-        return humidityUnit;
-    }
-
-    public float getPressure() {
-        return pressure;
-    }
-
-    public String getPressureUnit() {
-        return pressureUnit;
-    }
-
-    public float getLux() {
-        return lux;
-    }
-
-    public String getLuxUnit() {
-        return luxUnit;
-    }
-
-    public float getUv() {
-        return uv;
-    }
-
-    public String getUvUnit() {
-        return uvUnit;
-    }
-
-    public float getTds() {
-        return tds;
-    }
-
-    public String getTdsUnit() {
-        return tdsUnit;
-    }
-
-    public float getProngMoisture() {
-        return prongMoisture;
-    }
-
-    public String getProngMoistureUnit() {
-        return prongMoistureUnit;
-    }
-
-    public float getCapacitiveMoisture() {
-        return capacitiveMoisture;
-    }
-
-    public String getCapacitiveMoistureUnit() {
-        return capacitiveMoistureUnit;
     }
 
     public LocalDateTime getStartingWindow() {
