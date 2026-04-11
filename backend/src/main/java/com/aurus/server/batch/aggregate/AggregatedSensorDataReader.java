@@ -3,8 +3,8 @@ package com.aurus.server.batch.aggregate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.aurus.server.batch.process.ProcessedSensorDataModel;
-import com.aurus.server.batch.process.ProcessedSensorDataRepository;
+import com.aurus.server.batch.process.sensor.ProcessedSensorDataModel;
+import com.aurus.server.batch.process.sensor.ProcessedSensorDataRepository;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.listener.StepExecutionListener;

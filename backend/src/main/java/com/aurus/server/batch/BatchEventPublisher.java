@@ -2,9 +2,10 @@ package com.aurus.server.batch;
 
 import java.time.LocalDateTime;
 
-import com.aurus.server.batch.aggregate.AggregatingEvent;
-import com.aurus.server.batch.derive.DerivingEvent;
-import com.aurus.server.batch.process.ProcessingEvent;
+import com.aurus.server.batch.aggregate.AggregatingSensorDataEvent;
+import com.aurus.server.batch.derive.sensor.DerivingSensorDataEvent;
+import com.aurus.server.batch.process.sensor.ProcessingSensorDataEvent;
+import com.aurus.server.batch.process.weather.ProcessingWeatherDataEvent;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -18,15 +19,21 @@ public class BatchEventPublisher {
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
-    public void publishProcessingEvent(Long id) {
-        applicationEventPublisher.publishEvent(new ProcessingEvent(id));
+    public void publishProcessingSensorDataEvent(Long id) {
+        applicationEventPublisher.publishEvent(new ProcessingSensorDataEvent(id));
     }
 
-    public void publishAggregatingEvent(LocalDateTime startingWindow, LocalDateTime endingWindow) {
-        applicationEventPublisher.publishEvent(new AggregatingEvent(startingWindow, endingWindow));
+    public void publishProcessingWeatherDataEvent(Long id) {
+        System.out.println("PUBLISHING WORKINGGG!");
+        applicationEventPublisher.publishEvent(new ProcessingWeatherDataEvent(id));
+
     }
 
-    public void publishDerivingEvent(Long id) {
-        applicationEventPublisher.publishEvent(new DerivingEvent(id));
+    public void publishAggregatingSensorDataEvent(LocalDateTime startingWindow, LocalDateTime endingWindow) {
+        applicationEventPublisher.publishEvent(new AggregatingSensorDataEvent(startingWindow, endingWindow));
+    }
+
+    public void publishDerivingSensorDataEvent(Long id) {
+        applicationEventPublisher.publishEvent(new DerivingSensorDataEvent(id));
     }
 }

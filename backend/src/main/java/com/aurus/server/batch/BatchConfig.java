@@ -9,18 +9,25 @@ import com.aurus.server.batch.aggregate.AggregatedSensorDataProcessor;
 import com.aurus.server.batch.aggregate.AggregatedSensorDataReader;
 import com.aurus.server.batch.aggregate.AggregatedSensorDataRepository;
 import com.aurus.server.batch.aggregate.AggregatedSensorDataWriter;
-import com.aurus.server.batch.derive.DerivedSensorDataModel;
-import com.aurus.server.batch.derive.DerivedSensorDataProcessor;
-import com.aurus.server.batch.derive.DerivedSensorDataReader;
-import com.aurus.server.batch.derive.DerivedSensorDataRepository;
-import com.aurus.server.batch.derive.DerivedSensorDataWriter;
-import com.aurus.server.batch.process.ProcessedSensorDataModel;
-import com.aurus.server.batch.process.ProcessedSensorDataProcessor;
-import com.aurus.server.batch.process.ProcessedSensorDataReader;
-import com.aurus.server.batch.process.ProcessedSensorDataRepository;
-import com.aurus.server.batch.process.ProcessedSensorDataWriter;
-import com.aurus.server.ingestion.RawSensorDataModel;
-import com.aurus.server.ingestion.RawSensorDataRepository;
+import com.aurus.server.batch.derive.sensor.DerivedSensorDataModel;
+import com.aurus.server.batch.derive.sensor.DerivedSensorDataProcessor;
+import com.aurus.server.batch.derive.sensor.DerivedSensorDataReader;
+import com.aurus.server.batch.derive.sensor.DerivedSensorDataRepository;
+import com.aurus.server.batch.derive.sensor.DerivedSensorDataWriter;
+import com.aurus.server.batch.process.sensor.ProcessedSensorDataModel;
+import com.aurus.server.batch.process.sensor.ProcessedSensorDataProcessor;
+import com.aurus.server.batch.process.sensor.ProcessedSensorDataReader;
+import com.aurus.server.batch.process.sensor.ProcessedSensorDataRepository;
+import com.aurus.server.batch.process.sensor.ProcessedSensorDataWriter;
+import com.aurus.server.batch.process.weather.ProcessedWeatherDataModel;
+import com.aurus.server.batch.process.weather.ProcessedWeatherDataProcessor;
+import com.aurus.server.batch.process.weather.ProcessedWeatherDataReader;
+import com.aurus.server.batch.process.weather.ProcessedWeatherDataRepository;
+import com.aurus.server.batch.process.weather.ProcessedWeatherDataWriter;
+import com.aurus.server.ingestion.sensor.RawSensorDataModel;
+import com.aurus.server.ingestion.sensor.RawSensorDataRepository;
+import com.aurus.server.ingestion.weather.RawWeatherDataModel;
+import com.aurus.server.ingestion.weather.RawWeatherDataRepository;
 
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.support.JdbcDefaultBatchConfiguration;
@@ -47,118 +54,157 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
-    Job processingJob(JobRepository jobRepository, Step processingStep) {
-        return new JobBuilder("processing", jobRepository)
-                .start(processingStep)
+    Job processingSensorDataJob(JobRepository jobRepository, Step processingSensorDataStep) {
+        return new JobBuilder("processingSensorData", jobRepository)
+                .start(processingSensorDataStep)
                 .build();
     }
 
     @Bean
-    Step processingStep(JobRepository jobRepository,
-            PlatformTransactionManager transactionManager, ItemReader<RawSensorDataModel> processingReader,
-            ItemWriter<ProcessedSensorDataModel> processingWriter,
-            ItemProcessor<RawSensorDataModel, ProcessedSensorDataModel> processingProcessor) {
+    Step processingSensorDataStep(JobRepository jobRepository,
+            PlatformTransactionManager transactionManager, ItemReader<RawSensorDataModel> processingSensorDataReader,
+            ItemWriter<ProcessedSensorDataModel> processingSensorDataWriter,
+            ItemProcessor<RawSensorDataModel, ProcessedSensorDataModel> processingSensorDataProcessor) {
         return new StepBuilder(jobRepository)
                 .<RawSensorDataModel, ProcessedSensorDataModel>chunk(1).transactionManager(transactionManager)
-                .reader(processingReader)
-                .processor(processingProcessor)
-                .writer(processingWriter)
+                .reader(processingSensorDataReader)
+                .processor(processingSensorDataProcessor)
+                .writer(processingSensorDataWriter)
                 .build();
     }
 
     @Bean
-    ItemReader<RawSensorDataModel> processingReader(RawSensorDataRepository rawSensorDataRepository) {
+    ItemReader<RawSensorDataModel> processingSensorDataReader(RawSensorDataRepository rawSensorDataRepository) {
         return new ProcessedSensorDataReader(rawSensorDataRepository);
     }
 
     @Bean
-    ItemProcessor<RawSensorDataModel, ProcessedSensorDataModel> processingProcessor(
+    ItemProcessor<RawSensorDataModel, ProcessedSensorDataModel> processingSensorDataProcessor(
             RawSensorDataRepository rawSensorDataRepository) {
         return new ProcessedSensorDataProcessor(rawSensorDataRepository);
     }
 
     @Bean
-    ItemWriter<ProcessedSensorDataModel> processingWriter(ProcessedSensorDataRepository processedSensorDataRepository) {
+    ItemWriter<ProcessedSensorDataModel> processingSensorDataWriter(
+            ProcessedSensorDataRepository processedSensorDataRepository) {
         return new ProcessedSensorDataWriter(processedSensorDataRepository);
     }
 
     @Bean
-    Job aggregatingJob(JobRepository jobRepository, Step aggregatingStep) {
-        return new JobBuilder("aggregating", jobRepository)
-                .start(aggregatingStep)
+    Job processingWeatherDataJob(JobRepository jobRepository, Step processingWeatherDataStep) {
+        return new JobBuilder("processingWeatherData", jobRepository)
+                .start(processingWeatherDataStep)
                 .build();
     }
 
     @Bean
-    Step aggregatingStep(JobRepository jobRepository,
-            PlatformTransactionManager transactionManager, ItemReader<List<ProcessedSensorDataModel>> aggregatingReader,
-            ItemWriter<AggregatedSensorDataModel> aggregatingWriter,
-            ItemProcessor<List<ProcessedSensorDataModel>, AggregatedSensorDataModel> aggregatingProcessor) {
+    Step processingWeatherDataStep(JobRepository jobRepository,
+            PlatformTransactionManager transactionManager, ItemReader<RawWeatherDataModel> processingWeatherDataReader,
+            ItemWriter<ProcessedWeatherDataModel> processingWeatherDataWriter,
+            ItemProcessor<RawWeatherDataModel, ProcessedWeatherDataModel> processingWeatherDataProcessor) {
+        return new StepBuilder(jobRepository)
+                .<RawWeatherDataModel, ProcessedWeatherDataModel>chunk(1).transactionManager(transactionManager)
+                .reader(processingWeatherDataReader)
+                .processor(processingWeatherDataProcessor)
+                .writer(processingWeatherDataWriter)
+                .build();
+    }
+
+    @Bean
+    ItemReader<RawWeatherDataModel> processingWeatherDataReader(RawWeatherDataRepository rawWeatherDataRepository) {
+        return new ProcessedWeatherDataReader(rawWeatherDataRepository);
+    }
+
+    @Bean
+    ItemProcessor<RawWeatherDataModel, ProcessedWeatherDataModel> processingWeatherDataProcessor() {
+        return new ProcessedWeatherDataProcessor();
+    }
+
+    @Bean
+    ItemWriter<ProcessedWeatherDataModel> processingWeatherDataWriter(
+            ProcessedWeatherDataRepository processedWeatherDataRepository) {
+        return new ProcessedWeatherDataWriter(processedWeatherDataRepository);
+    }
+
+    @Bean
+    Job aggregatingSensorDataJob(JobRepository jobRepository, Step aggregatingSensorDataStep) {
+        return new JobBuilder("aggregatingSensorData", jobRepository)
+                .start(aggregatingSensorDataStep)
+                .build();
+    }
+
+    @Bean
+    Step aggregatingSensorDataStep(JobRepository jobRepository,
+            PlatformTransactionManager transactionManager,
+            ItemReader<List<ProcessedSensorDataModel>> aggregatingSensorDataReader,
+            ItemWriter<AggregatedSensorDataModel> aggregatingSensorDataWriter,
+            ItemProcessor<List<ProcessedSensorDataModel>, AggregatedSensorDataModel> aggregatingSensorDataProcessor) {
         return new StepBuilder(jobRepository)
                 .<List<ProcessedSensorDataModel>, AggregatedSensorDataModel>chunk(1)
                 .transactionManager(transactionManager)
-                .reader(aggregatingReader)
-                .processor(aggregatingProcessor)
-                .writer(aggregatingWriter)
+                .reader(aggregatingSensorDataReader)
+                .processor(aggregatingSensorDataProcessor)
+                .writer(aggregatingSensorDataWriter)
                 .build();
     }
 
     @Bean
-    ItemReader<List<ProcessedSensorDataModel>> aggregatingReader(
+    ItemReader<List<ProcessedSensorDataModel>> aggregatingSensorDataReader(
             ProcessedSensorDataRepository processedSensorDataRepository) {
         return new AggregatedSensorDataReader(processedSensorDataRepository);
     }
 
     @Bean
-    ItemProcessor<List<ProcessedSensorDataModel>, AggregatedSensorDataModel> aggregatingProcessor() {
+    ItemProcessor<List<ProcessedSensorDataModel>, AggregatedSensorDataModel> aggregatingSensorDataProcessor() {
         return new AggregatedSensorDataProcessor();
     }
 
     @Bean
-    ItemWriter<AggregatedSensorDataModel> aggregatingWriter(
+    ItemWriter<AggregatedSensorDataModel> aggregatingSensorDataWriter(
             AggregatedSensorDataRepository aggregatedSensorDataRepository, BatchEventPublisher batchEventPublisher) {
         return new AggregatedSensorDataWriter(aggregatedSensorDataRepository, batchEventPublisher);
     }
 
     @Bean
-    Job derivingJob(JobRepository jobRepository, Step derivingStep) {
-        return new JobBuilder("deriving", jobRepository)
-                .start(derivingStep)
+    Job derivingSensorDataJob(JobRepository jobRepository, Step derivingSensorDataStep) {
+        return new JobBuilder("derivingSensorData", jobRepository)
+                .start(derivingSensorDataStep)
                 .build();
     }
 
     @Bean
-    Step derivingStep(JobRepository jobRepository,
-            PlatformTransactionManager transactionManager, ItemReader<AggregatedSensorDataModel> derivingReader,
-            ItemWriter<DerivedSensorDataModel> derivingWriter,
-            ItemProcessor<AggregatedSensorDataModel, DerivedSensorDataModel> derivingProcessor) {
+    Step derivingSensorDataStep(JobRepository jobRepository,
+            PlatformTransactionManager transactionManager,
+            ItemReader<AggregatedSensorDataModel> derivingSensorDataReader,
+            ItemWriter<DerivedSensorDataModel> derivingSensorDataWriter,
+            ItemProcessor<AggregatedSensorDataModel, DerivedSensorDataModel> derivingSensorDataProcessor) {
         return new StepBuilder(jobRepository)
                 .<AggregatedSensorDataModel, DerivedSensorDataModel>chunk(1).transactionManager(transactionManager)
-                .reader(derivingReader)
-                .processor(derivingProcessor)
-                .writer(derivingWriter)
+                .reader(derivingSensorDataReader)
+                .processor(derivingSensorDataProcessor)
+                .writer(derivingSensorDataWriter)
                 .build();
     }
 
     @Bean
-    ItemReader<AggregatedSensorDataModel> derivingReader(
+    ItemReader<AggregatedSensorDataModel> derivingSensorDataReader(
             AggregatedSensorDataRepository aggregatedSensorDataRepository) {
         return new DerivedSensorDataReader(aggregatedSensorDataRepository);
     }
 
     @Bean
-    ItemProcessor<AggregatedSensorDataModel, DerivedSensorDataModel> derivingProcessor() {
+    ItemProcessor<AggregatedSensorDataModel, DerivedSensorDataModel> derivingSensorDataProcessor() {
         return new DerivedSensorDataProcessor();
     }
 
     @Bean
-    ItemWriter<DerivedSensorDataModel> derivingWriter(
+    ItemWriter<DerivedSensorDataModel> derivingSensorDataWriter(
             DerivedSensorDataRepository derivedSensorDataRepository) {
         return new DerivedSensorDataWriter(derivedSensorDataRepository);
     }
 
     @Override
-    @Bean
+    @Bean(name = { "taskExecutor" })
     protected TaskExecutor getTaskExecutor() {
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.setVirtualThreads(true);

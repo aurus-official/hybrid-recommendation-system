@@ -1,8 +1,9 @@
 package com.aurus.server.batch;
 
-import com.aurus.server.batch.aggregate.AggregatingEvent;
-import com.aurus.server.batch.derive.DerivingEvent;
-import com.aurus.server.batch.process.ProcessingEvent;
+import com.aurus.server.batch.aggregate.AggregatingSensorDataEvent;
+import com.aurus.server.batch.derive.sensor.DerivingSensorDataEvent;
+import com.aurus.server.batch.process.sensor.ProcessingSensorDataEvent;
+import com.aurus.server.batch.process.weather.ProcessingWeatherDataEvent;
 
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.job.Job;
@@ -32,35 +33,50 @@ public class BatchEventListener {
 
     @EventListener
     @Async
-    public void listenProcessingEvent(ProcessingEvent processingEvent) throws JobInstanceAlreadyCompleteException,
+    public void listenProcessingSensorDataEvent(ProcessingSensorDataEvent processingSensorDataEvent)
+            throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
-        Job processingJob = jobRegistry.getJob("processing");
+        Job processingJob = jobRegistry.getJob("processingSensorData");
         JobParameters jobParameters = new JobParametersBuilder()
-                .addLong("processedSensorId", processingEvent.processedSensorId(), false)
+                .addLong("rawSensorId", processingSensorDataEvent.rawSensorId(), false)
                 .toJobParameters();
         jobOperator.start(processingJob, jobParameters);
     }
 
     @EventListener
     @Async
-    public void listenAggregatingEvent(AggregatingEvent aggregatingEvent) throws JobInstanceAlreadyCompleteException,
+    public void listenProcessingWeatherDataEvent(ProcessingWeatherDataEvent processingWeatherDataEvent)
+            throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
-        Job aggregatingJob = jobRegistry.getJob("aggregating");
+        Job processingJob = jobRegistry.getJob("processingWeatherData");
+        System.out.println("hello LISTEENNNN!");
         JobParameters jobParameters = new JobParametersBuilder()
-                .addLocalDateTime("startingWindow", aggregatingEvent.startingWindow())
-                .addLocalDateTime("endingWindow", aggregatingEvent.endingWindow()).toJobParameters();
+                .addLong("rawWeatherId", processingWeatherDataEvent.rawWeatherId(), false)
+                .toJobParameters();
+        jobOperator.start(processingJob, jobParameters);
+    }
+
+    @EventListener
+    @Async
+    public void listenAggregatingSensorDataEvent(AggregatingSensorDataEvent aggregatingSensorDataEvent)
+            throws JobInstanceAlreadyCompleteException,
+            JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
+        Job aggregatingJob = jobRegistry.getJob("aggregatingSensorData");
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addLocalDateTime("startingWindow", aggregatingSensorDataEvent.startingWindow(), false)
+                .addLocalDateTime("endingWindow", aggregatingSensorDataEvent.endingWindow(), false).toJobParameters();
         jobOperator.start(aggregatingJob, jobParameters);
-        System.out.println("IS IT ASYNC OR NAH?");
 
     }
 
     @EventListener
     @Async
-    public void listenDerivingEvent(DerivingEvent derivingEvent) throws JobInstanceAlreadyCompleteException,
+    public void listenDerivingSensorDataEvent(DerivingSensorDataEvent derivingSensorDataEvent)
+            throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
-        Job derivingJob = jobRegistry.getJob("deriving");
+        Job derivingJob = jobRegistry.getJob("derivingSensorData");
         JobParameters jobParameters = new JobParametersBuilder()
-                .addLong("derivedSensorId", derivingEvent.derivedSensorId(), false)
+                .addLong("aggregatedSensorId", derivingSensorDataEvent.aggregatedSensorId(), false)
                 .toJobParameters();
         jobOperator.start(derivingJob, jobParameters);
     }

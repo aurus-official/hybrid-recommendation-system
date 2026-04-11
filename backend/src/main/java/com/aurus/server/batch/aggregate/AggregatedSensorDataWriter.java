@@ -30,7 +30,7 @@ public class AggregatedSensorDataWriter implements ItemWriter<AggregatedSensorDa
     @Override
     public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
 
-        batchEventPublisher.publishDerivingEvent(id);
+        batchEventPublisher.publishDerivingSensorDataEvent(id);
         return StepExecutionListener.super.afterStep(stepExecution);
     }
 

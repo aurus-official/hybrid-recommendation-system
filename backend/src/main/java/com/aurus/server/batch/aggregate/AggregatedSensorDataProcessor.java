@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.aurus.server.batch.process.ProcessedSensorDataDTO;
-import com.aurus.server.batch.process.ProcessedSensorDataModel;
+import com.aurus.server.batch.process.sensor.ProcessedSensorDataDTO;
+import com.aurus.server.batch.process.sensor.ProcessedSensorDataModel;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.listener.StepExecutionListener;

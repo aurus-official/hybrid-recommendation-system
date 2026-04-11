@@ -1,6 +1,12 @@
 package com.aurus.server.ingestion;
 
 import com.aurus.server.batch.BatchEventPublisher;
+import com.aurus.server.ingestion.health_check.RawHealthCheckDataDTO;
+import com.aurus.server.ingestion.health_check.RawHealthCheckDataModel;
+import com.aurus.server.ingestion.health_check.RawHealthCheckDataRepository;
+import com.aurus.server.ingestion.sensor.RawSensorDataDTO;
+import com.aurus.server.ingestion.sensor.RawSensorDataModel;
+import com.aurus.server.ingestion.sensor.RawSensorDataRepository;
 
 import org.springframework.batch.core.job.parameters.InvalidJobParametersException;
 import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException;
@@ -36,7 +42,7 @@ public class IngestionService {
 
         RawSensorDataModel savedRawSensorDataModel = rawSensorDataRepository.save(rawSensorDataModel);
 
-        batchEventPublisher.publishProcessingEvent(savedRawSensorDataModel.getId());
+        batchEventPublisher.publishProcessingSensorDataEvent(savedRawSensorDataModel.getId());
         return true;
     }
 
