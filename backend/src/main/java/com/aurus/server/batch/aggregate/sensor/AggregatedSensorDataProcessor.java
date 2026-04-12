@@ -1,4 +1,4 @@
-package com.aurus.server.batch.aggregate;
+package com.aurus.server.batch.aggregate.sensor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -78,8 +78,8 @@ public class AggregatedSensorDataProcessor
         return Math.round(value * 10_000.0f) / 10_000.0f;
     }
 
-    private float average(List<Float> pastRawSensorDataValues) {
-        return (float) pastRawSensorDataValues.stream().mapToDouble(item -> item).average().getAsDouble();
+    private float average(List<Float> pastProcessedSensorDataValues) {
+        return (float) pastProcessedSensorDataValues.stream().mapToDouble(item -> item).average().getAsDouble();
     }
 
 }

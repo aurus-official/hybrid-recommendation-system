@@ -40,7 +40,7 @@ public class ProcessedSensorDataProcessor implements ItemProcessor<RawSensorData
         float airTempValue = movingAverage(pastRawSensorDataModels.stream()
                 .map(RawSensorDataModel::getAirTemp).collect(Collectors.toList()).reversed());
         float humidityValue = movingAverage(pastRawSensorDataModels.stream()
-                .map(RawSensorDataModel::getHumidity).collect(Collectors.toList()).reversed());
+                .map(RawSensorDataModel::getHumidity).collect(Collectors.toList()).reversed()) * 100f;
         float pressureValue = movingAverage(pastRawSensorDataModels.stream()
                 .map(RawSensorDataModel::getPressure).collect(Collectors.toList()).reversed());
         float luxValue = median(pastRawSensorDataModels.stream()
@@ -58,12 +58,13 @@ public class ProcessedSensorDataProcessor implements ItemProcessor<RawSensorData
                         (prongMoistureDry
                                 - average(pastRawSensorDataModels.stream().map(RawSensorDataModel::getProngMoisture)
                                         .collect(Collectors.toList())))
-                                / (prongMoistureDry - prongMoistureWet)));
+                                / (prongMoistureDry - prongMoistureWet)))
+                * 100f;
 
         float capacitiveMoistureValue = Math.max(0.0f, Math.min(100, (capacitiveMoistureDry - average(
                 pastRawSensorDataModels.stream().map(RawSensorDataModel::getCapacitiveMoisture)
                         .collect(Collectors.toList())))
-                / (capacitiveMoistureDry - capacitiveMoistureWet)));
+                / (capacitiveMoistureDry - capacitiveMoistureWet))) * 100f;
 
         ProcessedSensorDataDTO soilTempStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(soilTempValue), "°C");
         ProcessedSensorDataDTO airTempStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(airTempValue), "°C");

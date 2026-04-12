@@ -53,76 +53,76 @@ public class ProcessedSensorDataModel {
     }
 
     public ProcessedSensorDataModel(
-            ProcessedSensorDataDTO soilTempStat, ProcessedSensorDataDTO airTempStat,
-            ProcessedSensorDataDTO humidityStat, ProcessedSensorDataDTO pressureStat,
-            ProcessedSensorDataDTO luxStat, ProcessedSensorDataDTO uvStat, ProcessedSensorDataDTO tdsStat,
-            ProcessedSensorDataDTO prongMoistureStat,
-            ProcessedSensorDataDTO capacitiveMoistureStat, long rawSensorDataId) {
+            ProcessedSensorDataDTO soilTemp, ProcessedSensorDataDTO airTemp,
+            ProcessedSensorDataDTO humidity, ProcessedSensorDataDTO pressure,
+            ProcessedSensorDataDTO lux, ProcessedSensorDataDTO uv, ProcessedSensorDataDTO tds,
+            ProcessedSensorDataDTO prongMoisture,
+            ProcessedSensorDataDTO capacitiveMoisture, long rawSensorDataId) {
 
-        this.soilTemp = soilTempStat.value();
-        this.soilTempUnit = soilTempStat.unit();
+        this.soilTemp = soilTemp.value();
+        this.soilTempUnit = soilTemp.unit();
 
-        this.airTemp = airTempStat.value();
-        this.airTempUnit = airTempStat.unit();
+        this.airTemp = airTemp.value();
+        this.airTempUnit = airTemp.unit();
 
-        this.humidity = humidityStat.value();
-        this.humidityUnit = humidityStat.unit();
+        this.humidity = humidity.value();
+        this.humidityUnit = humidity.unit();
 
-        this.pressure = pressureStat.value();
-        this.pressureUnit = pressureStat.unit();
+        this.pressure = pressure.value();
+        this.pressureUnit = pressure.unit();
 
-        this.lux = luxStat.value();
-        this.luxUnit = luxStat.unit();
+        this.lux = lux.value();
+        this.luxUnit = lux.unit();
 
-        this.uv = uvStat.value();
-        this.uvUnit = uvStat.unit();
+        this.uv = uv.value();
+        this.uvUnit = uv.unit();
 
-        this.tds = tdsStat.value();
-        this.tdsUnit = tdsStat.unit();
+        this.tds = tds.value();
+        this.tdsUnit = tds.unit();
 
-        this.prongMoisture = prongMoistureStat.value();
-        this.prongMoistureUnit = prongMoistureStat.unit();
+        this.prongMoisture = prongMoisture.value();
+        this.prongMoistureUnit = prongMoisture.unit();
 
-        this.capacitiveMoisture = capacitiveMoistureStat.value();
-        this.capacitiveMoistureUnit = capacitiveMoistureStat.unit();
+        this.capacitiveMoisture = capacitiveMoisture.value();
+        this.capacitiveMoistureUnit = capacitiveMoisture.unit();
 
         this.rawSensorDataId = rawSensorDataId;
 
     }
 
-    public ProcessedSensorDataDTO getSoilTempStat() {
+    public ProcessedSensorDataDTO getSoilTemp() {
         return new ProcessedSensorDataDTO(soilTemp, soilTempUnit);
     }
 
-    public ProcessedSensorDataDTO getAirTempStat() {
+    public ProcessedSensorDataDTO getAirTemp() {
         return new ProcessedSensorDataDTO(airTemp, airTempUnit);
     }
 
-    public ProcessedSensorDataDTO getHumidityStat() {
+    public ProcessedSensorDataDTO getHumidity() {
         return new ProcessedSensorDataDTO(humidity, humidityUnit);
     }
 
-    public ProcessedSensorDataDTO getPressureStat() {
+    public ProcessedSensorDataDTO getPressure() {
         return new ProcessedSensorDataDTO(pressure, pressureUnit);
     }
 
-    public ProcessedSensorDataDTO getLuxStat() {
+    public ProcessedSensorDataDTO getLux() {
         return new ProcessedSensorDataDTO(lux, luxUnit);
     }
 
-    public ProcessedSensorDataDTO getUvStat() {
+    public ProcessedSensorDataDTO getUv() {
         return new ProcessedSensorDataDTO(uv, uvUnit);
     }
 
-    public ProcessedSensorDataDTO getTdsStat() {
+    public ProcessedSensorDataDTO getTds() {
         return new ProcessedSensorDataDTO(tds, tdsUnit);
     }
 
-    public ProcessedSensorDataDTO getProngMoistureStat() {
+    public ProcessedSensorDataDTO getProngMoisture() {
         return new ProcessedSensorDataDTO(prongMoisture, prongMoistureUnit);
     }
 
-    public ProcessedSensorDataDTO getCapacitiveMoistureStat() {
+    public ProcessedSensorDataDTO getCapacitiveMoisture() {
         return new ProcessedSensorDataDTO(capacitiveMoisture, capacitiveMoistureUnit);
     }
 

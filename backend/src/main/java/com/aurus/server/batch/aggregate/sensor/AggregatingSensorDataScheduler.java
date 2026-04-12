@@ -1,4 +1,4 @@
-package com.aurus.server.batch.aggregate;
+package com.aurus.server.batch.aggregate.sensor;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;

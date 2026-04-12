@@ -1,4 +1,4 @@
-package com.aurus.server.batch.aggregate;
+package com.aurus.server.batch.aggregate.sensor;
 
 import java.time.LocalDateTime;
 
@@ -50,77 +50,77 @@ public class AggregatedSensorDataModel {
     }
 
     public AggregatedSensorDataModel(
-            AggregatedSensorDataDTO soilTempStat, AggregatedSensorDataDTO airTempStat,
-            AggregatedSensorDataDTO humidityStat, AggregatedSensorDataDTO pressureStat,
-            AggregatedSensorDataDTO luxStat, AggregatedSensorDataDTO uvStat, AggregatedSensorDataDTO tdsStat,
-            AggregatedSensorDataDTO prongMoistureStat,
-            AggregatedSensorDataDTO capacitiveMoistureStat,
+            AggregatedSensorDataDTO soilTemp, AggregatedSensorDataDTO airTemp,
+            AggregatedSensorDataDTO humidity, AggregatedSensorDataDTO pressure,
+            AggregatedSensorDataDTO lux, AggregatedSensorDataDTO uv, AggregatedSensorDataDTO tds,
+            AggregatedSensorDataDTO prongMoisture,
+            AggregatedSensorDataDTO capacitiveMoisture,
             LocalDateTime startingWindow, LocalDateTime endingWindow) {
 
-        this.soilTemp = soilTempStat.value();
-        this.soilTempUnit = soilTempStat.unit();
+        this.soilTemp = soilTemp.value();
+        this.soilTempUnit = soilTemp.unit();
 
-        this.airTemp = airTempStat.value();
-        this.airTempUnit = airTempStat.unit();
+        this.airTemp = airTemp.value();
+        this.airTempUnit = airTemp.unit();
 
-        this.humidity = humidityStat.value();
-        this.humidityUnit = humidityStat.unit();
+        this.humidity = humidity.value();
+        this.humidityUnit = humidity.unit();
 
-        this.pressure = pressureStat.value();
-        this.pressureUnit = pressureStat.unit();
+        this.pressure = pressure.value();
+        this.pressureUnit = pressure.unit();
 
-        this.lux = luxStat.value();
-        this.luxUnit = luxStat.unit();
+        this.lux = lux.value();
+        this.luxUnit = lux.unit();
 
-        this.uv = uvStat.value();
-        this.uvUnit = uvStat.unit();
+        this.uv = uv.value();
+        this.uvUnit = uv.unit();
 
-        this.tds = tdsStat.value();
-        this.tdsUnit = tdsStat.unit();
+        this.tds = tds.value();
+        this.tdsUnit = tds.unit();
 
-        this.prongMoisture = prongMoistureStat.value();
-        this.prongMoistureUnit = prongMoistureStat.unit();
+        this.prongMoisture = prongMoisture.value();
+        this.prongMoistureUnit = prongMoisture.unit();
 
-        this.capacitiveMoisture = capacitiveMoistureStat.value();
-        this.capacitiveMoistureUnit = capacitiveMoistureStat.unit();
+        this.capacitiveMoisture = capacitiveMoisture.value();
+        this.capacitiveMoistureUnit = capacitiveMoisture.unit();
 
         this.startingWindow = startingWindow;
         this.endingWindow = endingWindow;
     }
 
-    public AggregatedSensorDataDTO getSoilTempStat() {
+    public AggregatedSensorDataDTO getSoilTemp() {
         return new AggregatedSensorDataDTO(soilTemp, soilTempUnit);
     }
 
-    public AggregatedSensorDataDTO getAirTempStat() {
+    public AggregatedSensorDataDTO getAirTemp() {
         return new AggregatedSensorDataDTO(airTemp, airTempUnit);
     }
 
-    public AggregatedSensorDataDTO getHumidityStat() {
+    public AggregatedSensorDataDTO getHumidity() {
         return new AggregatedSensorDataDTO(humidity, humidityUnit);
     }
 
-    public AggregatedSensorDataDTO getPressureStat() {
+    public AggregatedSensorDataDTO getPressure() {
         return new AggregatedSensorDataDTO(pressure, pressureUnit);
     }
 
-    public AggregatedSensorDataDTO getLuxStat() {
+    public AggregatedSensorDataDTO getLux() {
         return new AggregatedSensorDataDTO(lux, luxUnit);
     }
 
-    public AggregatedSensorDataDTO getUvStat() {
+    public AggregatedSensorDataDTO getUv() {
         return new AggregatedSensorDataDTO(uv, uvUnit);
     }
 
-    public AggregatedSensorDataDTO getTdsStat() {
+    public AggregatedSensorDataDTO getTds() {
         return new AggregatedSensorDataDTO(tds, tdsUnit);
     }
 
-    public AggregatedSensorDataDTO getProngMoistureStat() {
+    public AggregatedSensorDataDTO getProngMoisture() {
         return new AggregatedSensorDataDTO(prongMoisture, prongMoistureUnit);
     }
 
-    public AggregatedSensorDataDTO getCapacitiveMoistureStat() {
+    public AggregatedSensorDataDTO getCapacitiveMoisture() {
         return new AggregatedSensorDataDTO(capacitiveMoisture, capacitiveMoistureUnit);
     }
 

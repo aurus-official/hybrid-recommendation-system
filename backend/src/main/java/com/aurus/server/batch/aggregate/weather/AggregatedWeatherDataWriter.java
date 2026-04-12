@@ -1,0 +1,37 @@
+package com.aurus.server.batch.aggregate.weather;
+
+import com.aurus.server.batch.BatchEventPublisher;
+
+import org.jspecify.annotations.Nullable;
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.listener.StepExecutionListener;
+import org.springframework.batch.core.step.StepExecution;
+import org.springframework.batch.infrastructure.item.Chunk;
+import org.springframework.batch.infrastructure.item.ItemWriter;
+
+public class AggregatedWeatherDataWriter implements ItemWriter<AggregatedWeatherDataModel>, StepExecutionListener {
+
+    private final AggregatedWeatherDataRepository aggregatedWeatherDataRepository;
+    private final BatchEventPublisher batchEventPublisher;
+    private long id;
+
+    public AggregatedWeatherDataWriter(AggregatedWeatherDataRepository aggregatedWeatherDataRepository,
+            BatchEventPublisher batchEventPublisher) {
+        this.aggregatedWeatherDataRepository = aggregatedWeatherDataRepository;
+        this.batchEventPublisher = batchEventPublisher;
+    }
+
+    @Override
+    public void write(Chunk<? extends AggregatedWeatherDataModel> chunk) throws Exception {
+        this.id = chunk.getItems().get(0).getId();
+        aggregatedWeatherDataRepository.saveAll(chunk.getItems());
+    }
+
+    @Override
+    public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
+
+        // batchEventPublisher.publishDerivingSensorDataEvent(id);
+        return StepExecutionListener.super.afterStep(stepExecution);
+    }
+
+}

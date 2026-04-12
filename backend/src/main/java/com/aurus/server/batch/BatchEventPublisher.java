@@ -2,7 +2,8 @@ package com.aurus.server.batch;
 
 import java.time.LocalDateTime;
 
-import com.aurus.server.batch.aggregate.AggregatingSensorDataEvent;
+import com.aurus.server.batch.aggregate.sensor.AggregatingSensorDataEvent;
+import com.aurus.server.batch.aggregate.weather.AggregatingWeatherDataEvent;
 import com.aurus.server.batch.derive.sensor.DerivingSensorDataEvent;
 import com.aurus.server.batch.process.sensor.ProcessingSensorDataEvent;
 import com.aurus.server.batch.process.weather.ProcessingWeatherDataEvent;
@@ -24,13 +25,16 @@ public class BatchEventPublisher {
     }
 
     public void publishProcessingWeatherDataEvent(Long id) {
-        System.out.println("PUBLISHING WORKINGGG!");
         applicationEventPublisher.publishEvent(new ProcessingWeatherDataEvent(id));
-
     }
 
     public void publishAggregatingSensorDataEvent(LocalDateTime startingWindow, LocalDateTime endingWindow) {
         applicationEventPublisher.publishEvent(new AggregatingSensorDataEvent(startingWindow, endingWindow));
+    }
+
+    public void publishAggregatingWeatherDataEvent(Long id) {
+        applicationEventPublisher.publishEvent(new AggregatingWeatherDataEvent(id));
+
     }
 
     public void publishDerivingSensorDataEvent(Long id) {

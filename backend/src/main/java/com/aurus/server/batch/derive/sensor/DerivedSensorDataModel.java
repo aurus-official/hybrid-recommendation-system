@@ -44,35 +44,35 @@ public class DerivedSensorDataModel {
     }
 
     public DerivedSensorDataModel(
-            DerivedSensorDataDTO combinedSoilMoistureStat, DerivedSensorDataDTO plantStressIndexStat,
-            DerivedSensorDataDTO evaporationDryingRiskStat, DerivedSensorDataDTO soilFertilityIndexStat,
-            DerivedSensorDataDTO heatStressIndexStat, DerivedSensorDataDTO uvStressIndexStat,
-            DerivedSensorDataDTO lightGrowthIndexStat, DerivedSensorDataDTO combinedAgronomicIndexStat,
+            DerivedSensorDataDTO combinedSoilMoisture, DerivedSensorDataDTO plantStressIndex,
+            DerivedSensorDataDTO evaporationDryingRisk, DerivedSensorDataDTO soilFertilityIndex,
+            DerivedSensorDataDTO heatStressIndex, DerivedSensorDataDTO uvStressIndex,
+            DerivedSensorDataDTO lightGrowthIndex, DerivedSensorDataDTO combinedAgronomicIndex,
             long processedSensorDataId) {
 
-        this.combinedSoilMoisture = combinedSoilMoistureStat.value();
-        this.combinedSoilMoistureUnit = combinedSoilMoistureStat.unit();
+        this.combinedSoilMoisture = combinedSoilMoisture.value();
+        this.combinedSoilMoistureUnit = combinedSoilMoisture.unit();
 
-        this.plantStressIndex = plantStressIndexStat.value();
-        this.plantStressIndexUnit = plantStressIndexStat.unit();
+        this.plantStressIndex = plantStressIndex.value();
+        this.plantStressIndexUnit = plantStressIndex.unit();
 
-        this.evaporationDryingRisk = evaporationDryingRiskStat.value();
-        this.evaporationDryingRiskUnit = evaporationDryingRiskStat.unit();
+        this.evaporationDryingRisk = evaporationDryingRisk.value();
+        this.evaporationDryingRiskUnit = evaporationDryingRisk.unit();
 
-        this.soilFertilityIndex = soilFertilityIndexStat.value();
-        this.soilFertilityIndexUnit = soilFertilityIndexStat.unit();
+        this.soilFertilityIndex = soilFertilityIndex.value();
+        this.soilFertilityIndexUnit = soilFertilityIndex.unit();
 
-        this.heatStressIndex = heatStressIndexStat.value();
-        this.heatStressIndexUnit = heatStressIndexStat.unit();
+        this.heatStressIndex = heatStressIndex.value();
+        this.heatStressIndexUnit = heatStressIndex.unit();
 
-        this.uvStressIndex = uvStressIndexStat.value();
-        this.uvStressIndexUnit = uvStressIndexStat.unit();
+        this.uvStressIndex = uvStressIndex.value();
+        this.uvStressIndexUnit = uvStressIndex.unit();
 
-        this.combinedAgronomicIndex = combinedAgronomicIndexStat.value();
-        this.combinedAgronomicIndexUnit = combinedAgronomicIndexStat.unit();
+        this.combinedAgronomicIndex = combinedAgronomicIndex.value();
+        this.combinedAgronomicIndexUnit = combinedAgronomicIndex.unit();
 
-        this.lightGrowthIndex = lightGrowthIndexStat.value();
-        this.lightGrowthIndexUnit = lightGrowthIndexStat.unit();
+        this.lightGrowthIndex = lightGrowthIndex.value();
+        this.lightGrowthIndexUnit = lightGrowthIndex.unit();
 
         this.processedSensorDataId = processedSensorDataId;
     }

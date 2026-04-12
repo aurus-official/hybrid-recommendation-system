@@ -4,11 +4,11 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import com.aurus.server.batch.aggregate.AggregatedSensorDataModel;
-import com.aurus.server.batch.aggregate.AggregatedSensorDataProcessor;
-import com.aurus.server.batch.aggregate.AggregatedSensorDataReader;
-import com.aurus.server.batch.aggregate.AggregatedSensorDataRepository;
-import com.aurus.server.batch.aggregate.AggregatedSensorDataWriter;
+import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataModel;
+import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataProcessor;
+import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataReader;
+import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataRepository;
+import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataWriter;
 import com.aurus.server.batch.derive.sensor.DerivedSensorDataModel;
 import com.aurus.server.batch.derive.sensor.DerivedSensorDataProcessor;
 import com.aurus.server.batch.derive.sensor.DerivedSensorDataReader;
@@ -28,6 +28,7 @@ import com.aurus.server.ingestion.sensor.RawSensorDataModel;
 import com.aurus.server.ingestion.sensor.RawSensorDataRepository;
 import com.aurus.server.ingestion.weather.RawWeatherDataModel;
 import com.aurus.server.ingestion.weather.RawWeatherDataRepository;
+import com.aurus.server.shared.TdsWindowNormalization;
 
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.support.JdbcDefaultBatchConfiguration;
@@ -166,6 +167,42 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
     }
 
     @Bean
+    Job aggregatingWeatherDataJob(JobRepository jobRepository, Step aggregatingWeatherDataStep) {
+        return new JobBuilder("aggregatingWeatherData", jobRepository)
+                .start(aggregatingWeatherDataStep)
+                .build();
+    }
+
+    @Bean
+    Step aggregatingWeatherDataStep(JobRepository jobRepository,
+            PlatformTransactionManager transactionManager, ItemReader<RawWeatherDataModel> aggregatingWeatherDataReader,
+            ItemWriter<ProcessedWeatherDataModel> aggregatingWeatherDataWriter,
+            ItemProcessor<RawWeatherDataModel, ProcessedWeatherDataModel> aggregatingWeatherDataProcessor) {
+        return new StepBuilder(jobRepository)
+                .<RawWeatherDataModel, ProcessedWeatherDataModel>chunk(1).transactionManager(transactionManager)
+                .reader(aggregatingWeatherDataReader)
+                .processor(aggregatingWeatherDataProcessor)
+                .writer(aggregatingWeatherDataWriter)
+                .build();
+    }
+
+    @Bean
+    ItemReader<RawWeatherDataModel> aggregatingWeatherDataReader(RawWeatherDataRepository rawWeatherDataRepository) {
+        return new ProcessedWeatherDataReader(rawWeatherDataRepository);
+    }
+
+    @Bean
+    ItemProcessor<RawWeatherDataModel, ProcessedWeatherDataModel> aggregatingWeatherDataProcessor() {
+        return new ProcessedWeatherDataProcessor();
+    }
+
+    @Bean
+    ItemWriter<ProcessedWeatherDataModel> aggregatingWeatherDataWriter(
+            ProcessedWeatherDataRepository processedWeatherDataRepository) {
+        return new ProcessedWeatherDataWriter(processedWeatherDataRepository);
+    }
+
+    @Bean
     Job derivingSensorDataJob(JobRepository jobRepository, Step derivingSensorDataStep) {
         return new JobBuilder("derivingSensorData", jobRepository)
                 .start(derivingSensorDataStep)
@@ -193,8 +230,9 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
     }
 
     @Bean
-    ItemProcessor<AggregatedSensorDataModel, DerivedSensorDataModel> derivingSensorDataProcessor() {
-        return new DerivedSensorDataProcessor();
+    ItemProcessor<AggregatedSensorDataModel, DerivedSensorDataModel> derivingSensorDataProcessor(
+            TdsWindowNormalization tdsWindowNormalization) {
+        return new DerivedSensorDataProcessor(tdsWindowNormalization);
     }
 
     @Bean

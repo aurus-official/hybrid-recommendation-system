@@ -1,6 +1,7 @@
 package com.aurus.server.batch;
 
-import com.aurus.server.batch.aggregate.AggregatingSensorDataEvent;
+import com.aurus.server.batch.aggregate.sensor.AggregatingSensorDataEvent;
+import com.aurus.server.batch.aggregate.weather.AggregatingWeatherDataEvent;
 import com.aurus.server.batch.derive.sensor.DerivingSensorDataEvent;
 import com.aurus.server.batch.process.sensor.ProcessingSensorDataEvent;
 import com.aurus.server.batch.process.weather.ProcessingWeatherDataEvent;
@@ -49,7 +50,6 @@ public class BatchEventListener {
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
         Job processingJob = jobRegistry.getJob("processingWeatherData");
-        System.out.println("hello LISTEENNNN!");
         JobParameters jobParameters = new JobParametersBuilder()
                 .addLong("rawWeatherId", processingWeatherDataEvent.rawWeatherId(), false)
                 .toJobParameters();
@@ -66,7 +66,18 @@ public class BatchEventListener {
                 .addLocalDateTime("startingWindow", aggregatingSensorDataEvent.startingWindow(), false)
                 .addLocalDateTime("endingWindow", aggregatingSensorDataEvent.endingWindow(), false).toJobParameters();
         jobOperator.start(aggregatingJob, jobParameters);
+    }
 
+    @EventListener
+    @Async
+    public void listenAggregatingWeatherDataEvent(AggregatingWeatherDataEvent aggregatingWeatherDataEvent)
+            throws JobInstanceAlreadyCompleteException,
+            JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
+        Job aggregatingJob = jobRegistry.getJob("processingWeatherData");
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("processedWeatherId", aggregatingWeatherDataEvent.processedWeatherId(), false)
+                .toJobParameters();
+        jobOperator.start(aggregatingJob, jobParameters);
     }
 
     @EventListener

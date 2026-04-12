@@ -1,4 +1,4 @@
-package com.aurus.server.batch.aggregate;
+package com.aurus.server.batch.aggregate.sensor;
 
 import com.aurus.server.batch.BatchEventPublisher;
 
