@@ -13,6 +13,10 @@ public class DerivedSensorDataWriter implements ItemWriter<DerivedSensorDataMode
 
     @Override
     public void write(Chunk<? extends DerivedSensorDataModel> chunk) throws Exception {
+        // BatchStatus batchStatus = stepExecution.getStatus();
+        // if (batchStatus == BatchStatus.COMPLETED) {
+        // batchEventPublisher.publishDerivingWeatherDataEvent(id);
+        // }
         derivedSensorDataRepository.saveAll(chunk.getItems());
 
     }

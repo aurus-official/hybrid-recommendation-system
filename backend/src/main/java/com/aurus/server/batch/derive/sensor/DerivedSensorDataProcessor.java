@@ -27,18 +27,18 @@ public class DerivedSensorDataProcessor
         final float sigma = 8000.0f;
 
         float uvStressIndexValue = model.getUv().value() / 11f;
-        float humidityRisk = (100f - model.getHumidity().value()) / 100f;
+        float humidityStress = (100f - model.getHumidity().value()) / 100f;
 
         float combinedSoilMoistureValue = Math.max(0f, Math.min(1f, (0.6f * model.getCapacitiveMoisture().value())
                 + (0.4f * model.getProngMoisture().value()) / 100f));
 
         float plantStressIndexValue = (0.5f * combinedSoilMoistureValue)
                 + (0.25f * tempStress(model.getAirTemp().value()))
-                + (0.15f * humidityRisk)
+                + (0.15f * humidityStress)
                 + (0.10f * uvStressIndexValue);
 
-        float evaporationDryingRiskValue = Math.max(0f, Math.min(1f, (0.4f * (model.getAirTemp().value() / 35f)
-                + (0.4f * humidityRisk)
+        float evaporationDryingRiskValue = Math.max(0f, Math.min(1f, (0.4f * tempStress(model.getAirTemp().value())
+                + (0.4f * humidityStress)
                 + (0.2f * (model.getUv().value() / 11f)))));
 
         float soilFertilityIndexValue = Math.max(0f,
@@ -47,8 +47,8 @@ public class DerivedSensorDataProcessor
                         + (0.2f * Math.max(0f, Math.min(1f,
                                 1f - (Math.abs(model.getSoilTemp().value() - 22.5f) / 15f))))));
 
-        float heatStressIndexValue = Math.max(0f, Math.min(1f, (0.7f * Math.max(0f,
-                (model.getAirTemp().value() - 15f) / 25f)) + (0.3f * humidityRisk)));
+        float heatStressIndexValue = Math.max(0f,
+                Math.min(1f, (0.7f * tempStress(model.getAirTemp().value())) + (0.3f * humidityStress)));
 
         float diff = model.getLux().value() - optimalLight;
         float lightGrowthIndexValue = Math.max(0f,
@@ -60,14 +60,23 @@ public class DerivedSensorDataProcessor
                 + (0.2f * soilFertilityIndexValue)
                 + (0.1f * lightGrowthIndexValue);
 
-        DerivedSensorDataDTO combinedSoilMoisture = new DerivedSensorDataDTO(combinedSoilMoistureValue, "%");
-        DerivedSensorDataDTO plantStressIndex = new DerivedSensorDataDTO(plantStressIndexValue, "");
-        DerivedSensorDataDTO evaporationDryingRisk = new DerivedSensorDataDTO(evaporationDryingRiskValue, "");
-        DerivedSensorDataDTO soilFertilityIndex = new DerivedSensorDataDTO(soilFertilityIndexValue, "");
-        DerivedSensorDataDTO heatStressIndex = new DerivedSensorDataDTO(heatStressIndexValue, "");
-        DerivedSensorDataDTO uvStressIndex = new DerivedSensorDataDTO(uvStressIndexValue, "");
-        DerivedSensorDataDTO lightGrowthIndex = new DerivedSensorDataDTO(lightGrowthIndexValue, "");
-        DerivedSensorDataDTO combinedAgronomicIndex = new DerivedSensorDataDTO(combinedAgronomicIndexValue, "");
+        DerivedSensorDataDTO combinedSoilMoisture = new DerivedSensorDataDTO(
+                toFourDigitsDecimal(combinedSoilMoistureValue), "normalized");
+        DerivedSensorDataDTO plantStressIndex = new DerivedSensorDataDTO(toFourDigitsDecimal(plantStressIndexValue),
+                "normalized");
+        DerivedSensorDataDTO evaporationDryingRisk = new DerivedSensorDataDTO(
+                toFourDigitsDecimal(evaporationDryingRiskValue), "normalized");
+        DerivedSensorDataDTO soilFertilityIndex = new DerivedSensorDataDTO(toFourDigitsDecimal(soilFertilityIndexValue),
+                "normalized");
+        DerivedSensorDataDTO heatStressIndex = new DerivedSensorDataDTO(toFourDigitsDecimal(heatStressIndexValue),
+                "normalized");
+        DerivedSensorDataDTO uvStressIndex = new DerivedSensorDataDTO(toFourDigitsDecimal(uvStressIndexValue),
+                "normalized");
+        DerivedSensorDataDTO lightGrowthIndex = new DerivedSensorDataDTO(toFourDigitsDecimal(lightGrowthIndexValue),
+                "normalized");
+        DerivedSensorDataDTO combinedAgronomicIndex = new DerivedSensorDataDTO(
+                toFourDigitsDecimal(combinedAgronomicIndexValue),
+                "normalized");
 
         DerivedSensorDataModel derivedSensorDataModel = new DerivedSensorDataModel(combinedSoilMoisture,
                 plantStressIndex, evaporationDryingRisk, soilFertilityIndex, heatStressIndex, uvStressIndex,
@@ -75,6 +84,10 @@ public class DerivedSensorDataProcessor
                 combinedAgronomicIndex, model.getId());
 
         return derivedSensorDataModel;
+    }
+
+    private float toFourDigitsDecimal(float value) {
+        return Math.round(value * 10_000.0f) / 10_000.0f;
     }
 
     private float tempStress(float tempValue) {

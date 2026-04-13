@@ -6,6 +6,7 @@ import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataModel;
 import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataRepository;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.infrastructure.item.ItemReader;
@@ -33,5 +34,13 @@ public class DerivedSensorDataReader implements ItemReader<AggregatedSensorDataM
             return null;
         lastSeenId = aggregatedSensorDataModel.get().getId();
         return aggregatedSensorDataModel.orElse(null);
+    }
+
+    @Override
+    public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
+        if (stepExecution.getReadCount() == 0) {
+            return ExitStatus.FAILED;
+        }
+        return StepExecutionListener.super.afterStep(stepExecution);
     }
 }

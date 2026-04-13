@@ -66,22 +66,22 @@ public class ProcessedSensorDataProcessor implements ItemProcessor<RawSensorData
                         .collect(Collectors.toList())))
                 / (capacitiveMoistureDry - capacitiveMoistureWet))) * 100f;
 
-        ProcessedSensorDataDTO soilTempStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(soilTempValue), "°C");
-        ProcessedSensorDataDTO airTempStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(airTempValue), "°C");
-        ProcessedSensorDataDTO humidityStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(humidityValue), "%RH");
-        ProcessedSensorDataDTO pressureStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(pressureValue), "hPa");
+        ProcessedSensorDataDTO soilTemp = new ProcessedSensorDataDTO(toFourDigitsDecimal(soilTempValue), "°C");
+        ProcessedSensorDataDTO airTemp = new ProcessedSensorDataDTO(toFourDigitsDecimal(airTempValue), "°C");
+        ProcessedSensorDataDTO humidity = new ProcessedSensorDataDTO(toFourDigitsDecimal(humidityValue), "%RH");
+        ProcessedSensorDataDTO pressure = new ProcessedSensorDataDTO(toFourDigitsDecimal(pressureValue), "hPa");
 
-        ProcessedSensorDataDTO luxStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(luxValue), "lux");
-        ProcessedSensorDataDTO uvStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(uvValue), "index");
-        ProcessedSensorDataDTO tdsStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(tdsValue), "ppm");
+        ProcessedSensorDataDTO lux = new ProcessedSensorDataDTO(toFourDigitsDecimal(luxValue), "lux");
+        ProcessedSensorDataDTO uv = new ProcessedSensorDataDTO(toFourDigitsDecimal(uvValue), "index");
+        ProcessedSensorDataDTO tds = new ProcessedSensorDataDTO(toFourDigitsDecimal(tdsValue), "ppm");
 
-        ProcessedSensorDataDTO prongMoistureStat = new ProcessedSensorDataDTO(toFourDigitsDecimal(prongMoistureValue),
+        ProcessedSensorDataDTO prongMoisture = new ProcessedSensorDataDTO(toFourDigitsDecimal(prongMoistureValue),
                 "%");
-        ProcessedSensorDataDTO capacitiveMoistureStat = new ProcessedSensorDataDTO(
+        ProcessedSensorDataDTO capacitiveMoisture = new ProcessedSensorDataDTO(
                 toFourDigitsDecimal(capacitiveMoistureValue), "%");
 
-        ProcessedSensorDataModel processedSensorDataModel = new ProcessedSensorDataModel(soilTempStat, airTempStat,
-                humidityStat, pressureStat, luxStat, uvStat, tdsStat, prongMoistureStat, capacitiveMoistureStat,
+        ProcessedSensorDataModel processedSensorDataModel = new ProcessedSensorDataModel(soilTemp, airTemp,
+                humidity, pressure, lux, uv, tds, prongMoisture, capacitiveMoisture,
                 item.getId());
 
         return processedSensorDataModel;

@@ -26,49 +26,50 @@ public class AggregatedSensorDataProcessor
 
     @Override
     public @Nullable AggregatedSensorDataModel process(List<ProcessedSensorDataModel> models) throws Exception {
-        float soilTempValue = average(models.stream().map(ProcessedSensorDataModel::getSoilTempStat)
+
+        float soilTempValue = average(models.stream().map(ProcessedSensorDataModel::getSoilTemp)
                 .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
 
-        float airTempValue = average(models.stream().map(ProcessedSensorDataModel::getAirTempStat)
+        float airTempValue = average(models.stream().map(ProcessedSensorDataModel::getAirTemp)
                 .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
 
-        float humidityValue = average(models.stream().map(ProcessedSensorDataModel::getHumidityStat)
+        float humidityValue = average(models.stream().map(ProcessedSensorDataModel::getHumidity)
                 .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
 
-        float pressureValue = average(models.stream().map(ProcessedSensorDataModel::getPressureStat)
+        float pressureValue = average(models.stream().map(ProcessedSensorDataModel::getPressure)
                 .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
 
-        float luxValue = average(models.stream().map(ProcessedSensorDataModel::getLuxStat)
+        float luxValue = average(models.stream().map(ProcessedSensorDataModel::getLux)
                 .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
 
-        float uvValue = average(models.stream().map(ProcessedSensorDataModel::getUvStat)
+        float uvValue = average(models.stream().map(ProcessedSensorDataModel::getUv)
                 .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
 
-        float tdsValue = average(models.stream().map(ProcessedSensorDataModel::getTdsStat)
+        float tdsValue = average(models.stream().map(ProcessedSensorDataModel::getTds)
                 .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
 
-        float prongMoistureValue = average(models.stream().map(ProcessedSensorDataModel::getProngMoistureStat)
+        float prongMoistureValue = average(models.stream().map(ProcessedSensorDataModel::getProngMoisture)
                 .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
 
-        float capacitiveMoistureValue = average(models.stream().map(ProcessedSensorDataModel::getCapacitiveMoistureStat)
+        float capacitiveMoistureValue = average(models.stream().map(ProcessedSensorDataModel::getCapacitiveMoisture)
                 .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
 
-        AggregatedSensorDataDTO soilTempStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(soilTempValue), "°C");
-        AggregatedSensorDataDTO airTempStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(airTempValue), "°C");
-        AggregatedSensorDataDTO humidityStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(humidityValue), "%RH");
-        AggregatedSensorDataDTO pressureStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(pressureValue), "hPa");
+        AggregatedSensorDataDTO soilTemp = new AggregatedSensorDataDTO(toFourDigitsDecimal(soilTempValue), "°C");
+        AggregatedSensorDataDTO airTemp = new AggregatedSensorDataDTO(toFourDigitsDecimal(airTempValue), "°C");
+        AggregatedSensorDataDTO humidity = new AggregatedSensorDataDTO(toFourDigitsDecimal(humidityValue), "%RH");
+        AggregatedSensorDataDTO pressure = new AggregatedSensorDataDTO(toFourDigitsDecimal(pressureValue), "hPa");
 
-        AggregatedSensorDataDTO luxStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(luxValue), "lux");
-        AggregatedSensorDataDTO uvStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(uvValue), "index");
-        AggregatedSensorDataDTO tdsStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(tdsValue), "ppm");
+        AggregatedSensorDataDTO lux = new AggregatedSensorDataDTO(toFourDigitsDecimal(luxValue), "lux");
+        AggregatedSensorDataDTO uv = new AggregatedSensorDataDTO(toFourDigitsDecimal(uvValue), "index");
+        AggregatedSensorDataDTO tds = new AggregatedSensorDataDTO(toFourDigitsDecimal(tdsValue), "ppm");
 
-        AggregatedSensorDataDTO prongMoistureStat = new AggregatedSensorDataDTO(toFourDigitsDecimal(prongMoistureValue),
+        AggregatedSensorDataDTO prongMoisture = new AggregatedSensorDataDTO(toFourDigitsDecimal(prongMoistureValue),
                 "%");
-        AggregatedSensorDataDTO capacitiveMoistureStat = new AggregatedSensorDataDTO(
+        AggregatedSensorDataDTO capacitiveMoisture = new AggregatedSensorDataDTO(
                 toFourDigitsDecimal(capacitiveMoistureValue), "%");
 
-        AggregatedSensorDataModel aggregatedSensorDataModel = new AggregatedSensorDataModel(soilTempStat, airTempStat,
-                humidityStat, pressureStat, luxStat, uvStat, tdsStat, prongMoistureStat, capacitiveMoistureStat,
+        AggregatedSensorDataModel aggregatedSensorDataModel = new AggregatedSensorDataModel(soilTemp, airTemp,
+                humidity, pressure, lux, uv, tds, prongMoisture, capacitiveMoisture,
                 startingWindow, endingWindow);
 
         return aggregatedSensorDataModel;

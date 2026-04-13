@@ -3,6 +3,7 @@ package com.aurus.server.batch.aggregate.weather;
 import com.aurus.server.batch.BatchEventPublisher;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
@@ -23,14 +24,17 @@ public class AggregatedWeatherDataWriter implements ItemWriter<AggregatedWeather
 
     @Override
     public void write(Chunk<? extends AggregatedWeatherDataModel> chunk) throws Exception {
-        this.id = chunk.getItems().get(0).getId();
-        aggregatedWeatherDataRepository.saveAll(chunk.getItems());
+        AggregatedWeatherDataModel returnedAggregatedWeatherDataModel = aggregatedWeatherDataRepository
+                .save(chunk.getItems().get(0));
+        this.id = returnedAggregatedWeatherDataModel.getId();
     }
 
     @Override
     public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
-
-        // batchEventPublisher.publishDerivingSensorDataEvent(id);
+        BatchStatus batchStatus = stepExecution.getStatus();
+        if (batchStatus == BatchStatus.COMPLETED) {
+            batchEventPublisher.publishDerivingWeatherDataEvent(id);
+        }
         return StepExecutionListener.super.afterStep(stepExecution);
     }
 

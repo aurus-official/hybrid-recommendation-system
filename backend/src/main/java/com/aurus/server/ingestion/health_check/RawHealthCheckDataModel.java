@@ -26,6 +26,9 @@ public class RawHealthCheckDataModel {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    public RawHealthCheckDataModel() {
+    }
+
     public RawHealthCheckDataModel(boolean ads1, boolean ads2, boolean bme280, boolean guvas12sd, boolean ds18b20) {
         this.ads1 = ads1;
         this.ads2 = ads2;

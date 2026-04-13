@@ -1,0 +1,93 @@
+rule "Soil - Apply Fertilizer"
+salience 85
+when
+    $m : SensorModel(sfi < 0.4, rii < 0.5)
+then
+    RuleOutput out = new RuleOutput();
+    out.setCategory("soil");
+    out.setAction("apply_fertilizer");
+    out.setSeverity("HIGH");
+    out.setPriority(2);
+
+    float confidence =
+        0.6f * (1 - $m.getSfi()) +
+        0.4f * (1 - $m.getRii());
+
+    out.setConfidence(Math.min(1f, confidence));
+    insert(out);
+end
+
+rule "Soil - Delay Fertilization"
+salience 95
+when
+    $m : SensorModel(sfi < 0.4, rii >= 0.6)
+then
+    RuleOutput out = new RuleOutput();
+    out.setCategory("soil");
+    out.setAction("delay_fertilization");
+    out.setSeverity("CRITICAL");
+    out.setPriority(1);
+
+    float confidence =
+        0.5f * (1 - $m.getSfi()) +
+        0.5f * $m.getRii();
+
+    out.setConfidence(Math.min(1f, confidence));
+    insert(out);
+end
+
+rule "Soil - Maintain Soil"
+salience 60
+when
+    $m : SensorModel(sfi >= 0.4 && sfi <= 0.7)
+then
+    RuleOutput out = new RuleOutput();
+    out.setCategory("soil");
+    out.setAction("maintain_soil");
+    out.setSeverity("MODERATE");
+    out.setPriority(3);
+
+    float confidence =
+        1f - Math.abs($m.getSfi() - 0.55f) * 2;
+
+    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
+    insert(out);
+end
+
+rule "Soil - Optimize Uptake"
+salience 65
+when
+    $m : SensorModel(sfi > 0.7, wbi >= 0.5)
+then
+    RuleOutput out = new RuleOutput();
+    out.setCategory("soil");
+    out.setAction("optimize_nutrients");
+    out.setSeverity("LOW");
+    out.setPriority(4);
+
+    float confidence =
+        0.6f * $m.getSfi() +
+        0.4f * $m.getWbi();
+
+    out.setConfidence(Math.min(1f, confidence));
+    insert(out);
+end
+
+rule "Soil - Nutrient Leaching Protection (NEW)"
+salience 92
+when
+    $m : SensorModel(sfi < 0.5, rii > 0.8)
+then
+    RuleOutput out = new RuleOutput();
+    out.setCategory("soil");
+    out.setAction("avoid_fertilization");
+    out.setSeverity("CRITICAL");
+    out.setPriority(1);
+
+    float confidence =
+        0.4f * (1 - $m.getSfi()) +
+        0.6f * $m.getRii();
+
+    out.setConfidence(Math.min(1f, confidence));
+    insert(out);
+end

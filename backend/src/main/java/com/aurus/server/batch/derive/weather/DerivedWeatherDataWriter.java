@@ -13,8 +13,17 @@ public class DerivedWeatherDataWriter implements ItemWriter<DerivedWeatherDataMo
 
     @Override
     public void write(Chunk<? extends DerivedWeatherDataModel> chunk) throws Exception {
-        derivedWeatherDataRepository.saveAll(chunk.getItems());
 
+        // BatchStatus batchStatus = s
+        // if (batchStatus == BatchStatus.COMPLETED) {
+        // batchEventPublisher.publishDerivingSensorDataEvent(id);
+        // }
+
+        // AggregatedWeatherDataModel returnedAggregatedWeatherDataModel =
+        // aggregatedWeatherDataRepository
+        // .save(chunk.getItems().get(0));
+        // this.id = returnedAggregatedWeatherDataModel.getId();
+        derivedWeatherDataRepository.saveAll(chunk.getItems());
     }
 
 }

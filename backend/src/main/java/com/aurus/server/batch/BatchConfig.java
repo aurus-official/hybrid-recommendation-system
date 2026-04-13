@@ -9,11 +9,21 @@ import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataProcessor;
 import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataReader;
 import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataRepository;
 import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataWriter;
+import com.aurus.server.batch.aggregate.weather.AggregatedWeatherDataModel;
+import com.aurus.server.batch.aggregate.weather.AggregatedWeatherDataProcessor;
+import com.aurus.server.batch.aggregate.weather.AggregatedWeatherDataReader;
+import com.aurus.server.batch.aggregate.weather.AggregatedWeatherDataRepository;
+import com.aurus.server.batch.aggregate.weather.AggregatedWeatherDataWriter;
 import com.aurus.server.batch.derive.sensor.DerivedSensorDataModel;
 import com.aurus.server.batch.derive.sensor.DerivedSensorDataProcessor;
 import com.aurus.server.batch.derive.sensor.DerivedSensorDataReader;
 import com.aurus.server.batch.derive.sensor.DerivedSensorDataRepository;
 import com.aurus.server.batch.derive.sensor.DerivedSensorDataWriter;
+import com.aurus.server.batch.derive.weather.DerivedWeatherDataModel;
+import com.aurus.server.batch.derive.weather.DerivedWeatherDataProcessor;
+import com.aurus.server.batch.derive.weather.DerivedWeatherDataReader;
+import com.aurus.server.batch.derive.weather.DerivedWeatherDataRepository;
+import com.aurus.server.batch.derive.weather.DerivedWeatherDataWriter;
 import com.aurus.server.batch.process.sensor.ProcessedSensorDataModel;
 import com.aurus.server.batch.process.sensor.ProcessedSensorDataProcessor;
 import com.aurus.server.batch.process.sensor.ProcessedSensorDataReader;
@@ -123,8 +133,8 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     ItemWriter<ProcessedWeatherDataModel> processingWeatherDataWriter(
-            ProcessedWeatherDataRepository processedWeatherDataRepository) {
-        return new ProcessedWeatherDataWriter(processedWeatherDataRepository);
+            ProcessedWeatherDataRepository processedWeatherDataRepository, BatchEventPublisher batchEventPublisher) {
+        return new ProcessedWeatherDataWriter(processedWeatherDataRepository, batchEventPublisher);
     }
 
     @Bean
@@ -175,11 +185,12 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     Step aggregatingWeatherDataStep(JobRepository jobRepository,
-            PlatformTransactionManager transactionManager, ItemReader<RawWeatherDataModel> aggregatingWeatherDataReader,
-            ItemWriter<ProcessedWeatherDataModel> aggregatingWeatherDataWriter,
-            ItemProcessor<RawWeatherDataModel, ProcessedWeatherDataModel> aggregatingWeatherDataProcessor) {
+            PlatformTransactionManager transactionManager,
+            ItemReader<ProcessedWeatherDataModel> aggregatingWeatherDataReader,
+            ItemWriter<AggregatedWeatherDataModel> aggregatingWeatherDataWriter,
+            ItemProcessor<ProcessedWeatherDataModel, AggregatedWeatherDataModel> aggregatingWeatherDataProcessor) {
         return new StepBuilder(jobRepository)
-                .<RawWeatherDataModel, ProcessedWeatherDataModel>chunk(1).transactionManager(transactionManager)
+                .<ProcessedWeatherDataModel, AggregatedWeatherDataModel>chunk(1).transactionManager(transactionManager)
                 .reader(aggregatingWeatherDataReader)
                 .processor(aggregatingWeatherDataProcessor)
                 .writer(aggregatingWeatherDataWriter)
@@ -187,19 +198,20 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
     }
 
     @Bean
-    ItemReader<RawWeatherDataModel> aggregatingWeatherDataReader(RawWeatherDataRepository rawWeatherDataRepository) {
-        return new ProcessedWeatherDataReader(rawWeatherDataRepository);
-    }
-
-    @Bean
-    ItemProcessor<RawWeatherDataModel, ProcessedWeatherDataModel> aggregatingWeatherDataProcessor() {
-        return new ProcessedWeatherDataProcessor();
-    }
-
-    @Bean
-    ItemWriter<ProcessedWeatherDataModel> aggregatingWeatherDataWriter(
+    ItemReader<ProcessedWeatherDataModel> aggregatingWeatherDataReader(
             ProcessedWeatherDataRepository processedWeatherDataRepository) {
-        return new ProcessedWeatherDataWriter(processedWeatherDataRepository);
+        return new AggregatedWeatherDataReader(processedWeatherDataRepository);
+    }
+
+    @Bean
+    ItemProcessor<ProcessedWeatherDataModel, AggregatedWeatherDataModel> aggregatingWeatherDataProcessor() {
+        return new AggregatedWeatherDataProcessor();
+    }
+
+    @Bean
+    ItemWriter<AggregatedWeatherDataModel> aggregatingWeatherDataWriter(
+            AggregatedWeatherDataRepository aggregatedWeatherDataRepository, BatchEventPublisher batchEventPublisher) {
+        return new AggregatedWeatherDataWriter(aggregatedWeatherDataRepository, batchEventPublisher);
     }
 
     @Bean
@@ -239,6 +251,44 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
     ItemWriter<DerivedSensorDataModel> derivingSensorDataWriter(
             DerivedSensorDataRepository derivedSensorDataRepository) {
         return new DerivedSensorDataWriter(derivedSensorDataRepository);
+    }
+
+    @Bean
+    Job derivingWeatherDataJob(JobRepository jobRepository, Step derivingWeatherDataStep) {
+        return new JobBuilder("derivingWeatherData", jobRepository)
+                .start(derivingWeatherDataStep)
+                .build();
+    }
+
+    @Bean
+    Step derivingWeatherDataStep(JobRepository jobRepository,
+            PlatformTransactionManager transactionManager,
+            ItemReader<AggregatedWeatherDataModel> derivingWeatherDataReader,
+            ItemWriter<DerivedWeatherDataModel> derivingWeatherDataWriter,
+            ItemProcessor<AggregatedWeatherDataModel, DerivedWeatherDataModel> derivingWeatherDataProcessor) {
+        return new StepBuilder(jobRepository)
+                .<AggregatedWeatherDataModel, DerivedWeatherDataModel>chunk(1).transactionManager(transactionManager)
+                .reader(derivingWeatherDataReader)
+                .processor(derivingWeatherDataProcessor)
+                .writer(derivingWeatherDataWriter)
+                .build();
+    }
+
+    @Bean
+    ItemReader<AggregatedWeatherDataModel> derivingWeatherDataReader(
+            AggregatedWeatherDataRepository aggregatedWeatherDataRepository) {
+        return new DerivedWeatherDataReader(aggregatedWeatherDataRepository);
+    }
+
+    @Bean
+    ItemProcessor<AggregatedWeatherDataModel, DerivedWeatherDataModel> derivingWeatherDataProcessor() {
+        return new DerivedWeatherDataProcessor();
+    }
+
+    @Bean
+    ItemWriter<DerivedWeatherDataModel> derivingWeatherDataWriter(
+            DerivedWeatherDataRepository derivedWeatherDataRepository) {
+        return new DerivedWeatherDataWriter(derivedWeatherDataRepository);
     }
 
     @Override

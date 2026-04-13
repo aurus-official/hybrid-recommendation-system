@@ -1,0 +1,92 @@
+rule "Microclimate - Heat Mitigation"
+salience 90
+when
+    $m : SensorModel(hsi > 0.7, rii < 0.5)
+then
+    RuleOutput out = new RuleOutput();
+    out.setCategory("microclimate");
+    out.setAction("heat_mitigation");
+    out.setSeverity("CRITICAL");
+    out.setPriority(1);
+
+    float confidence =
+        0.7f * $m.getHsi() +
+        0.3f * (1 - $m.getRii());
+
+    out.setConfidence(Math.min(1f, confidence));
+    insert(out);
+end
+
+rule "Microclimate - Moderate Heat"
+salience 75
+when
+    $m : SensorModel(hsi >= 0.5 && hsi <= 0.7)
+then
+    RuleOutput out = new RuleOutput();
+    out.setCategory("microclimate");
+    out.setAction("moderate_heat_management");
+    out.setSeverity("HIGH");
+    out.setPriority(2);
+
+    float confidence =
+        0.6f * $m.getHsi() +
+        0.4f * (1 - $m.getRii());
+
+    out.setConfidence(Math.min(1f, confidence));
+    insert(out);
+end
+
+rule "Microclimate - Rain Cooling"
+salience 60
+when
+    $m : SensorModel(hsi > 0.6, rii >= 0.6)
+then
+    RuleOutput out = new RuleOutput();
+    out.setCategory("microclimate");
+    out.setAction("rain_cooling");
+    out.setSeverity("MODERATE");
+    out.setPriority(3);
+
+    float confidence =
+        0.5f * $m.getHsi() +
+        0.5f * $m.getRii();
+
+    out.setConfidence(Math.min(1f, confidence));
+    insert(out);
+end
+
+rule "Microclimate - Optimal"
+salience 50
+when
+    $m : SensorModel(hsi < 0.4)
+then
+    RuleOutput out = new RuleOutput();
+    out.setCategory("microclimate");
+    out.setAction("optimal_conditions");
+    out.setSeverity("LOW");
+    out.setPriority(4);
+
+    float confidence = 1f - $m.getHsi();
+
+    out.setConfidence(Math.min(1f, confidence));
+    insert(out);
+end
+
+rule "Microclimate - Extreme Heat (NEW)"
+salience 98
+when
+    $m : SensorModel(hsi > 0.85, rii < 0.4)
+then
+    RuleOutput out = new RuleOutput();
+    out.setCategory("microclimate");
+    out.setAction("emergency_cooling");
+    out.setSeverity("CRITICAL");
+    out.setPriority(1);
+
+    float confidence =
+        0.8f * $m.getHsi() +
+        0.2f * (1 - $m.getRii());
+
+    out.setConfidence(Math.min(1f, confidence));
+    insert(out);
+end

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.aurus.server.batch.aggregate.sensor.AggregatingSensorDataEvent;
 import com.aurus.server.batch.aggregate.weather.AggregatingWeatherDataEvent;
 import com.aurus.server.batch.derive.sensor.DerivingSensorDataEvent;
+import com.aurus.server.batch.derive.weather.DerivingWeatherDataEvent;
 import com.aurus.server.batch.process.sensor.ProcessingSensorDataEvent;
 import com.aurus.server.batch.process.weather.ProcessingWeatherDataEvent;
 
@@ -34,10 +35,14 @@ public class BatchEventPublisher {
 
     public void publishAggregatingWeatherDataEvent(Long id) {
         applicationEventPublisher.publishEvent(new AggregatingWeatherDataEvent(id));
-
     }
 
     public void publishDerivingSensorDataEvent(Long id) {
         applicationEventPublisher.publishEvent(new DerivingSensorDataEvent(id));
+    }
+
+    public void publishDerivingWeatherDataEvent(Long id) {
+        applicationEventPublisher.publishEvent(new DerivingWeatherDataEvent(id));
+
     }
 }

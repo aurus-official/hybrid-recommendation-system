@@ -37,6 +37,9 @@ public class ProcessedWeatherDataModel {
     @JdbcTypeCode(SqlTypes.JSON)
     private ProcessedWeatherDataDailyUnit processedWeatherDataDailyUnit;
 
+    public ProcessedWeatherDataModel() {
+    }
+
     public ProcessedWeatherDataModel(long rawWeatherDataId,
             List<ProcessedWeatherDataPointHourly> processedWeatherDataPointsHourly,
             ProcessedWeatherDataHourlyUnit processedWeatherDataHourlyUnit,

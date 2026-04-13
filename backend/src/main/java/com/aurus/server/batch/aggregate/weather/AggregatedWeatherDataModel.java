@@ -6,22 +6,22 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-@Table(name = "aggregated_sensor_data")
-@Entity(name = "aggregated_sensor_data")
+@Table(name = "aggregated_weather_data")
+@Entity(name = "aggregated_weather_data")
 public class AggregatedWeatherDataModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    private float airTemp;
-    private String airTempUnit;
+    private float tempStress;
+    private String tempStressUnit;
 
     private float humidity;
     private String humidityUnit;
 
-    private float windSpeed;
-    private String windSpeedUnit;
+    private float vapourPressureDeficit;
+    private String vapourPressureDeficitUnit;
 
     private float precipitation;
     private String precipitationUnit;
@@ -38,19 +38,19 @@ public class AggregatedWeatherDataModel {
     }
 
     public AggregatedWeatherDataModel(
-            AggregatedWeatherDataDTO airTemp, AggregatedWeatherDataDTO humidity,
-            AggregatedWeatherDataDTO windSpeed, AggregatedWeatherDataDTO precipitation,
+            AggregatedWeatherDataDTO tempStress, AggregatedWeatherDataDTO humidity,
+            AggregatedWeatherDataDTO vapourPressureDeficit, AggregatedWeatherDataDTO precipitation,
             AggregatedWeatherDataDTO precipitationProbability,
             AggregatedWeatherDataDTO evapotranspiration, long processedWeatherDataId) {
 
-        this.airTemp = airTemp.value();
-        this.airTempUnit = airTemp.unit();
+        this.tempStress = tempStress.value();
+        this.tempStressUnit = tempStress.unit();
 
         this.humidity = humidity.value();
         this.humidityUnit = humidity.unit();
 
-        this.windSpeed = windSpeed.value();
-        this.windSpeedUnit = windSpeed.unit();
+        this.vapourPressureDeficit = vapourPressureDeficit.value();
+        this.vapourPressureDeficitUnit = vapourPressureDeficit.unit();
 
         this.precipitation = precipitation.value();
         this.precipitationUnit = precipitation.unit();
@@ -65,16 +65,16 @@ public class AggregatedWeatherDataModel {
 
     }
 
-    public AggregatedWeatherDataDTO getAirTemp() {
-        return new AggregatedWeatherDataDTO(airTemp, airTempUnit);
+    public AggregatedWeatherDataDTO getTempStress() {
+        return new AggregatedWeatherDataDTO(tempStress, tempStressUnit);
     }
 
     public AggregatedWeatherDataDTO getHumidity() {
         return new AggregatedWeatherDataDTO(humidity, humidityUnit);
     }
 
-    public AggregatedWeatherDataDTO getWindSpeed() {
-        return new AggregatedWeatherDataDTO(windSpeed, windSpeedUnit);
+    public AggregatedWeatherDataDTO getVapourPressureDeficit() {
+        return new AggregatedWeatherDataDTO(vapourPressureDeficit, vapourPressureDeficitUnit);
     }
 
     public AggregatedWeatherDataDTO getPrecipitation() {

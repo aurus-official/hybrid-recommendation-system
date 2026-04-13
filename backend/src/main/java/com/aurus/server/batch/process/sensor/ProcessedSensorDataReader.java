@@ -6,6 +6,7 @@ import com.aurus.server.ingestion.sensor.RawSensorDataModel;
 import com.aurus.server.ingestion.sensor.RawSensorDataRepository;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.infrastructure.item.ItemReader;
@@ -14,7 +15,7 @@ public class ProcessedSensorDataReader implements ItemReader<RawSensorDataModel>
 
     private final RawSensorDataRepository rawSensorDataRepository;
     private long id;
-    private long lastSeenId;
+    private long lastSeenId = -1;
 
     public ProcessedSensorDataReader(RawSensorDataRepository rawSensorDataRepository) {
         this.rawSensorDataRepository = rawSensorDataRepository;
@@ -31,8 +32,17 @@ public class ProcessedSensorDataReader implements ItemReader<RawSensorDataModel>
         Optional<RawSensorDataModel> rawSensorDataModel = rawSensorDataRepository.findById(id);
         if (id == lastSeenId)
             return null;
+
         lastSeenId = rawSensorDataModel.get().getId();
         return rawSensorDataModel.orElse(null);
+    }
+
+    @Override
+    public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
+        if (stepExecution.getReadCount() == 0) {
+            return ExitStatus.FAILED;
+        }
+        return StepExecutionListener.super.afterStep(stepExecution);
     }
 
 }
