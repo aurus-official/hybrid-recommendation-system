@@ -29,4 +29,8 @@ public class TdsWindowNormalization {
     public float getMinValue() {
         return Collections.min(tdsWindow);
     }
+
+    public int getSize() {
+        return tdsWindow.size();
+    }
 }

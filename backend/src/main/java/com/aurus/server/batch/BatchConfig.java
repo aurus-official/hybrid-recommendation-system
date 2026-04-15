@@ -1,6 +1,7 @@
 package com.aurus.server.batch;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -41,11 +42,14 @@ import com.aurus.server.ingestion.weather.RawWeatherDataModel;
 import com.aurus.server.ingestion.weather.RawWeatherDataRepository;
 import com.aurus.server.shared.TdsWindowNormalization;
 
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.support.JdbcDefaultBatchConfiguration;
 import org.springframework.batch.core.configuration.support.MapJobRegistry;
 import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.listener.JobExecutionListener;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -64,6 +68,14 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 @EnableConfigurationProperties(BatchJdbcProperties.class)
 public class BatchConfig extends JdbcDefaultBatchConfiguration {
+    public JobExecutionListener afterJobListener(Consumer<JobExecution> consumer) {
+        return new JobExecutionListener() {
+            @Override
+            public void afterJob(JobExecution jobExecution) {
+                consumer.accept(jobExecution);
+            }
+        };
+    }
 
     @Bean
     Job processingSensorDataJob(JobRepository jobRepository, Step processingSensorDataStep) {
@@ -103,8 +115,16 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
     }
 
     @Bean
-    Job processingWeatherDataJob(JobRepository jobRepository, Step processingWeatherDataStep) {
+    Job processingWeatherDataJob(JobRepository jobRepository, Step processingWeatherDataStep,
+            BatchEventPublisher batchEventPublisher) {
         return new JobBuilder("processingWeatherData", jobRepository)
+                .listener(afterJobListener(jobExecution -> {
+                    BatchStatus batchStatus = jobExecution.getStatus();
+                    if (batchStatus == BatchStatus.COMPLETED) {
+                        long processedWeatherId = jobExecution.getExecutionContext().getLong("processedWeatherId");
+                        batchEventPublisher.publishAggregatingWeatherDataEvent(processedWeatherId);
+                    }
+                }))
                 .start(processingWeatherDataStep)
                 .build();
     }
@@ -134,13 +154,21 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     ItemWriter<ProcessedWeatherDataModel> processingWeatherDataWriter(
-            ProcessedWeatherDataRepository processedWeatherDataRepository, BatchEventPublisher batchEventPublisher) {
-        return new ProcessedWeatherDataWriter(processedWeatherDataRepository, batchEventPublisher);
+            ProcessedWeatherDataRepository processedWeatherDataRepository) {
+        return new ProcessedWeatherDataWriter(processedWeatherDataRepository);
     }
 
     @Bean
-    Job aggregatingSensorDataJob(JobRepository jobRepository, Step aggregatingSensorDataStep) {
+    Job aggregatingSensorDataJob(JobRepository jobRepository, Step aggregatingSensorDataStep,
+            BatchEventPublisher batchEventPublisher) {
         return new JobBuilder("aggregatingSensorData", jobRepository)
+                .listener(afterJobListener(jobExecution -> {
+                    BatchStatus batchStatus = jobExecution.getStatus();
+                    if (batchStatus == BatchStatus.COMPLETED) {
+                        long aggregatedSensorId = jobExecution.getExecutionContext().getLong("aggregatedSensorId");
+                        batchEventPublisher.publishDerivingSensorDataEvent(aggregatedSensorId);
+                    }
+                }))
                 .start(aggregatingSensorDataStep)
                 .build();
     }
@@ -173,13 +201,21 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     ItemWriter<AggregatedSensorDataModel> aggregatingSensorDataWriter(
-            AggregatedSensorDataRepository aggregatedSensorDataRepository, BatchEventPublisher batchEventPublisher) {
-        return new AggregatedSensorDataWriter(aggregatedSensorDataRepository, batchEventPublisher);
+            AggregatedSensorDataRepository aggregatedSensorDataRepository) {
+        return new AggregatedSensorDataWriter(aggregatedSensorDataRepository);
     }
 
     @Bean
-    Job aggregatingWeatherDataJob(JobRepository jobRepository, Step aggregatingWeatherDataStep) {
+    Job aggregatingWeatherDataJob(JobRepository jobRepository, Step aggregatingWeatherDataStep,
+            BatchEventPublisher batchEventPublisher) {
         return new JobBuilder("aggregatingWeatherData", jobRepository)
+                .listener(afterJobListener(jobExecution -> {
+                    BatchStatus batchStatus = jobExecution.getStatus();
+                    if (batchStatus == BatchStatus.COMPLETED) {
+                        long aggregatedWeatherId = jobExecution.getExecutionContext().getLong("aggregatedWeatherId");
+                        batchEventPublisher.publishDerivingWeatherDataEvent(aggregatedWeatherId);
+                    }
+                }))
                 .start(aggregatingWeatherDataStep)
                 .build();
     }
@@ -211,13 +247,22 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     ItemWriter<AggregatedWeatherDataModel> aggregatingWeatherDataWriter(
-            AggregatedWeatherDataRepository aggregatedWeatherDataRepository, BatchEventPublisher batchEventPublisher) {
-        return new AggregatedWeatherDataWriter(aggregatedWeatherDataRepository, batchEventPublisher);
+            AggregatedWeatherDataRepository aggregatedWeatherDataRepository) {
+        return new AggregatedWeatherDataWriter(aggregatedWeatherDataRepository);
     }
 
     @Bean
-    Job derivingSensorDataJob(JobRepository jobRepository, Step derivingSensorDataStep) {
+    Job derivingSensorDataJob(JobRepository jobRepository, Step derivingSensorDataStep,
+            EngineEventPublisher engineEventPublisher) {
         return new JobBuilder("derivingSensorData", jobRepository)
+                .listener(afterJobListener(jobExecution -> {
+                    BatchStatus batchStatus = jobExecution.getStatus();
+                    if (batchStatus == BatchStatus.COMPLETED) {
+                        DerivedSensorDataModel derivedSensorModel = (DerivedSensorDataModel) jobExecution
+                                .getExecutionContext().get("derivedSensorModel");
+                        engineEventPublisher.publishDerivedSensorDataReadyEvent(derivedSensorModel);
+                    }
+                }))
                 .start(derivingSensorDataStep)
                 .build();
     }
@@ -250,13 +295,22 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     ItemWriter<DerivedSensorDataModel> derivingSensorDataWriter(
-            DerivedSensorDataRepository derivedSensorDataRepository, EngineEventPublisher engineEventPublisher) {
-        return new DerivedSensorDataWriter(derivedSensorDataRepository, engineEventPublisher);
+            DerivedSensorDataRepository derivedSensorDataRepository) {
+        return new DerivedSensorDataWriter(derivedSensorDataRepository);
     }
 
     @Bean
-    Job derivingWeatherDataJob(JobRepository jobRepository, Step derivingWeatherDataStep) {
+    Job derivingWeatherDataJob(JobRepository jobRepository, Step derivingWeatherDataStep,
+            EngineEventPublisher engineEventPublisher) {
         return new JobBuilder("derivingWeatherData", jobRepository)
+                .listener(afterJobListener(jobExecution -> {
+                    BatchStatus batchStatus = jobExecution.getStatus();
+                    if (batchStatus == BatchStatus.COMPLETED) {
+                        DerivedWeatherDataModel derivedWeatherModel = (DerivedWeatherDataModel) jobExecution
+                                .getExecutionContext().get("derivedWeatherModel");
+                        engineEventPublisher.publishDerivedWeatherDataReadyEvent(derivedWeatherModel);
+                    }
+                }))
                 .start(derivingWeatherDataStep)
                 .build();
     }
@@ -288,8 +342,8 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     ItemWriter<DerivedWeatherDataModel> derivingWeatherDataWriter(
-            DerivedWeatherDataRepository derivedWeatherDataRepository, EngineEventPublisher engineEventPublisher) {
-        return new DerivedWeatherDataWriter(derivedWeatherDataRepository, engineEventPublisher);
+            DerivedWeatherDataRepository derivedWeatherDataRepository) {
+        return new DerivedWeatherDataWriter(derivedWeatherDataRepository);
     }
 
     @Override

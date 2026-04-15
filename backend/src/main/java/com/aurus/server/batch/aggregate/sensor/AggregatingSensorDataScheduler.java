@@ -19,12 +19,11 @@ public class AggregatingSensorDataScheduler {
         this.batchEventPublisher = batchEventPublisher;
     }
 
-    @Scheduled(cron = "0 5 * * * *")
+    @Scheduled(cron = "0 58 * * * *")
     // @Scheduled(cron = "0 48 * * * *")
     public void aggregate() {
-        LocalDateTime startingWindow = LocalDateTime.now().minus(2l, ChronoUnit.HOURS);
+        LocalDateTime startingWindow = LocalDateTime.now().minus(12l, ChronoUnit.HOURS);
         LocalDateTime endingWindow = LocalDateTime.now();
         batchEventPublisher.publishAggregatingSensorDataEvent(startingWindow, endingWindow);
-        System.out.println("hello");
     }
 }

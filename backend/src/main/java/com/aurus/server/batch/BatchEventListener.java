@@ -34,72 +34,78 @@ public class BatchEventListener {
     }
 
     @EventListener
-    @Async
+    @Async("taskExecutor")
     public void listenProcessingSensorDataEvent(ProcessingSensorDataEvent processingSensorDataEvent)
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
         Job processingSensorJob = jobRegistry.getJob("processingSensorData");
         JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("time", System.currentTimeMillis())
                 .addLong("rawSensorId", processingSensorDataEvent.rawSensorId(), false)
                 .toJobParameters();
         jobOperator.start(processingSensorJob, jobParameters);
     }
 
     @EventListener
-    @Async
+    @Async("taskExecutor")
     public void listenProcessingWeatherDataEvent(ProcessingWeatherDataEvent processingWeatherDataEvent)
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
         Job processingWeatherJob = jobRegistry.getJob("processingWeatherData");
         JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("time", System.currentTimeMillis())
                 .addLong("rawWeatherId", processingWeatherDataEvent.rawWeatherId(), false)
                 .toJobParameters();
         jobOperator.start(processingWeatherJob, jobParameters);
     }
 
     @EventListener
-    @Async
+    @Async("taskExecutor")
     public void listenAggregatingSensorDataEvent(AggregatingSensorDataEvent aggregatingSensorDataEvent)
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
         Job aggregatingSensorJob = jobRegistry.getJob("aggregatingSensorData");
         JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("time", System.currentTimeMillis())
                 .addLocalDateTime("startingWindow", aggregatingSensorDataEvent.startingWindow(), false)
                 .addLocalDateTime("endingWindow", aggregatingSensorDataEvent.endingWindow(), false).toJobParameters();
         jobOperator.start(aggregatingSensorJob, jobParameters);
     }
 
     @EventListener
-    @Async
+    @Async("taskExecutor")
     public void listenAggregatingWeatherDataEvent(AggregatingWeatherDataEvent aggregatingWeatherDataEvent)
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
         Job aggregatingWeatherJob = jobRegistry.getJob("aggregatingWeatherData");
         JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("time", System.currentTimeMillis())
                 .addLong("processedWeatherId", aggregatingWeatherDataEvent.processedWeatherId(), false)
                 .toJobParameters();
         jobOperator.start(aggregatingWeatherJob, jobParameters);
     }
 
     @EventListener
-    @Async
+    @Async("taskExecutor")
     public void listenDerivingSensorDataEvent(DerivingSensorDataEvent derivingSensorDataEvent)
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
         Job derivingSensorJob = jobRegistry.getJob("derivingSensorData");
         JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("time", System.currentTimeMillis())
                 .addLong("aggregatedSensorId", derivingSensorDataEvent.aggregatedSensorId(), false)
                 .toJobParameters();
         jobOperator.start(derivingSensorJob, jobParameters);
     }
 
     @EventListener
-    @Async
+    @Async("taskExecutor")
     public void listenDerivingWeatherDataEvent(DerivingWeatherDataEvent derivingWeatherDataEvent)
             throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
         Job derivingWeatherJob = jobRegistry.getJob("derivingWeatherData");
         JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("time", System.currentTimeMillis())
                 .addLong("aggregatedWeatherId", derivingWeatherDataEvent.aggregatedWeatherId(), false)
                 .toJobParameters();
         jobOperator.start(derivingWeatherJob, jobParameters);

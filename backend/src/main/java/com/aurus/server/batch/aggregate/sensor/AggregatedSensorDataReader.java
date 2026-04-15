@@ -17,6 +17,7 @@ public class AggregatedSensorDataReader implements ItemReader<List<ProcessedSens
     private final ProcessedSensorDataRepository processedSensorDataRepository;
     private LocalDateTime startingWindow;
     private LocalDateTime endingWindow;
+    private boolean isChecked = false;
 
     public AggregatedSensorDataReader(ProcessedSensorDataRepository processedSensorDataRepository) {
         this.processedSensorDataRepository = processedSensorDataRepository;
@@ -31,8 +32,12 @@ public class AggregatedSensorDataReader implements ItemReader<List<ProcessedSens
 
     @Override
     public @Nullable List<ProcessedSensorDataModel> read() throws Exception {
+        if (isChecked)
+            return null;
+
         List<ProcessedSensorDataModel> processedSensorDataModels = processedSensorDataRepository
                 .findAllProcessedSensorDataModelInAWindow(startingWindow, endingWindow);
+        isChecked = true;
 
         return processedSensorDataModels.isEmpty() ? null : processedSensorDataModels;
     }

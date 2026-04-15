@@ -1,4 +1,4 @@
-package rules
+package rules.irrigation
 
 import com.aurus.server.engine.EngineCategoryOutputDTO;
 import com.aurus.server.batch.derive.weather.DerivedWeatherDataModel;
@@ -12,13 +12,13 @@ global java.util.List intermediateOutputs;
 rule "Irrigation - Skip Irrigation"
 salience 100
 when
-    $w : DerivedWeatherDataModel(rainImpactIndex >= 0.8)
+    $w : DerivedWeatherDataModel(rainImpactIndex >= 0.75)
 then
     EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
     out.setCategoryType(CategoryType.IRRIGATION);
     out.setAction("skip_irrigation");
     out.setSeverityLevel(SeverityLevel.CRITICAL);
-    out.setPriorityLevel(PriorityLevel.P2);
+    out.setPriorityLevel(PriorityLevel.P0);
 
     float confidence = $w.getRainImpactIndex();
     out.setConfidence(Math.min(1f, confidence));
@@ -29,14 +29,14 @@ end
 rule "Irrigation - Extreme Drought"
 salience 95
 when
-    $w : DerivedWeatherDataModel(rainImpactIndex < 0.4, waterBalanceIndex < 0.25)
-    $s : DerivedSensorDataModel(evaporationDryingRisk > 0.7)
-then
+    $w : DerivedWeatherDataModel(waterBalanceIndex <= 0.3)
+    $s : DerivedSensorDataModel(evaporationDryingRisk >= 0.7)
+then    
     EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
     out.setCategoryType(CategoryType.IRRIGATION);
     out.setAction("emergency_irrigation");
     out.setSeverityLevel(SeverityLevel.CRITICAL);
-    out.setPriorityLevel(PriorityLevel.P1);
+    out.setPriorityLevel(PriorityLevel.P0);
 
     float confidence =
         0.5f * (1 - $w.getWaterBalanceIndex()) +
@@ -50,61 +50,63 @@ end
 rule "Irrigation - Increase Irrigation"
 salience 90
 when
-    $w : DerivedWeatherDataModel(rainImpactIndex < 0.5, waterBalanceIndex < 0.4)
-    $s : DerivedSensorDataModel(evaporationDryingRisk >= 0.6)
+    $w : DerivedWeatherDataModel(rainImpactIndex < 0.6, waterBalanceIndex < 0.5)
+    $s : DerivedSensorDataModel(evaporationDryingRisk >= 0.5)
 then
     EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
     out.setCategoryType(CategoryType.IRRIGATION);
     out.setAction("increase_irrigation");
     out.setSeverityLevel(SeverityLevel.HIGH);
-    out.setPriorityLevel(PriorityLevel.P2);
+    out.setPriorityLevel(PriorityLevel.P1);
 
     float confidence =
         0.4f * (1 - $w.getWaterBalanceIndex()) +
         0.4f * $s.getEvaporationDryingRisk() +
         0.2f * (1 - $w.getRainImpactIndex());
 
-    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
     intermediateOutputs.add(out);
 end
 
-rule "Irrigation - Moderate Irrigation"
+rule "Irrigation - Maintain"
 salience 80
 when
-    $w : DerivedWeatherDataModel(rainImpactIndex < 0.5, waterBalanceIndex >= 0.4 && waterBalanceIndex <= 0.6)
-    $s : DerivedSensorDataModel(evaporationDryingRisk > 0.5 && evaporationDryingRisk <= 0.7)
+    $w : DerivedWeatherDataModel(
+        rainImpactIndex < 0.6,
+        waterBalanceIndex >= 0.4 && waterBalanceIndex <= 0.7
+    )
+    $s : DerivedSensorDataModel(evaporationDryingRisk < 0.5)
 then
     EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
     out.setCategoryType(CategoryType.IRRIGATION);
-    out.setAction("moderate_irrigation");
+    out.setAction("maintain_irrigation");
     out.setSeverityLevel(SeverityLevel.MODERATE);
-    out.setPriorityLevel(PriorityLevel.P3);
+    out.setPriorityLevel(PriorityLevel.P2);
 
     float confidence =
-        0.3f * (1 - Math.abs($w.getWaterBalanceIndex() - 0.5f) * 2) +
-        0.4f * $s.getEvaporationDryingRisk() +
-        0.3f * (1 - $w.getRainImpactIndex());
+        0.5f * (1 - Math.abs($w.getWaterBalanceIndex() - 0.5f) * 2) + // centered at 0.5
+        0.5f * (1 - $s.getEvaporationDryingRisk()); 
 
-    out.setConfidence(Math.min(1f, confidence));
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
     intermediateOutputs.add(out);
 end
 
 rule "Irrigation - Reduce Irrigation"
 salience 70
 when
-    $w : DerivedWeatherDataModel(rainImpactIndex >= 0.6, waterBalanceIndex >= 0.5)
+    $w : DerivedWeatherDataModel(waterBalanceIndex > 0.7)
+    $s : DerivedSensorDataModel(evaporationDryingRisk < 0.5)
 then
     EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
     out.setCategoryType(CategoryType.IRRIGATION);
     out.setAction("reduce_irrigation");
     out.setSeverityLevel(SeverityLevel.LOW);
-    out.setPriorityLevel(PriorityLevel.P4);
+    out.setPriorityLevel(PriorityLevel.P3);
 
     float confidence =
-        0.6f * $w.getRainImpactIndex() +
-        0.4f * $w.getWaterBalanceIndex();
+        0.6f * $w.getWaterBalanceIndex() +
+        0.4f * (1 - $s.getEvaporationDryingRisk());
 
     out.setConfidence(Math.min(1f, confidence));
     intermediateOutputs.add(out);
 end
-

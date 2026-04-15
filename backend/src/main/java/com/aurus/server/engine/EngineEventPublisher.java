@@ -4,7 +4,9 @@ import com.aurus.server.batch.derive.sensor.DerivedSensorDataModel;
 import com.aurus.server.batch.derive.weather.DerivedWeatherDataModel;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 
+@Component
 public class EngineEventPublisher {
     private final ApplicationEventPublisher applicationEventPublisher;
 

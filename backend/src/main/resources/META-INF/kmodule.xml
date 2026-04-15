@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kmodule xmlns="http://www.drools.org/xsd/kmodule">
-    <kbase name="kBase" packages="rules">
+
+    <kbase name="irrigationKB" packages="rules.irrigation">
         <ksession name="irrigation-session" />
+    </kbase>
+
+    <kbase name="soilKB" packages="rules.soil">
         <ksession name="soil-nutrient-session" />
+    </kbase>
+
+    <kbase name="microclimateKB" packages="rules.microclimate">
         <ksession name="microclimate-session" />
+    </kbase>
+
+    <kbase name="cropKB" packages="rules.crop">
         <ksession name="crop-operation-session" />
     </kbase>
+
 </kmodule>

@@ -18,16 +18,12 @@ public class DerivedSensorDataProcessor
 
     @Override
     public @Nullable DerivedSensorDataModel process(AggregatedSensorDataModel model) throws Exception {
-        final float tdsMin = tdsWindowNormalization.getMinValue();
-        final float tdsMax = tdsWindowNormalization.getMaxValue();
-        final float range = tdsMax - tdsMin;
-        final float tdsNorm = Math.max(0f,
-                Math.min(1f, (range == 0f) ? 0f : (model.getTds().value() - tdsMin) / range));
         final float optimalLight = 20000.0f;
         final float sigma = 8000.0f;
 
         float uvStressIndexValue = model.getUv().value() / 11f;
         float humidityStress = (100f - model.getHumidity().value()) / 100f;
+        float tdsNorm = calculateTdsNorm(model.getTds().value());
 
         float combinedSoilMoistureValue = Math.max(0f, Math.min(1f, (0.6f * model.getCapacitiveMoisture().value())
                 + (0.4f * model.getProngMoisture().value()) / 100f));
@@ -92,5 +88,19 @@ public class DerivedSensorDataProcessor
 
     private float tempStress(float tempValue) {
         return 1f - (float) Math.exp(-Math.pow((tempValue - 24f), 2) / 50f);
+    }
+
+    private float calculateTdsNorm(float tdsValue) {
+        tdsWindowNormalization.addTdsToWindow(tdsValue);
+
+        if (tdsWindowNormalization.getSize() < 2) {
+            return 0.5f;
+        }
+
+        final float tdsMin = tdsWindowNormalization.getMinValue();
+        final float tdsMax = tdsWindowNormalization.getMaxValue();
+        final float range = tdsMax - tdsMin;
+        return Math.max(0f,
+                Math.min(1f, (range == 0f) ? 0.5f : (tdsValue - tdsMin) / range));
     }
 }

@@ -1,41 +1,33 @@
 package com.aurus.server.batch.process.weather;
 
-import com.aurus.server.batch.BatchEventPublisher;
-
-import org.jspecify.annotations.Nullable;
-import org.springframework.batch.core.BatchStatus;
-import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.infrastructure.item.Chunk;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
 import org.springframework.batch.infrastructure.item.ItemWriter;
 
 public class ProcessedWeatherDataWriter implements ItemWriter<ProcessedWeatherDataModel>, StepExecutionListener {
 
     private final ProcessedWeatherDataRepository processedWeatherDataRepository;
-    private final BatchEventPublisher batchEventPublisher;
-    private long id;
+    private StepExecution stepExecution;
 
-    public ProcessedWeatherDataWriter(ProcessedWeatherDataRepository processedWeatherDataRepository,
-            BatchEventPublisher batchEventPublisher) {
+    public ProcessedWeatherDataWriter(ProcessedWeatherDataRepository processedWeatherDataRepository) {
         this.processedWeatherDataRepository = processedWeatherDataRepository;
-        this.batchEventPublisher = batchEventPublisher;
+    }
+
+    @Override
+    public void beforeStep(StepExecution stepExecution) {
+        StepExecutionListener.super.beforeStep(stepExecution);
+        this.stepExecution = stepExecution;
     }
 
     @Override
     public void write(Chunk<? extends ProcessedWeatherDataModel> chunk) throws Exception {
         ProcessedWeatherDataModel returnedProcessedWeatherDataModel = processedWeatherDataRepository
                 .save(chunk.getItems().get(0));
-        this.id = returnedProcessedWeatherDataModel.getId();
+        long processedWeatherId = returnedProcessedWeatherDataModel.getId();
+        ExecutionContext executionContext = stepExecution.getJobExecution().getExecutionContext();
+        executionContext.put("processedWeatherId", processedWeatherId);
     }
 
-    @Override
-    public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
-        BatchStatus batchStatus = stepExecution.getStatus();
-        if (batchStatus == BatchStatus.COMPLETED) {
-            batchEventPublisher.publishAggregatingWeatherDataEvent(id);
-        }
-        return StepExecutionListener.super.afterStep(stepExecution);
-
-    }
 }

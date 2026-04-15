@@ -6,7 +6,9 @@ import com.aurus.server.batch.derive.sensor.DerivedSensorDataModel;
 import com.aurus.server.batch.derive.weather.DerivedWeatherDataModel;
 
 import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
+@Component
 public class EngineEventListener {
     private final AtomicBoolean isDerivedSensorDataReady = new AtomicBoolean(false);
     private final AtomicBoolean isDerivedWeatherDataReady = new AtomicBoolean(false);

@@ -15,9 +15,11 @@ import org.springframework.stereotype.Service;
 public class EngineService {
 
     private KieContainer kieContainer;
+    private EngineAggregatorService engineAggregatorService;
 
-    public EngineService(KieContainer kieContainer) {
+    public EngineService(KieContainer kieContainer, EngineAggregatorService engineAggregatorService) {
         this.kieContainer = kieContainer;
+        this.engineAggregatorService = engineAggregatorService;
     }
 
     public void startEngine(DerivedSensorDataModel derivedSensorDataModel,
@@ -50,6 +52,15 @@ public class EngineService {
                 categoryOutputLists.get(2),
                 categoryOutputLists.get(3));
 
+        // System.out.println("category type : " +
+        // categoryOutputLists.get(0).get(0).getCategoryType().getValue());
+        // System.out.println("category type : " +
+        // categoryOutputLists.get(1).get(0).getCategoryType().getValue());
+        // System.out.println("category type : " +
+        // categoryOutputLists.get(2).get(0).getCategoryType().getValue());
+        // System.out.println("category type : " +
+        // categoryOutputLists.get(3).get(0).getCategoryType().getValue());
+        engineAggregatorService.finalizeOutput(engineAggregatorOutputDTO);
     }
 
 }

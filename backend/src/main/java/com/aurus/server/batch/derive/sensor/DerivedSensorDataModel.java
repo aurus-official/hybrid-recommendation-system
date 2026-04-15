@@ -1,5 +1,7 @@
 package com.aurus.server.batch.derive.sensor;
 
+import java.io.Serializable;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -8,7 +10,7 @@ import jakarta.persistence.Table;
 
 @Table(name = "derived_sensor_data")
 @Entity(name = "derived_sensor_data")
-public class DerivedSensorDataModel {
+public class DerivedSensorDataModel implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -77,40 +79,72 @@ public class DerivedSensorDataModel {
         this.processedSensorDataId = processedSensorDataId;
     }
 
-    public DerivedSensorDataDTO getCombinedSoilMoisture() {
-        return new DerivedSensorDataDTO(combinedSoilMoisture, combinedSoilMoistureUnit);
-    }
-
-    public DerivedSensorDataDTO getPlantStressIndex() {
-        return new DerivedSensorDataDTO(plantStressIndex, plantStressIndexUnit);
-    }
-
-    public DerivedSensorDataDTO getEvaporationDryingRisk() {
-        return new DerivedSensorDataDTO(evaporationDryingRisk, evaporationDryingRiskUnit);
-    }
-
-    public DerivedSensorDataDTO getSoilFertilityIndex() {
-        return new DerivedSensorDataDTO(soilFertilityIndex, soilFertilityIndexUnit);
-    }
-
-    public DerivedSensorDataDTO getHeatStressIndex() {
-        return new DerivedSensorDataDTO(heatStressIndex, heatStressIndexUnit);
-    }
-
-    public DerivedSensorDataDTO getUvStressIndex() {
-        return new DerivedSensorDataDTO(uvStressIndex, uvStressIndexUnit);
-    }
-
-    public DerivedSensorDataDTO getLightGrowthIndex() {
-        return new DerivedSensorDataDTO(lightGrowthIndex, lightGrowthIndexUnit);
-    }
-
-    public DerivedSensorDataDTO getCombinedAgronomicIndex() {
-        return new DerivedSensorDataDTO(combinedAgronomicIndex, combinedAgronomicIndexUnit);
-    }
-
     public long getId() {
         return id;
+    }
+
+    public float getCombinedSoilMoisture() {
+        return combinedSoilMoisture;
+    }
+
+    public String getCombinedSoilMoistureUnit() {
+        return combinedSoilMoistureUnit;
+    }
+
+    public float getPlantStressIndex() {
+        return plantStressIndex;
+    }
+
+    public String getPlantStressIndexUnit() {
+        return plantStressIndexUnit;
+    }
+
+    public float getEvaporationDryingRisk() {
+        return evaporationDryingRisk;
+    }
+
+    public String getEvaporationDryingRiskUnit() {
+        return evaporationDryingRiskUnit;
+    }
+
+    public float getSoilFertilityIndex() {
+        return soilFertilityIndex;
+    }
+
+    public String getSoilFertilityIndexUnit() {
+        return soilFertilityIndexUnit;
+    }
+
+    public float getHeatStressIndex() {
+        return heatStressIndex;
+    }
+
+    public String getHeatStressIndexUnit() {
+        return heatStressIndexUnit;
+    }
+
+    public float getUvStressIndex() {
+        return uvStressIndex;
+    }
+
+    public String getUvStressIndexUnit() {
+        return uvStressIndexUnit;
+    }
+
+    public float getLightGrowthIndex() {
+        return lightGrowthIndex;
+    }
+
+    public String getLightGrowthIndexUnit() {
+        return lightGrowthIndexUnit;
+    }
+
+    public float getCombinedAgronomicIndex() {
+        return combinedAgronomicIndex;
+    }
+
+    public String getCombinedAgronomicIndexUnit() {
+        return combinedAgronomicIndexUnit;
     }
 
     public long getProcessedSensorDataId() {

@@ -10,7 +10,6 @@ public class EngineCategoryOutputDTO {
     private SeverityLevel severityLevel;
     private String action;
     private float confidence;
-    private float score = -1f;
 
     public CategoryType getCategoryType() {
         return categoryType;
@@ -53,16 +52,13 @@ public class EngineCategoryOutputDTO {
     }
 
     public float getScore() {
-        if (score == -1) {
-            this.score = (0.6f * priorityLevel.getPScore()) + (0.4f * confidence);
-        }
-        return this.score * priorityLevel.getPScore();
+        return Math.round((0.6f * priorityLevel.getPScore()) + (0.4f * confidence) * 10_000.0f) / 10_000.0f;
     }
 
     @Override
     public String toString() {
         return "EngineCategoryOutputDTO{categoryType=" + categoryType.getValue() + ", priorityLevel=" + priorityLevel
                 + ", severityLevel=" + severityLevel + ", action=" + action + ", confidence=" + confidence + ", score="
-                + score + "}";
+                + getScore() + "}";
     }
 }
