@@ -34,6 +34,7 @@ import com.aurus.server.batch.process.weather.ProcessedWeatherDataProcessor;
 import com.aurus.server.batch.process.weather.ProcessedWeatherDataReader;
 import com.aurus.server.batch.process.weather.ProcessedWeatherDataRepository;
 import com.aurus.server.batch.process.weather.ProcessedWeatherDataWriter;
+import com.aurus.server.engine.EngineEventPublisher;
 import com.aurus.server.ingestion.sensor.RawSensorDataModel;
 import com.aurus.server.ingestion.sensor.RawSensorDataRepository;
 import com.aurus.server.ingestion.weather.RawWeatherDataModel;
@@ -249,8 +250,8 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     ItemWriter<DerivedSensorDataModel> derivingSensorDataWriter(
-            DerivedSensorDataRepository derivedSensorDataRepository) {
-        return new DerivedSensorDataWriter(derivedSensorDataRepository);
+            DerivedSensorDataRepository derivedSensorDataRepository, EngineEventPublisher engineEventPublisher) {
+        return new DerivedSensorDataWriter(derivedSensorDataRepository, engineEventPublisher);
     }
 
     @Bean
@@ -287,8 +288,8 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     ItemWriter<DerivedWeatherDataModel> derivingWeatherDataWriter(
-            DerivedWeatherDataRepository derivedWeatherDataRepository) {
-        return new DerivedWeatherDataWriter(derivedWeatherDataRepository);
+            DerivedWeatherDataRepository derivedWeatherDataRepository, EngineEventPublisher engineEventPublisher) {
+        return new DerivedWeatherDataWriter(derivedWeatherDataRepository, engineEventPublisher);
     }
 
     @Override

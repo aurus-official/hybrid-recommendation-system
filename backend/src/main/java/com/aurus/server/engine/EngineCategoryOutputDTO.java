@@ -56,6 +56,13 @@ public class EngineCategoryOutputDTO {
         if (score == -1) {
             this.score = (0.6f * priorityLevel.getPScore()) + (0.4f * confidence);
         }
-        return this.score;
+        return this.score * priorityLevel.getPScore();
+    }
+
+    @Override
+    public String toString() {
+        return "EngineCategoryOutputDTO{categoryType=" + categoryType.getValue() + ", priorityLevel=" + priorityLevel
+                + ", severityLevel=" + severityLevel + ", action=" + action + ", confidence=" + confidence + ", score="
+                + score + "}";
     }
 }

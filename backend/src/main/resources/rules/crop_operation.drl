@@ -1,91 +1,142 @@
 package rules
 
+import com.aurus.server.engine.EngineCategoryOutputDTO;
+import com.aurus.server.batch.derive.weather.DerivedWeatherDataModel;
+import com.aurus.server.batch.derive.sensor.DerivedSensorDataModel;
+import com.aurus.server.shared.PriorityLevel;
+import com.aurus.server.shared.SeverityLevel;
+import com.aurus.server.shared.CategoryType;
+
+global java.util.List intermediateOutputs;
+
+rule "Crop - Combined Stress"
+salience 95
+when
+    $s : DerivedSensorDataModel()
+    $w : DerivedWeatherDataModel()
+then
+    float combinedPSI =
+        0.6f * $s.getPlantStressIndex() +
+        0.4f * $w.getPlantStressIndex();
+
+    float combinedHSI =
+        0.6f * $s.getHeatStressIndex() +
+        0.4f * $w.getHeatStressIndex();
+
+    if (combinedPSI <= 0.7f || combinedHSI <= 0.7f) return;
+
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.CROP);
+    out.setAction("suspend_operations");
+    out.setSeverityLevel(SeverityLevel.CRITICAL);
+    out.setPriorityLevel(PriorityLevel.P1);
+
+    float confidence =
+        0.5f * combinedPSI +
+        0.5f * combinedHSI;
+
+    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
+
+    intermediateOutputs.add(out);
+end
+
 rule "Crop - Delay Operations"
 salience 90
 when
-    $m : SensorModel(psi > 0.7)
+    $s : DerivedSensorDataModel()
+    $w : DerivedWeatherDataModel()
 then
-    RuleOutput out = new RuleOutput();
-    out.setCategory("crop");
+    float combinedPSI =
+        0.6f * $s.getPlantStressIndex() +
+        0.4f * $w.getPlantStressIndex();
+
+    if (combinedPSI <= 0.7f) return;
+
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.CROP);
     out.setAction("delay_operations");
-    out.setSeverity("CRITICAL");
-    out.setPriority(1);
+    out.setSeverityLevel(SeverityLevel.CRITICAL);
+    out.setPriorityLevel(PriorityLevel.P1);
 
-    float confidence = $m.getPsi();
+    float confidence = combinedPSI;
 
-    out.setConfidence(Math.min(1f, confidence));
-    insert(out);
+    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
+
+    intermediateOutputs.add(out);
 end
 
 rule "Crop - Rain Adjust"
 salience 80
 when
-    $m : SensorModel(rii >= 0.7)
+    $w : DerivedWeatherDataModel(rainImpactIndex >= 0.7)
 then
-    RuleOutput out = new RuleOutput();
-    out.setCategory("crop");
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.CROP);
     out.setAction("rain_adjust_operation");
-    out.setSeverity("HIGH");
-    out.setPriority(2);
+    out.setSeverityLevel(SeverityLevel.HIGH);
+    out.setPriorityLevel(PriorityLevel.P2);
 
-    float confidence = $m.getRii();
+    float confidence = $w.getRainImpactIndex();
 
-    out.setConfidence(Math.min(1f, confidence));
-    insert(out);
+    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
+
+    intermediateOutputs.add(out);
 end
 
 rule "Crop - Moderate Stress"
 salience 70
 when
-    $m : SensorModel(psi >= 0.5 && psi <= 0.7)
+    $s : DerivedSensorDataModel()
+    $w : DerivedWeatherDataModel()
 then
-    RuleOutput out = new RuleOutput();
-    out.setCategory("crop");
+    float combinedPSI =
+        0.6f * $s.getPlantStressIndex() +
+        0.4f * $w.getPlantStressIndex();
+
+    if (combinedPSI < 0.5f || combinedPSI > 0.7f) return;
+
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.CROP);
     out.setAction("cautious_operation");
-    out.setSeverity("MODERATE");
-    out.setPriority(3);
+    out.setSeverityLevel(SeverityLevel.MODERATE);
+    out.setPriorityLevel(PriorityLevel.P3);
 
     float confidence =
-        1f - Math.abs($m.getPsi() - 0.6f) * 2;
+        1f - Math.abs(combinedPSI - 0.6f) * 2;
 
-    out.setConfidence(Math.min(1f, confidence));
-    insert(out);
+    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
+
+    intermediateOutputs.add(out);
 end
 
 rule "Crop - Optimal"
 salience 60
 when
-    $m : SensorModel(psi < 0.4, rii < 0.6)
+    $s : DerivedSensorDataModel()
+    $w : DerivedWeatherDataModel(rainImpactIndex < 0.6)
 then
-    RuleOutput out = new RuleOutput();
-    out.setCategory("crop");
+    float combinedPSI =
+        0.6f * $s.getPlantStressIndex() +
+        0.4f * $w.getPlantStressIndex();
+
+    if (combinedPSI >= 0.4f) return;
+
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.CROP);
     out.setAction("normal_operation");
-    out.setSeverity("LOW");
-    out.setPriority(4);
+    out.setSeverityLevel(SeverityLevel.LOW);
+    out.setPriorityLevel(PriorityLevel.P4);
 
     float confidence =
-        0.7f * (1 - $m.getPsi()) +
-        0.3f * (1 - $m.getRii());
+        0.7f * (1 - combinedPSI) +
+        0.3f * (1 - $w.getRainImpactIndex());
 
-    out.setConfidence(Math.min(1f, confidence));
-    insert(out);
-end
+    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
 
-rule "Crop - Combined Stress (NEW)"
-salience 95
-when
-    $m : SensorModel(psi > 0.7, hsi > 0.7)
-then
-    RuleOutput out = new RuleOutput();
-    out.setCategory("crop");
-    out.setAction("suspend_operations");
-    out.setSeverity("CRITICAL");
-    out.setPriority(1);
-
-    float confidence =
-        0.5f * $m.getPsi() +
-        0.5f * $m.getHsi();
-
-    out.setConfidence(Math.min(1f, confidence));
-    insert(out);
+    intermediateOutputs.add(out);
 end

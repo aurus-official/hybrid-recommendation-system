@@ -1,8 +1,8 @@
 package com.aurus.server.shared;
 
 public enum CategoryType {
-    IRRIGATION("irrigation"), SOIL_NUTRIENT("soil_nutrient"), MICROCLIMATE("microclimate"),
-    CROP_OPERATION("crop_operation");
+    IRRIGATION("irrigation"), SOIL_NUTRIENT("soil-nutrient"), MICROCLIMATE("microclimate"),
+    CROP_OPERATION("crop-operation");
 
     public final String value;
 

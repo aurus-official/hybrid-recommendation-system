@@ -1,92 +1,149 @@
+package rules
+
+import com.aurus.server.engine.EngineCategoryOutputDTO;
+import com.aurus.server.batch.derive.weather.DerivedWeatherDataModel;
+import com.aurus.server.batch.derive.sensor.DerivedSensorDataModel;
+import com.aurus.server.shared.PriorityLevel;
+import com.aurus.server.shared.SeverityLevel;
+import com.aurus.server.shared.CategoryType;
+
+global java.util.List intermediateOutputs;
+
+rule "Microclimate - Extreme Heat"
+salience 98
+when
+    $s : DerivedSensorDataModel()
+    $w : DerivedWeatherDataModel(rainImpactIndex < 0.4)
+then
+    float combinedHSI =
+        0.6f * $s.getHeatStressIndex() +
+        0.4f * $w.getHeatStressIndex();
+
+    if (combinedHSI <= 0.85f) return;
+
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.MICROCLIMATE);
+    out.setAction("emergency_cooling");
+    out.setSeverityLevel(SeverityLevel.CRITICAL);
+    out.setPriorityLevel(PriorityLevel.P1);
+
+    float confidence =
+        0.7f * combinedHSI +
+        0.3f * (1 - $w.getRainImpactIndex());
+
+    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
+
+    intermediateOutputs.add(out);
+end
+
 rule "Microclimate - Heat Mitigation"
 salience 90
 when
-    $m : SensorModel(hsi > 0.7, rii < 0.5)
+    $s : DerivedSensorDataModel()
+    $w : DerivedWeatherDataModel(rainImpactIndex < 0.5)
 then
-    RuleOutput out = new RuleOutput();
-    out.setCategory("microclimate");
+    float combinedHSI =
+        0.6f * $s.getHeatStressIndex() +
+        0.4f * $w.getHeatStressIndex();
+
+    if (combinedHSI <= 0.7f || combinedHSI > 0.85f) return;
+
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.MICROCLIMATE);
     out.setAction("heat_mitigation");
-    out.setSeverity("CRITICAL");
-    out.setPriority(1);
+    out.setSeverityLevel(SeverityLevel.CRITICAL);
+    out.setPriorityLevel(PriorityLevel.P1);
 
     float confidence =
-        0.7f * $m.getHsi() +
-        0.3f * (1 - $m.getRii());
+        0.7f * combinedHSI +
+        0.3f * (1 - $w.getRainImpactIndex());
 
-    out.setConfidence(Math.min(1f, confidence));
-    insert(out);
+    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
+
+    intermediateOutputs.add(out);
 end
 
 rule "Microclimate - Moderate Heat"
 salience 75
 when
-    $m : SensorModel(hsi >= 0.5 && hsi <= 0.7)
+    $s : DerivedSensorDataModel()
+    $w : DerivedWeatherDataModel()
 then
-    RuleOutput out = new RuleOutput();
-    out.setCategory("microclimate");
+    float combinedHSI =
+        0.6f * $s.getHeatStressIndex() +
+        0.4f * $w.getHeatStressIndex();
+
+    if (combinedHSI < 0.5f || combinedHSI > 0.7f) return;
+
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.MICROCLIMATE);
     out.setAction("moderate_heat_management");
-    out.setSeverity("HIGH");
-    out.setPriority(2);
+    out.setSeverityLevel(SeverityLevel.HIGH);
+    out.setPriorityLevel(PriorityLevel.P2);
 
     float confidence =
-        0.6f * $m.getHsi() +
-        0.4f * (1 - $m.getRii());
+        0.6f * combinedHSI +
+        0.4f * (1 - $w.getRainImpactIndex());
 
-    out.setConfidence(Math.min(1f, confidence));
-    insert(out);
+    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
+
+    intermediateOutputs.add(out);
 end
 
 rule "Microclimate - Rain Cooling"
 salience 60
 when
-    $m : SensorModel(hsi > 0.6, rii >= 0.6)
+    $s : DerivedSensorDataModel()
+    $w : DerivedWeatherDataModel(rainImpactIndex >= 0.6)
 then
-    RuleOutput out = new RuleOutput();
-    out.setCategory("microclimate");
+    float combinedHSI =
+        0.6f * $s.getHeatStressIndex() +
+        0.4f * $w.getHeatStressIndex();
+
+    if (combinedHSI <= 0.6f) return;
+
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.MICROCLIMATE);
     out.setAction("rain_cooling");
-    out.setSeverity("MODERATE");
-    out.setPriority(3);
+    out.setSeverityLevel(SeverityLevel.MODERATE);
+    out.setPriorityLevel(PriorityLevel.P3);
 
     float confidence =
-        0.5f * $m.getHsi() +
-        0.5f * $m.getRii();
+        0.5f * combinedHSI +
+        0.5f * $w.getRainImpactIndex();
 
-    out.setConfidence(Math.min(1f, confidence));
-    insert(out);
+    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
+
+    intermediateOutputs.add(out);
 end
 
 rule "Microclimate - Optimal"
 salience 50
 when
-    $m : SensorModel(hsi < 0.4)
+    $s : DerivedSensorDataModel()
+    $w : DerivedWeatherDataModel()
 then
-    RuleOutput out = new RuleOutput();
-    out.setCategory("microclimate");
+    float combinedHSI =
+        0.6f * $s.getHeatStressIndex() +
+        0.4f * $w.getHeatStressIndex();
+
+    if (combinedHSI >= 0.4f) return;
+
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.MICROCLIMATE);
     out.setAction("optimal_conditions");
-    out.setSeverity("LOW");
-    out.setPriority(4);
-
-    float confidence = 1f - $m.getHsi();
-
-    out.setConfidence(Math.min(1f, confidence));
-    insert(out);
-end
-
-rule "Microclimate - Extreme Heat (NEW)"
-salience 98
-when
-    $m : SensorModel(hsi > 0.85, rii < 0.4)
-then
-    RuleOutput out = new RuleOutput();
-    out.setCategory("microclimate");
-    out.setAction("emergency_cooling");
-    out.setSeverity("CRITICAL");
-    out.setPriority(1);
+    out.setSeverityLevel(SeverityLevel.LOW);
+    out.setPriorityLevel(PriorityLevel.P4);
 
     float confidence =
-        0.8f * $m.getHsi() +
-        0.2f * (1 - $m.getRii());
+        1f - combinedHSI;
 
-    out.setConfidence(Math.min(1f, confidence));
-    insert(out);
+    out.setConfidence(Math.max(0f, Math.min(1f, confidence)));
+
+    intermediateOutputs.add(out);
 end
