@@ -52,15 +52,8 @@ public class EngineService {
                 categoryOutputLists.get(2),
                 categoryOutputLists.get(3));
 
-        // System.out.println("category type : " +
-        // categoryOutputLists.get(0).get(0).getCategoryType().getValue());
-        // System.out.println("category type : " +
-        // categoryOutputLists.get(1).get(0).getCategoryType().getValue());
-        // System.out.println("category type : " +
-        // categoryOutputLists.get(2).get(0).getCategoryType().getValue());
-        // System.out.println("category type : " +
-        // categoryOutputLists.get(3).get(0).getCategoryType().getValue());
-        engineAggregatorService.finalizeOutput(engineAggregatorOutputDTO);
+        engineAggregatorService.finalizeOutput(engineAggregatorOutputDTO, derivedSensorDataModel.getId(),
+                derivedWeatherDataModel.getId());
     }
 
 }

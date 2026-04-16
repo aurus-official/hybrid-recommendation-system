@@ -1,8 +1,9 @@
 package com.aurus.server.engine;
 
+import java.util.List;
+
 public record EngineEvaluationOutputDTO(
-        EngineCategoryOutputDTO irrigationFinalOutput,
-        EngineCategoryOutputDTO soilNutrientFinalOutput,
-        EngineCategoryOutputDTO microClimateFinalOutput,
-        EngineCategoryOutputDTO cropOperationFinalOutput) {
+        List<EngineCategoryOutputDTO> allCategoryOutputs,
+        long derivedSensorId,
+        long derivedWeatherId) {
 }

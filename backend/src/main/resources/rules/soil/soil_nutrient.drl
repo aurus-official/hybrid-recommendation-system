@@ -9,126 +9,130 @@ import com.aurus.server.shared.CategoryType;
 
 global java.util.List intermediateOutputs;
 
-rule "Soil - Nutrient Leaching Protection"
+
+/* =========================
+   CRITICAL – Leaching Risk
+   ========================= */
+rule "Soil - Avoid Fertilization (Leaching)"
 salience 100
 when
-    $s : DerivedSensorDataModel()
-    $w : DerivedWeatherDataModel()
+    $s : DerivedSensorDataModel(soilFertilityIndex < 0.5)
+    $w : DerivedWeatherDataModel(rainImpactIndex > 0.8)
 then
-    float sfi = $s.getSoilFertilityIndex();
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
 
-    if (sfi < 0.5f && $w.getRainImpactIndex() > 0.8f) {
+    out.setCategoryType(CategoryType.SOIL_NUTRIENT);
+    out.setAction("avoid_fertilizer_application_due_to_high_leaching_risk");
+    out.setSeverityLevel(SeverityLevel.CRITICAL);
+    out.setPriorityLevel(PriorityLevel.P0);
 
-        EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-        out.setCategoryType(CategoryType.SOIL_NUTRIENT);
-        out.setAction("avoid_fertilization");
-        out.setSeverityLevel(SeverityLevel.CRITICAL);
-        out.setPriorityLevel(PriorityLevel.P0);
+    float confidence =
+        0.5f * (1 - $s.getSoilFertilityIndex()) +
+        0.5f * $w.getRainImpactIndex();
 
-        float confidence =
-            0.5f * (1 - sfi) +
-            0.5f * $w.getRainImpactIndex();
-
-        out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-        intermediateOutputs.add(out);
-    }
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    intermediateOutputs.add(out);
 end
 
+
+/* =========================
+   CRITICAL – Delay Fertilization
+   ========================= */
 rule "Soil - Delay Fertilization"
+salience 95
+when
+    $s : DerivedSensorDataModel(soilFertilityIndex < 0.4)
+    $w : DerivedWeatherDataModel(
+        rainImpactIndex >= 0.6 && rainImpactIndex <= 0.8
+    )
+then
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.SOIL_NUTRIENT);
+    out.setAction("delay_fertilizer_application_until_soil_conditions_improve");
+    out.setSeverityLevel(SeverityLevel.CRITICAL);
+    out.setPriorityLevel(PriorityLevel.P0);
+
+    float confidence =
+        0.5f * (1 - $s.getSoilFertilityIndex()) +
+        0.5f * $w.getRainImpactIndex();
+
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    intermediateOutputs.add(out);
+end
+
+
+/* =========================
+   HIGH – Apply Fertilizer
+   ========================= */
+rule "Soil - Apply Fertilizer"
 salience 90
 when
-    $s : DerivedSensorDataModel()
-    $w : DerivedWeatherDataModel()
+    $s : DerivedSensorDataModel(soilFertilityIndex < 0.4)
+    $w : DerivedWeatherDataModel(rainImpactIndex < 0.6)
 then
-    float sfi = $s.getSoilFertilityIndex();
-    float rii = $w.getRainImpactIndex();
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
 
-    if (sfi < 0.4f && rii >= 0.6f && rii <= 0.8f) {
+    out.setCategoryType(CategoryType.SOIL_NUTRIENT);
+    out.setAction("apply_fertilizer_to_improve_low_soil_nutrients");
+    out.setSeverityLevel(SeverityLevel.HIGH);
+    out.setPriorityLevel(PriorityLevel.P1);
 
-        EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-        out.setCategoryType(CategoryType.SOIL_NUTRIENT);
-        out.setAction("delay_fertilization");
-        out.setSeverityLevel(SeverityLevel.CRITICAL);
-        out.setPriorityLevel(PriorityLevel.P0);
+    float confidence =
+        0.6f * (1 - $s.getSoilFertilityIndex()) +
+        0.4f * (1 - $w.getRainImpactIndex());
 
-        float confidence =
-            0.5f * (1 - sfi) +
-            0.5f * rii;
-
-        out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-        intermediateOutputs.add(out);
-    }
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    intermediateOutputs.add(out);
 end
 
-rule "Soil - Apply Fertilizer"
-salience 85
-when
-    $s : DerivedSensorDataModel()
-    $w : DerivedWeatherDataModel()
-then
-    float sfi = $s.getSoilFertilityIndex();
 
-    if (sfi < 0.4f && $w.getRainImpactIndex() < 0.5f) {
-
-        EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-        out.setCategoryType(CategoryType.SOIL_NUTRIENT);
-        out.setAction("apply_fertilizer");
-        out.setSeverityLevel(SeverityLevel.HIGH);
-        out.setPriorityLevel(PriorityLevel.P1);
-
-        float confidence =
-            0.6f * (1 - sfi) +
-            0.4f * (1 - $w.getRainImpactIndex());
-
-        out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-        intermediateOutputs.add(out);
-    }
-end
-
-rule "Soil - Maintain Soil"
+/* =========================
+   MODERATE – Maintain Soil
+   ========================= */
+rule "Soil - Maintain Soil Condition"
 salience 70
 when
-    $s : DerivedSensorDataModel()
+    $s : DerivedSensorDataModel(
+        soilFertilityIndex >= 0.4 &&
+        soilFertilityIndex <= 0.7
+    )
 then
-    float sfi = $s.getSoilFertilityIndex();
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
 
-    if (sfi >= 0.4f && sfi <= 0.7f) {
+    out.setCategoryType(CategoryType.SOIL_NUTRIENT);
+    out.setAction("maintain_current_soil_nutrient_management_practices");
+    out.setSeverityLevel(SeverityLevel.MODERATE);
+    out.setPriorityLevel(PriorityLevel.P2);
 
-        EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-        out.setCategoryType(CategoryType.SOIL_NUTRIENT);
-        out.setAction("maintain_soil");
-        out.setSeverityLevel(SeverityLevel.MODERATE);
-        out.setPriorityLevel(PriorityLevel.P2);
+    float confidence =
+        1f - Math.abs($s.getSoilFertilityIndex() - 0.55f) * 2f;
 
-        float confidence =
-            1f - Math.abs(sfi - 0.55f) * 2f;
-
-        out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-        intermediateOutputs.add(out);
-    }
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    intermediateOutputs.add(out);
 end
 
-rule "Soil - Optimize Uptake"
+
+/* =========================
+   LOW – Optimize Uptake
+   ========================= */
+rule "Soil - Optimize Nutrient Uptake"
 salience 60
 when
-    $s : DerivedSensorDataModel()
+    $s : DerivedSensorDataModel(soilFertilityIndex > 0.7)
     $w : DerivedWeatherDataModel()
 then
-    float sfi = $s.getSoilFertilityIndex();
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
 
-    if (sfi > 0.7f) {
+    out.setCategoryType(CategoryType.SOIL_NUTRIENT);
+    out.setAction("optimize_nutrient_uptake_and_reduce_excess_application");
+    out.setSeverityLevel(SeverityLevel.LOW);
+    out.setPriorityLevel(PriorityLevel.P3);
 
-        EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-        out.setCategoryType(CategoryType.SOIL_NUTRIENT);
-        out.setAction("optimize_nutrients");
-        out.setSeverityLevel(SeverityLevel.LOW);
-        out.setPriorityLevel(PriorityLevel.P3);
+    float confidence =
+        0.6f * $s.getSoilFertilityIndex() +
+        0.4f * $w.getWaterBalanceIndex();
 
-        float confidence =
-            0.6f * sfi +
-            0.4f * $w.getWaterBalanceIndex();
-
-        out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-        intermediateOutputs.add(out);
-    }
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    intermediateOutputs.add(out);
 end

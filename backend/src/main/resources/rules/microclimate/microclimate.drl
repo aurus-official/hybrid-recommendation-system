@@ -9,130 +9,150 @@ import com.aurus.server.shared.CategoryType;
 
 global java.util.List intermediateOutputs;
 
-rule "Microclimate - Extreme Heat"
+
+/* =========================
+   CRITICAL – Extreme Heat
+   ========================= */
+rule "Microclimate - Emergency Cooling"
 salience 100
 when
     $s : DerivedSensorDataModel()
     $w : DerivedWeatherDataModel()
+    eval(
+        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) >= 0.85f
+    )
 then
-    float hsi = 0.6f * $s.getHeatStressIndex()
-              + 0.4f * $w.getHeatStressIndex();
+    float hsi = 0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex();
 
-    if (hsi >= 0.85f) {
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+    out.setCategoryType(CategoryType.MICROCLIMATE);
+    out.setAction("apply_immediate_cooling_shading_or_misting");
+    out.setSeverityLevel(SeverityLevel.CRITICAL);
+    out.setPriorityLevel(PriorityLevel.P0);
 
-        EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-        out.setCategoryType(CategoryType.MICROCLIMATE);
-        out.setAction("emergency_cooling");
-        out.setSeverityLevel(SeverityLevel.CRITICAL);
-        out.setPriorityLevel(PriorityLevel.P0);
+    float confidence =
+        0.7f * hsi +
+        0.3f * (1 - $w.getRainImpactIndex());
 
-        float confidence =
-            0.7f * hsi +
-            0.3f * (1 - $w.getRainImpactIndex());
-
-        out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-        intermediateOutputs.add(out);
-    }
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    intermediateOutputs.add(out);
 end
 
+
+/* =========================
+   HIGH – Strong Heat Mitigation
+   ========================= */
 rule "Microclimate - Heat Mitigation"
 salience 90
 when
     $s : DerivedSensorDataModel()
     $w : DerivedWeatherDataModel()
+    eval(
+        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) >= 0.70f &&
+        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) < 0.85f &&
+        $w.getRainImpactIndex() < 0.6f   // avoid overlap with rain cooling
+    )
 then
-    float hsi = 0.6f * $s.getHeatStressIndex()
-              + 0.4f * $w.getHeatStressIndex();
+    float hsi = 0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex();
 
-    if (hsi >= 0.70f && hsi < 0.85f) {
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+    out.setCategoryType(CategoryType.MICROCLIMATE);
+    out.setAction("increase_shading_and_reduce_heat_exposure");
+    out.setSeverityLevel(SeverityLevel.HIGH);
+    out.setPriorityLevel(PriorityLevel.P1);
 
-        EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-        out.setCategoryType(CategoryType.MICROCLIMATE);
-        out.setAction("heat_mitigation");
-        out.setSeverityLevel(SeverityLevel.HIGH);
-        out.setPriorityLevel(PriorityLevel.P1);
+    float confidence =
+        0.6f * hsi +
+        0.4f * (1 - $w.getRainImpactIndex());
 
-        float confidence =
-            0.6f * hsi +
-            0.4f * (1 - $w.getRainImpactIndex());
-
-        out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-        intermediateOutputs.add(out);
-    }
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    intermediateOutputs.add(out);
 end
 
-rule "Microclimate - Moderate Heat"
+
+/* =========================
+   MODERATE – Rain-Assisted Cooling
+   ========================= */
+rule "Microclimate - Rain Cooling"
+salience 85
+when
+    $s : DerivedSensorDataModel()
+    $w : DerivedWeatherDataModel(rainImpactIndex >= 0.6)
+    eval(
+        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) >= 0.6f &&
+        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) < 0.85f
+    )
+then
+    float hsi = 0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex();
+
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+    out.setCategoryType(CategoryType.MICROCLIMATE);
+    out.setAction("leverage_rainfall_for_passive_cooling_reduce_manual_intervention");
+    out.setSeverityLevel(SeverityLevel.MODERATE);
+    out.setPriorityLevel(PriorityLevel.P2);
+
+    float confidence =
+        0.5f * hsi +
+        0.5f * $w.getRainImpactIndex();
+
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    intermediateOutputs.add(out);
+end
+
+
+/* =========================
+   MODERATE – Controlled Heat Management
+   ========================= */
+rule "Microclimate - Moderate Heat Management"
 salience 75
 when
     $s : DerivedSensorDataModel()
     $w : DerivedWeatherDataModel()
+    eval(
+        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) >= 0.50f &&
+        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) < 0.70f &&
+        $w.getRainImpactIndex() < 0.6f
+    )
 then
-    float hsi = 0.6f * $s.getHeatStressIndex()
-              + 0.4f * $w.getHeatStressIndex();
+    float hsi = 0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex();
 
-    if (hsi >= 0.50f && hsi < 0.70f) {
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+    out.setCategoryType(CategoryType.MICROCLIMATE);
+    out.setAction("apply_light_shading_and_monitor_temperature");
+    out.setSeverityLevel(SeverityLevel.MODERATE);
+    out.setPriorityLevel(PriorityLevel.P2);
 
-        EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-        out.setCategoryType(CategoryType.MICROCLIMATE);
-        out.setAction("moderate_heat_management");
-        out.setSeverityLevel(SeverityLevel.MODERATE);
-        out.setPriorityLevel(PriorityLevel.P2);
+    float confidence =
+        0.6f * hsi +
+        0.4f * (1 - $w.getRainImpactIndex());
 
-        float confidence =
-            0.6f * hsi +
-            0.4f * (1 - $w.getRainImpactIndex());
-
-        out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-        intermediateOutputs.add(out);
-    }
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    intermediateOutputs.add(out);
 end
 
-rule "Microclimate - Optimal"
+
+/* =========================
+   LOW – Optimal Conditions
+   ========================= */
+rule "Microclimate - Optimal Conditions"
 salience 60
 when
     $s : DerivedSensorDataModel()
     $w : DerivedWeatherDataModel()
+    eval(
+        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) < 0.50f
+    )
 then
-    float hsi = 0.6f * $s.getHeatStressIndex()
-              + 0.4f * $w.getHeatStressIndex();
+    float hsi = 0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex();
 
-    if (hsi < 0.50f) {
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+    out.setCategoryType(CategoryType.MICROCLIMATE);
+    out.setAction("maintain_current_microclimate_conditions");
+    out.setSeverityLevel(SeverityLevel.LOW);
+    out.setPriorityLevel(PriorityLevel.P3);
 
-        EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-        out.setCategoryType(CategoryType.MICROCLIMATE);
-        out.setAction("optimal_conditions");
-        out.setSeverityLevel(SeverityLevel.LOW);
-        out.setPriorityLevel(PriorityLevel.P3);
+    float confidence = 1f - hsi;
 
-        float confidence = 1f - hsi;
-
-        out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-        intermediateOutputs.add(out);
-    }
-end
-
-rule "Microclimate - Rain Cooling"
-salience 80
-when
-    $w : DerivedWeatherDataModel(rainImpactIndex >= 0.6)
-    $s : DerivedSensorDataModel()
-then
-    float hsi = 0.6f * $s.getHeatStressIndex()
-              + 0.4f * $w.getHeatStressIndex();
-
-    if (hsi >= 0.6f && hsi < 0.85f) {
-
-        EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-        out.setCategoryType(CategoryType.MICROCLIMATE);
-        out.setAction("rain_cooling");
-        out.setSeverityLevel(SeverityLevel.MODERATE);
-        out.setPriorityLevel(PriorityLevel.P2);
-
-        float confidence =
-            0.5f * hsi +
-            0.5f * $w.getRainImpactIndex();
-
-        out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-        intermediateOutputs.add(out);
-    }
+    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    intermediateOutputs.add(out);
 end

@@ -40,7 +40,7 @@ public class ProcessedSensorDataProcessor implements ItemProcessor<RawSensorData
         float airTempValue = movingAverage(pastRawSensorDataModels.stream()
                 .map(RawSensorDataModel::getAirTemp).collect(Collectors.toList()).reversed());
         float humidityValue = movingAverage(pastRawSensorDataModels.stream()
-                .map(RawSensorDataModel::getHumidity).collect(Collectors.toList()).reversed()) * 100f;
+                .map(RawSensorDataModel::getHumidity).collect(Collectors.toList()).reversed());
         float pressureValue = movingAverage(pastRawSensorDataModels.stream()
                 .map(RawSensorDataModel::getPressure).collect(Collectors.toList()).reversed());
         float luxValue = median(pastRawSensorDataModels.stream()
