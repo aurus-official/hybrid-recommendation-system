@@ -32,7 +32,7 @@ public class AggregatedSensorDataReader implements ItemReader<List<ProcessedSens
 
     @Override
     public @Nullable List<ProcessedSensorDataModel> read() throws Exception {
-        if (isChecked)
+        if (this.isChecked)
             return null;
 
         List<ProcessedSensorDataModel> processedSensorDataModels = processedSensorDataRepository
@@ -44,7 +44,9 @@ public class AggregatedSensorDataReader implements ItemReader<List<ProcessedSens
 
     @Override
     public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
+        this.isChecked = false;
         if (stepExecution.getReadCount() == 0) {
+            System.out.println("TESTINGGGG WATERS IN AFTER STEP");
             return ExitStatus.FAILED;
         }
         return StepExecutionListener.super.afterStep(stepExecution);

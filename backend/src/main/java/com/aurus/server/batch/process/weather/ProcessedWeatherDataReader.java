@@ -15,7 +15,7 @@ public class ProcessedWeatherDataReader implements ItemReader<RawWeatherDataMode
 
     private RawWeatherDataRepository rawWeatherDataRepository;
     private long id;
-    private long lastSeenId;
+    private long lastSeenId = -1l;
 
     public ProcessedWeatherDataReader(RawWeatherDataRepository rawWeatherDataRepository) {
         this.rawWeatherDataRepository = rawWeatherDataRepository;
@@ -38,6 +38,7 @@ public class ProcessedWeatherDataReader implements ItemReader<RawWeatherDataMode
 
     @Override
     public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
+        this.lastSeenId = -1l;
         if (stepExecution.getReadCount() == 0) {
             return ExitStatus.FAILED;
         }

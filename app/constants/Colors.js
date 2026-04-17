@@ -13,6 +13,9 @@ export const Colors = {
         paramBackgroundColor: "#F3F3F3",
         paramBorderColor: "#999999",
 
+        recoBackgroundColor: "#F3F3F3",
+        recoBorderColor: "#999999",
+
         textPrimaryColor: "#1B1F23",
         textSecondaryColor: "#5F6A6A",
     },

@@ -1,19 +1,20 @@
 import { StyleSheet, Text, useColorScheme, View } from 'react-native'
 import { Colors } from '../constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
 
-const ParamCard = ({ text, icon, subText }) => {
+const RecoCard = ({ text, icon, subText }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
 
     return (
         <View style={{
-            ...styles.paramCardStyle,
-            borderColor: theme.paramBorderColor,
+            ...styles.recoCardStyle,
+            borderColor: theme.recoBorderColor,
             boxShadow: [{
                 offsetX: 0,
                 offsetY: 0,
                 blurRadius: 4,
-                color: theme.paramBorderColor
+                color: theme.recoBorderColor
             }]
         }}>
 
@@ -28,11 +29,11 @@ const ParamCard = ({ text, icon, subText }) => {
     )
 }
 
-export default ParamCard
+export default RecoCard
 
 const styles = StyleSheet.create({
-    paramCardStyle: {
-        width: "42%",
+    recoCardStyle: {
+        width: "89%",
         minHeight: "148",
         borderStyle: "solid",
         borderWidth: 1.25,
@@ -48,7 +49,8 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         alignSelf: "flex-start",
-        marginLeft: 16
+        marginLeft: 16,
+        marginTop: 12,
     },
     viewStyleImage: {
         padding: 8,
@@ -56,12 +58,16 @@ const styles = StyleSheet.create({
         overflow: "hidden",
     },
     dataText: {
-        fontSize: 24,
-        marginTop: 32,
+        fontSize: 16,
+        marginTop: 24,
         marginBottom: 28,
-        fontWeight: "bold"
+        marginLeft: 24,
+        marginRight: 24,
+        fontWeight: "semibold",
+        opacity: 0.75
     },
     subText: {
-        marginLeft: 12
+        marginLeft: 12,
+        fontSize: 16
     }
 })

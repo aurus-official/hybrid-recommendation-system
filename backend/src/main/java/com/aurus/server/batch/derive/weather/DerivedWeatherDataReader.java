@@ -6,6 +6,7 @@ import com.aurus.server.batch.aggregate.weather.AggregatedWeatherDataModel;
 import com.aurus.server.batch.aggregate.weather.AggregatedWeatherDataRepository;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.infrastructure.item.ItemReader;
@@ -14,7 +15,7 @@ public class DerivedWeatherDataReader implements ItemReader<AggregatedWeatherDat
 
     private final AggregatedWeatherDataRepository aggregatedWeatherDataRepository;
     private long id;
-    private long lastSeenId;
+    private long lastSeenId = -1l;
 
     public DerivedWeatherDataReader(AggregatedWeatherDataRepository aggregatedWeatherDataRepository) {
         this.aggregatedWeatherDataRepository = aggregatedWeatherDataRepository;
@@ -33,5 +34,14 @@ public class DerivedWeatherDataReader implements ItemReader<AggregatedWeatherDat
             return null;
         lastSeenId = aggregatedWeatherDataModel.get().getId();
         return aggregatedWeatherDataModel.orElse(null);
+    }
+
+    @Override
+    public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
+        this.lastSeenId = -1l;
+        if (stepExecution.getReadCount() == 0) {
+            return ExitStatus.FAILED;
+        }
+        return StepExecutionListener.super.afterStep(stepExecution);
     }
 }

@@ -18,6 +18,9 @@ spring:
       initialize-schema: always
     job:
       enabled: false
+  devtools:
+    restart:
+      enabled: false
     
 server:
   address: 0.0.0.0

@@ -15,7 +15,7 @@ public class DerivedSensorDataReader implements ItemReader<AggregatedSensorDataM
 
     private final AggregatedSensorDataRepository aggregatedSensorDataRepository;
     private long id;
-    private long lastSeenId;
+    private long lastSeenId = -1l;
 
     public DerivedSensorDataReader(AggregatedSensorDataRepository aggregatedSensorDataRepository) {
         this.aggregatedSensorDataRepository = aggregatedSensorDataRepository;
@@ -38,6 +38,7 @@ public class DerivedSensorDataReader implements ItemReader<AggregatedSensorDataM
 
     @Override
     public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
+        this.lastSeenId = -1l;
         if (stepExecution.getReadCount() == 0) {
             return ExitStatus.FAILED;
         }

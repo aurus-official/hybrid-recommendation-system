@@ -21,15 +21,19 @@ public class LLMRecommendationModel {
 
     @Lob
     private String irrigation;
+    private int irrigationSeverityValue;
 
     @Lob
     private String soilNutrient;
+    private int soilNutrientSeverityValue;
 
     @Lob
     private String microclimate;
+    private int microclimateSeverityValue;
 
     @Lob
     private String cropOperation;
+    private int cropOperationSeverityValue;
 
     private long derivedSensorDataId;
     private long derivedWeatherDataId;
@@ -37,14 +41,22 @@ public class LLMRecommendationModel {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    public LLMRecommendationModel(String irrigation, String soilNutrient, String microclimate, String cropOperation,
-            long derivedSensorDataId, long derivedWeatherDataId) {
+    public LLMRecommendationModel(String irrigation, int irrigationSeverityValue, String soilNutrient,
+            int soilNutrientSeverityValue, String microclimate, int microclimateSeverityValue, String cropOperation,
+            int cropOperationSeverityValue, long derivedSensorDataId, long derivedWeatherDataId) {
         this.irrigation = irrigation;
+        this.irrigationSeverityValue = irrigationSeverityValue;
         this.soilNutrient = soilNutrient;
+        this.soilNutrientSeverityValue = soilNutrientSeverityValue;
         this.microclimate = microclimate;
+        this.microclimateSeverityValue = microclimateSeverityValue;
         this.cropOperation = cropOperation;
+        this.cropOperationSeverityValue = cropOperationSeverityValue;
         this.derivedSensorDataId = derivedSensorDataId;
         this.derivedWeatherDataId = derivedWeatherDataId;
+    }
+
+    public LLMRecommendationModel() {
     }
 
     public long getId() {
@@ -55,20 +67,32 @@ public class LLMRecommendationModel {
         return irrigation;
     }
 
+    public int getIrrigationSeverityValue() {
+        return irrigationSeverityValue;
+    }
+
     public String getSoilNutrient() {
         return soilNutrient;
+    }
+
+    public int getSoilNutrientSeverityValue() {
+        return soilNutrientSeverityValue;
     }
 
     public String getMicroclimate() {
         return microclimate;
     }
 
+    public int getMicroclimateSeverityValue() {
+        return microclimateSeverityValue;
+    }
+
     public String getCropOperation() {
         return cropOperation;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public int getCropOperationSeverityValue() {
+        return cropOperationSeverityValue;
     }
 
     public long getDerivedSensorDataId() {
@@ -77,6 +101,10 @@ public class LLMRecommendationModel {
 
     public long getDerivedWeatherDataId() {
         return derivedWeatherDataId;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
 }

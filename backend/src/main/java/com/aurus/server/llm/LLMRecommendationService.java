@@ -6,6 +6,7 @@ import java.util.Map;
 import com.aurus.server.engine.EngineCategoryOutputDTO;
 import com.aurus.server.engine.EngineEvaluationOutputDTO;
 import com.aurus.server.shared.CategoryType;
+import com.aurus.server.shared.SeverityLevel;
 import com.aurus.server.sse.SSEEventPublisher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -29,21 +30,27 @@ public class LLMRecommendationService {
 
     public void generateRecommendationsAndSaveToDb(EngineEvaluationOutputDTO engineEvaluationOutputDTO)
             throws JsonProcessingException {
-        Map<CategoryType, String> futures = new HashMap<>();
+        Map<CategoryType, String> outputMap = new HashMap<>();
+        Map<CategoryType, SeverityLevel> severityMap = new HashMap<>();
 
         for (EngineCategoryOutputDTO engineCategoryOutputDTO : engineEvaluationOutputDTO.allCategoryOutputs()) {
             String prompt = llmPromptBuilder.buildPrompt(engineCategoryOutputDTO);
 
-            futures.put(
+            outputMap.put(
                     engineCategoryOutputDTO.getCategoryType(),
                     llmGenerator.generateRecommendation(prompt));
+
+            severityMap.put(
+                    engineCategoryOutputDTO.getCategoryType(),
+                    engineCategoryOutputDTO.getSeverityLevel());
+
         }
 
         LLMRecommendationModel llmRecommendationModel = new LLMRecommendationModel(
-                futures.get(CategoryType.IRRIGATION),
-                futures.get(CategoryType.SOIL_NUTRIENT),
-                futures.get(CategoryType.MICROCLIMATE),
-                futures.get(CategoryType.CROP_OPERATION),
+                outputMap.get(CategoryType.IRRIGATION), severityMap.get(CategoryType.IRRIGATION).getNum(),
+                outputMap.get(CategoryType.SOIL_NUTRIENT), severityMap.get(CategoryType.SOIL_NUTRIENT).getNum(),
+                outputMap.get(CategoryType.MICROCLIMATE), severityMap.get(CategoryType.MICROCLIMATE).getNum(),
+                outputMap.get(CategoryType.CROP_OPERATION), severityMap.get(CategoryType.CROP_OPERATION).getNum(),
                 engineEvaluationOutputDTO.derivedSensorId(),
                 engineEvaluationOutputDTO.derivedWeatherId());
 

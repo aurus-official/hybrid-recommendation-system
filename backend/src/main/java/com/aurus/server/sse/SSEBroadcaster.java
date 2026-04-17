@@ -12,10 +12,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class SSEBroadcaster {
 
     private final List<SseEmitter> clients = new CopyOnWriteArrayList<>();
-    private final SSERealtimeDataManager sseRealtimeDataManager;
+    private final SSEDataManager sseDataManager;
 
-    public SSEBroadcaster(SSERealtimeDataManager sseRealtimeDataManager) {
-        this.sseRealtimeDataManager = sseRealtimeDataManager;
+    public SSEBroadcaster(SSEDataManager sseDataManager) {
+        this.sseDataManager = sseDataManager;
     }
 
     public SseEmitter subscribe() {
@@ -26,12 +26,21 @@ public class SSEBroadcaster {
         emitter.onTimeout(() -> clients.remove(emitter));
         emitter.onError(e -> clients.remove(emitter));
 
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("sse-realtime-data")
+                    .data(sseDataManager.getSEEDataDTO()));
+        } catch (Exception e) {
+            emitter.complete();
+            clients.remove(emitter);
+        }
+
         return emitter;
     }
 
     public void updateAndPushRealtimeData(LLMRecommendationModel llmRecommendationModel) {
-        sseRealtimeDataManager.updateToLatestData(llmRecommendationModel);
-        SSERealtimeDataDTO sseRealtimeDataDTO = sseRealtimeDataManager.getSEERealtimeData();
+        sseDataManager.updateToLatestData(llmRecommendationModel);
+        SSEDataDTO sseRealtimeDataDTO = sseDataManager.getSEEDataDTO();
 
         for (SseEmitter emitter : clients) {
             try {

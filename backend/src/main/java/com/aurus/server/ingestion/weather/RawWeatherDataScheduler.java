@@ -25,7 +25,8 @@ public class RawWeatherDataScheduler {
         this.batchEventPublisher = batchEventPublisher;
     }
 
-    @Scheduled(cron = "0 14 * * * *")
+    // @Scheduled(cron = "0 5 * * * *")
+    @Scheduled(fixedDelay = 300_000l, initialDelay = 300_000l)
     public void getWeather() {
         String url = UriComponentsBuilder
                 .fromUriString("https://api.open-meteo.com/v1/forecast")

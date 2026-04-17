@@ -15,7 +15,7 @@ public class ProcessedSensorDataReader implements ItemReader<RawSensorDataModel>
 
     private final RawSensorDataRepository rawSensorDataRepository;
     private long id;
-    private long lastSeenId = -1;
+    private long lastSeenId = -1l;
 
     public ProcessedSensorDataReader(RawSensorDataRepository rawSensorDataRepository) {
         this.rawSensorDataRepository = rawSensorDataRepository;
@@ -39,6 +39,7 @@ public class ProcessedSensorDataReader implements ItemReader<RawSensorDataModel>
 
     @Override
     public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
+        this.lastSeenId = -1l;
         if (stepExecution.getReadCount() == 0) {
             return ExitStatus.FAILED;
         }

@@ -15,7 +15,7 @@ public class AggregatedWeatherDataReader implements ItemReader<ProcessedWeatherD
 
     private final ProcessedWeatherDataRepository processedWeatherDataRepository;
     private long id;
-    private long lastSeenId;
+    private long lastSeenId = -1l;
 
     public AggregatedWeatherDataReader(ProcessedWeatherDataRepository processedWeatherDataRepository) {
         this.processedWeatherDataRepository = processedWeatherDataRepository;
@@ -39,6 +39,7 @@ public class AggregatedWeatherDataReader implements ItemReader<ProcessedWeatherD
 
     @Override
     public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
+        this.lastSeenId = -1l;
         if (stepExecution.getReadCount() == 0) {
             return ExitStatus.FAILED;
         }

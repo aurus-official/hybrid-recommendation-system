@@ -1,7 +1,7 @@
 import EventSource from "react-native-sse";
 
 
-const BASE_URL = "http://localhost:8080"
+const BASE_URL = "http://192.168.18.3:8080"
 
 export function createSSE(onMessage) {
     const es = new EventSource(`${BASE_URL}/sse/latest`);
@@ -10,10 +10,11 @@ export function createSSE(onMessage) {
         console.log("SSE connected");
     });
 
-    es.addEventListener("sse-latest-data", (event) => {
+    es.addEventListener("sse-realtime-data", (event) => {
         try {
             const data = JSON.parse(event.data);
             onMessage(data);
+            console.log(data);
         } catch (err) {
             console.error("SSE parse error:", err);
         }
