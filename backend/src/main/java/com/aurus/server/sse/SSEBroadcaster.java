@@ -26,13 +26,17 @@ public class SSEBroadcaster {
         emitter.onTimeout(() -> clients.remove(emitter));
         emitter.onError(e -> clients.remove(emitter));
 
-        try {
-            emitter.send(SseEmitter.event()
-                    .name("sse-realtime-data")
-                    .data(sseDataManager.getSEEDataDTO()));
-        } catch (Exception e) {
-            emitter.complete();
-            clients.remove(emitter);
+        SSEDataDTO sseDataDTO = sseDataManager.getSEEDataDTO();
+
+        if (sseDataDTO != null) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("sse-realtime-data")
+                        .data(sseDataManager.getSEEDataDTO()));
+            } catch (Exception e) {
+                emitter.complete();
+                clients.remove(emitter);
+            }
         }
 
         return emitter;

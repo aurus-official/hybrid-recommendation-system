@@ -48,8 +48,6 @@ public class RawWeatherDataScheduler {
         RawWeatherDataDailyUnitsDTO rawWeatherDataDailyUnitsDTO = rawWeatherDataDTO.daily_units();
         RawWeatherDataDailyDTO rawWeatherDataDailyDTO = rawWeatherDataDTO.daily();
 
-        System.out.println(rawWeatherDataDTO);
-
         RawWeatherDataHourlyUnits rawWeatherDataHourlyUnits = new RawWeatherDataHourlyUnits(
                 rawWeatherDataHourlyUnitsDTO.time(),
                 rawWeatherDataHourlyUnitsDTO.temperature_2m(),

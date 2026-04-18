@@ -33,7 +33,7 @@ public class LLMGenerator {
             ObjectMapper mapper = new ObjectMapper();
 
             ObjectNode body = mapper.createObjectNode();
-            body.put("model", "gemma:2b");
+            body.put("model", "qwen2.5:7b");
             body.put("stream", false);
             body.put("prompt", prompt);
 

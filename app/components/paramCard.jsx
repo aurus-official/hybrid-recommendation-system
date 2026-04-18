@@ -37,7 +37,6 @@ const styles = StyleSheet.create({
         borderStyle: "solid",
         borderWidth: 1.25,
         borderRadius: 12,
-        // boxShadow: "3 1 1 0 #5F6A6A",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -48,12 +47,17 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         alignSelf: "flex-start",
-        marginLeft: 16
+        width: "85%",
+        marginLeft: 16,
+        marginTop: 16,
+        marginRight: 16
+
     },
     viewStyleImage: {
         padding: 8,
         borderRadius: 54,
         overflow: "hidden",
+
     },
     dataText: {
         fontSize: 24,
@@ -62,6 +66,9 @@ const styles = StyleSheet.create({
         fontWeight: "bold"
     },
     subText: {
-        marginLeft: 12
+        marginLeft: 12,
+        flex: 1,
+        flexShrink: 1
+
     }
 })

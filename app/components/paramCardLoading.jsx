@@ -1,39 +1,42 @@
+
 import { StyleSheet, Text, useColorScheme, View } from 'react-native'
 import { Colors } from '../constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
+import { Skeleton } from 'moti/skeleton';
 
-const RecoCard = ({ text, icon, subText }) => {
+const ParamCardLoading = ({ loading }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
 
     return (
         <View style={{
-            ...styles.recoCardStyle,
-            borderColor: theme.recoBorderColor,
+            ...styles.paramCardStyle,
+            borderColor: theme.paramBorderColor,
             boxShadow: [{
                 offsetX: 0,
                 offsetY: 0,
                 blurRadius: 4,
-                color: theme.recoBorderColor
+                color: theme.paramBorderColor
             }]
         }}>
-
-            <View style={{ ...styles.viewStyleSubText }}>
-                <View style={{ ...styles.viewStyleImage, backgroundColor: theme.primaryColor }}>
-                    {icon}
-                </View>
-                <Text style={styles.subText}>{text}</Text>
-            </View>
-            <Text style={styles.dataText}>{subText}</Text>
+            <Skeleton colorMode={theme} width="100%" height="148">
+            </Skeleton>
         </View>
+
+
+        // <Skeleton.Group show={loading}>
+        //     <Skeleton width="50%">
+        //     </Skeleton>
+        //     <Skeleton width="50%">
+        //     </Skeleton>
+        // </Skeleton.Group>
     )
 }
 
-export default RecoCard
+export default ParamCardLoading
 
 const styles = StyleSheet.create({
-    recoCardStyle: {
-        width: "89%",
+    paramCardStyle: {
+        width: "42%",
         minHeight: "148",
         borderStyle: "solid",
         borderWidth: 1.25,
@@ -49,8 +52,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         alignSelf: "flex-start",
-        marginLeft: 16,
-        marginTop: 16,
+        marginLeft: 16
     },
     viewStyleImage: {
         padding: 8,
@@ -58,16 +60,12 @@ const styles = StyleSheet.create({
         overflow: "hidden",
     },
     dataText: {
-        fontSize: 16,
-        marginTop: 20,
+        fontSize: 24,
+        marginTop: 32,
         marginBottom: 28,
-        marginLeft: 24,
-        marginRight: 24,
-        fontWeight: "semibold",
-        opacity: 0.75
+        fontWeight: "bold"
     },
     subText: {
-        marginLeft: 12,
-        fontSize: 16
+        marginLeft: 12
     }
 })

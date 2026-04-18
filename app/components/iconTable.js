@@ -54,27 +54,10 @@ const IconTable = (colorScheme) => {
         light: (
             <Entypo color={theme.whitePrimaryColor} name="light-up" size={20} />
         ),
-        balance: (
-            <FontAwesome
-                color={theme.whitePrimaryColor}
-                name="balance-scale"
-                size={20}
-            />
-        ),
         "water-percent": (
             <MaterialCommunityIcons
                 color={theme.whitePrimaryColor}
                 name="water-percent"
-                size={20}
-            />
-        ),
-        evaporation: (
-            <Entypo color={theme.whitePrimaryColor} name="air" size={20} />
-        ),
-        plant: (
-            <FontAwesome6
-                color={theme.whitePrimaryColor}
-                name="plant-wilt"
                 size={20}
             />
         ),
@@ -117,6 +100,76 @@ const IconTable = (colorScheme) => {
             <FontAwesome5
                 color={theme.whitePrimaryColor}
                 name="hand-holding-water"
+                size={20}
+            />
+        ),
+        combinedSoilMoisture: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="water-plus"
+                size={20}
+            />
+        ),
+
+        plantStressIndex: (
+            <FontAwesome6
+                color={theme.whitePrimaryColor}
+                name="plant-wilt"
+                size={20}
+            />
+        ),
+        evaporationDryingRisk: (
+            <Entypo color={theme.whitePrimaryColor} name="air" size={20} />
+        ),
+        soilFertilityIndex: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="flask-plus"
+                size={20}
+            />
+        ),
+        heatStressIndex: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="heat-wave"
+                size={20}
+            />
+        ),
+        uvStressIndex: (
+            <MaterialIcons
+                color={theme.whitePrimaryColor}
+                name="wb-twilight"
+                size={20}
+            />
+        ),
+
+        lightGrowthIndex: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="alarm-light"
+                size={20}
+            />
+        ),
+
+        combinedAgronomicIndex: (
+            <MaterialIcons
+                color={theme.whitePrimaryColor}
+                name="alarm-light"
+                size={20}
+            />
+        ),
+        rainImpactIndex: (
+            <FontAwesome5
+                color={theme.whitePrimaryColor}
+                name="cloud-sun-rain"
+                size={20}
+            />
+        ),
+
+        waterBalanceIndex: (
+            <FontAwesome
+                color={theme.whitePrimaryColor}
+                name="balance-scale"
                 size={20}
             />
         ),

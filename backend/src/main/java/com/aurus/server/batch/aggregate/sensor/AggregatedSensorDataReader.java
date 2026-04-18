@@ -7,6 +7,7 @@ import com.aurus.server.batch.process.sensor.ProcessedSensorDataModel;
 import com.aurus.server.batch.process.sensor.ProcessedSensorDataRepository;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
@@ -46,7 +47,7 @@ public class AggregatedSensorDataReader implements ItemReader<List<ProcessedSens
     public @Nullable ExitStatus afterStep(StepExecution stepExecution) {
         this.isChecked = false;
         if (stepExecution.getReadCount() == 0) {
-            System.out.println("TESTINGGGG WATERS IN AFTER STEP");
+            stepExecution.setStatus(BatchStatus.FAILED);
             return ExitStatus.FAILED;
         }
         return StepExecutionListener.super.afterStep(stepExecution);

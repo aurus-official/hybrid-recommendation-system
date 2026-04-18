@@ -8,6 +8,9 @@ import RecoCard from '../../components/recoCard';
 import IconTable from '../../components/iconTable';
 import TitleTable from '../../components/titleTable';
 import SeverityTable from '../../components/severityTable';
+import ParamCardLoading from '../../components/paramCardLoading';
+import RecoCardLoading from '../../components/recoCardLoading';
+
 
 const Dashboard = () => {
     const colorScheme = useColorScheme();
@@ -23,7 +26,7 @@ const Dashboard = () => {
             [type]: !prev[type]
         }
     }, {
-        critical: false,
+        derived: false,
         recommendation: false,
         quick_data: false
     });
@@ -39,6 +42,7 @@ const Dashboard = () => {
     }
 
     const card2Data = [];
+    console.log(card2Data)
 
 
     const card3Data = [];
@@ -46,7 +50,8 @@ const Dashboard = () => {
     if (sseLatestData != null) {
 
         const { irrigation, soilNutrient, microclimate, cropOperation, irrigationSeverityValue,
-            soilNutrientSeverityValue, microclimateSeverityValue, cropOperationSeverityValue } = {
+            soilNutrientSeverityValue, microclimateSeverityValue, cropOperationSeverityValue,
+        } = {
             ...sseLatestData["llmRecommendationModel"]
         }
 
@@ -105,6 +110,36 @@ const Dashboard = () => {
 
         severityData.text = severityTable[severityValue].text;
         severityData.color = severityTable[severityValue].color;
+
+        const { derivedSensorDataModel, derivedWeatherDataModel } = sseLatestData;
+
+        Object.entries({ ...derivedSensorDataModel }).slice(0, 3).forEach(([key, value]) => {
+            if (key === "plantStressIndex" || key === "heatStressIndex") {
+                const text = titleTable[key.concat("Sensor")];
+                const icon = iconTable[key];
+                card2Data.push(<ParamCard key={key + value} text={text} subText={value} icon={icon} />);
+                return;
+            }
+            const text = titleTable[key];
+            const icon = iconTable[key];
+            card2Data.push(<ParamCard key={key} text={text} subText={value} icon={icon} />);
+        })
+
+        Object.entries({ ...derivedWeatherDataModel }).slice(0, 3).forEach(([key, value]) => {
+            if (key === "plantStressIndex" || key === "heatStressIndex") {
+                const text = titleTable[key.concat("Weather")];
+                const icon = iconTable[key];
+                card2Data.push(<ParamCard key={key + value} text={text} subText={value} icon={icon} />);
+                return;
+            }
+
+            const text = titleTable[key];
+            const icon = iconTable[key];
+            card2Data.push(<ParamCard key={key + value} text={text} subText={value} icon={icon} />);
+        })
+
+        console.log(derivedSensorDataModel);
+        console.log(derivedWeatherDataModel);
     }
 
 
@@ -123,16 +158,30 @@ const Dashboard = () => {
                         color: theme.paramBorderColor
                     }]
                 }}>
-                    <View style={{ ...styles.subTitle2Container, backgroundColor: severityData.color }}>
-                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>{severityData.text}</Text>
-                        <TouchableOpacity name="" onPressIn={handlePress} onPressOut={handlePress} activeOpacity={0.75}>
-                            <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.critical ? theme.highSeverityColor : theme.whitePrimaryColor, borderColor: theme.highSeverityColor }}>
-                                <Text style={{ ...styles.subTitle3, color: isPressed.critical ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
-                                <Ionicons name='arrow-forward' size={20} color={isPressed.critical ? theme.whitePrimaryColor : theme.textPrimaryColor} />
-                            </View>
-                        </TouchableOpacity>
+                    <View style={{ ...styles.subTitle2Container, backgroundColor: (severityData.color) ? severityData.color : theme.primaryColor }}>
+
+                        {(severityData.text.length > 0 && card1Data.length > 0) ?
+                            <>
+                                <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>{severityData.text}</Text>
+                                <TouchableOpacity name="" onPressIn={handlePress} onPressOut={handlePress} activeOpacity={0.75}>
+                                    <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.critical ? theme.highSeverityColor : theme.whitePrimaryColor, borderColor: theme.highSeverityColor }}>
+                                        <Text style={{ ...styles.subTitle3, color: isPressed.critical ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
+                                        <Ionicons name='arrow-forward' size={20} color={isPressed.critical ? theme.whitePrimaryColor : theme.textPrimaryColor} />
+                                    </View>
+                                </TouchableOpacity>
+                            </>
+                            :
+                            <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>Suggested Steps</Text>
+                        }
                     </View>
-                    {card1Data}
+                    {(severityData.text.length > 0 && card1Data.length > 0) ?
+                        card1Data :
+                        <>
+                            <RecoCardLoading />
+                            <RecoCardLoading />
+                        </>
+                    }
+
                 </View>
 
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Smart Metrics</Text>
@@ -147,19 +196,33 @@ const Dashboard = () => {
                         color: theme.paramBorderColor
                     }]
                 }}>
+
                     <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
                         <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >Derived Indices</Text>
-                        <TouchableOpacity name="recommendation" onPressIn={handlePress} onPressOut={handlePress} activeOpacity={0.75}>
-                            <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.recommendation ? theme.primaryColor : theme.whitePrimaryColor, borderColor: theme.primaryColor }}>
-                                <Text style={{ ...styles.subTitle3, color: isPressed.recommendation ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
-                                <Ionicons name='arrow-forward' size={20} color={isPressed.recommendation ? theme.whitePrimaryColor : theme.textPrimaryColor} />
-                            </View>
-                        </TouchableOpacity>
+
+                        {(card2Data.length > 0) &&
+                            <>
+                                <TouchableOpacity name="" onPressIn={handlePress} onPressOut={handlePress} activeOpacity={0.75}>
+                                    <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.derived ? theme.textPrimaryColor : theme.whitePrimaryColor, borderColor: theme.primaryColor }}>
+                                        <Text style={{ ...styles.subTitle3, color: isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
+                                        <Ionicons name='arrow-forward' size={20} color={isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor} />
+                                    </View>
+                                </TouchableOpacity>
+                            </>
+                        }
                     </View>
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
+                    {(card2Data.length > 0) ?
+                        card2Data :
+                        <>
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                        </>
+                    }
+
                 </View>
 
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Realtime Data View</Text>

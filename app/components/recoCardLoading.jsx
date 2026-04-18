@@ -1,8 +1,8 @@
 import { StyleSheet, Text, useColorScheme, View } from 'react-native'
 import { Colors } from '../constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
+import { Skeleton } from 'moti/skeleton';
 
-const RecoCard = ({ text, icon, subText }) => {
+const RecoCardLoading = ({ text, icon, subText }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
 
@@ -18,18 +18,13 @@ const RecoCard = ({ text, icon, subText }) => {
             }]
         }}>
 
-            <View style={{ ...styles.viewStyleSubText }}>
-                <View style={{ ...styles.viewStyleImage, backgroundColor: theme.primaryColor }}>
-                    {icon}
-                </View>
-                <Text style={styles.subText}>{text}</Text>
-            </View>
-            <Text style={styles.dataText}>{subText}</Text>
+            <Skeleton colorMode={theme} width="100%" height="148">
+            </Skeleton>
         </View>
     )
 }
 
-export default RecoCard
+export default RecoCardLoading
 
 const styles = StyleSheet.create({
     recoCardStyle: {

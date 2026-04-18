@@ -18,11 +18,23 @@ public class LLMPromptBuilder {
 
                 You must explain the recommendation using the relevant indices from the DATA by clearly connecting the condition to the action (cause → effect). Mention important indicators such as low or high index values (e.g., soilFertilityIndex, rainImpactIndex, waterBalanceIndex, heatStressIndex) only if they are relevant to the category, and keep the reasoning concise but meaningful, not generic.
 
-                The response must be written as a single paragraph consisting of only 2-3 sentences. Do not use bullet points, numbering, line breaks, or any structured formatting. Do not include headings or any extra text before or after the response. Do not use introductory phrases such as "Here is", "Here's", "Based on", "This means", or "The recommendation is". Start immediately with the action itself.
+                OUTPUT RULES (STRICT):
+                - The response MUST be a single paragraph of exactly 2–3 complete sentences
+                - Each sentence MUST be grammatically complete and end with a period
+                - DO NOT output incomplete or cut-off sentences
+                - DO NOT include escape characters such as "\" or unfinished words
+                - DO NOT truncate the response
+                - If the response cannot be completed, regenerate a full sentence instead
 
-                The response must clearly state the action, reflect urgency based on severityLevel, include a short but specific explanation using only relevant DATA (cause → effect), and remain directly actionable for a pechay farmer while maintaining natural sentence flow within a single paragraph.
+                FORMAT RULES:
+                - No bullet points, numbering, or line breaks
+                - No headings or extra text before or after
+                - Do not use introductory phrases such as "Here is", "Here's", "Based on", "This means", or "The recommendation is"
+                - Start immediately with the action itself
 
-                DATA:
+                The response must clearly state the action, reflect urgency based on severityLevel, include a short but specific explanation using only relevant DATA (cause → effect), and remain directly actionable for a pechay farmer while maintaining smooth and natural sentence flow.
+
+                HERE IS THE DATA:
                 %s
                 """
                 .formatted(dtoToJson(engineCategoryOutputDTO));

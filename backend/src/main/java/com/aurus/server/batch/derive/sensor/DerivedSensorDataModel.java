@@ -40,7 +40,7 @@ public class DerivedSensorDataModel implements Serializable {
     private float combinedAgronomicIndex;
     private String combinedAgronomicIndexUnit;
 
-    private long processedSensorDataId;
+    private long aggregatedSensorDataId;
 
     public DerivedSensorDataModel() {
     }
@@ -50,7 +50,7 @@ public class DerivedSensorDataModel implements Serializable {
             DerivedSensorDataDTO evaporationDryingRisk, DerivedSensorDataDTO soilFertilityIndex,
             DerivedSensorDataDTO heatStressIndex, DerivedSensorDataDTO uvStressIndex,
             DerivedSensorDataDTO lightGrowthIndex, DerivedSensorDataDTO combinedAgronomicIndex,
-            long processedSensorDataId) {
+            long aggregatedSensorDataId) {
 
         this.combinedSoilMoisture = combinedSoilMoisture.value();
         this.combinedSoilMoistureUnit = combinedSoilMoisture.unit();
@@ -76,7 +76,7 @@ public class DerivedSensorDataModel implements Serializable {
         this.lightGrowthIndex = lightGrowthIndex.value();
         this.lightGrowthIndexUnit = lightGrowthIndex.unit();
 
-        this.processedSensorDataId = processedSensorDataId;
+        this.aggregatedSensorDataId = aggregatedSensorDataId;
     }
 
     public long getId() {
@@ -147,8 +147,8 @@ public class DerivedSensorDataModel implements Serializable {
         return combinedAgronomicIndexUnit;
     }
 
-    public long getProcessedSensorDataId() {
-        return processedSensorDataId;
+    public long getAggregatedSensorDataId() {
+        return aggregatedSensorDataId;
     }
 
 }

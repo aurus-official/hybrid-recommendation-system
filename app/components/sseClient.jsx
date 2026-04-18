@@ -6,6 +6,7 @@ const BASE_URL = "http://192.168.18.3:8080"
 export function createSSE(onMessage) {
     const es = new EventSource(`${BASE_URL}/sse/latest`);
 
+
     es.addEventListener("open", () => {
         console.log("SSE connected");
     });
@@ -22,6 +23,12 @@ export function createSSE(onMessage) {
 
     es.addEventListener("error", (err) => {
         console.log("SSE error:", err);
+
+        es.close();
+
+        setTimeout(() => {
+            es.open();
+        }, 10000);
     });
 
     return es;
