@@ -1,15 +1,56 @@
 import { ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native'
 import { Colors } from '../../constants/Colors';
 import ParamCard from '../../components/paramCard';
+import IconTable from '../../components/iconTable';
+import TitleTable from '../../components/titleTable';
+import { useSSE } from '../../components/sseProvider';
+import ParamCardLoading from '../../components/paramCardLoading';
 
 const Monitoring = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
+    const sseLatestData = useSSE();
+    const iconTable = IconTable.call(colorScheme);
+    const titleTable = TitleTable.call();
+
+    const card1Data = [];
+    const card2Data = [];
+
+    if (sseLatestData != null) {
+        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = sseLatestData;
+
+        const {
+            startingWindow, endingWindow,
+            ...aggregatedSensorDataModelRemovedTime } = {
+            ...aggregatedSensorDataModel
+        }
+
+        Object.entries({ ...aggregatedSensorDataModelRemovedTime }).filter(([key, value]) => !(key === "id")).forEach(([key, value]) => {
+            const text = titleTable[key];
+            const icon = iconTable[key];
+            card1Data.push(<ParamCard key={key} text={text} subText={`${value.value} ${value.unit}`} icon={icon} />);
+        })
+
+        console.log(aggregatedSensorDataModelRemovedTime)
+
+        const {
+            processedWeatherDataId, id,
+            ...aggregatedWeatherDataModelRemovedTime } = {
+            ...aggregatedWeatherDataModel
+        }
+
+        Object.entries({ ...aggregatedWeatherDataModelRemovedTime }).filter(([key, value]) => !(key === "id")).forEach(([key, value]) => {
+            const text = titleTable[key];
+            const icon = iconTable[key];
+            card2Data.push(<ParamCard key={key + value} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
+        })
+
+    }
 
     return (
         <ScrollView style={{ ...styles.viewStyles, backgroundColor: theme.screenBackgroundColor }}>
             <View style={styles.viewContainerStyles} >
-                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Raw Data Monitoring</Text>
+                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Data Monitoring</Text>
                 <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Data Source : Live</Text>
                 <View style={{
                     ...styles.card1Container,
@@ -22,14 +63,19 @@ const Monitoring = () => {
                     }]
                 }}>
                     <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
-                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >Raw Soil Parameters</Text>
+                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >Soil and Environmental Parameters</Text>
                     </View>
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
+                    {(card1Data.length > 0) ?
+                        card1Data :
+                        <>
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                        </>
+                    }
                 </View>
                 <View style={{
                     ...styles.card1Container,
@@ -42,34 +88,19 @@ const Monitoring = () => {
                     }]
                 }}>
                     <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
-                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >Raw Environmental Parameters</Text>
+                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >Weather Parameters</Text>
                     </View>
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                </View>
-                <View style={{
-                    ...styles.card1Container,
-                    backgroundColor: theme.cardBackgroundColor,
-                    boxShadow: [{
-                        offsetX: 0,
-                        offsetY: 0,
-                        blurRadius: 4,
-                        color: theme.paramBorderColor
-                    }]
-                }}>
-                    <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
-                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >Raw Weather Parameters</Text>
-                    </View>
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
+                    {(card2Data.length > 0) ?
+                        card2Data :
+                        <>
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                        </>
+                    }
                 </View>
             </View>
         </ScrollView>

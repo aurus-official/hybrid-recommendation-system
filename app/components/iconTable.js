@@ -51,9 +51,6 @@ const IconTable = (colorScheme) => {
                 size={20}
             />
         ),
-        light: (
-            <Entypo color={theme.whitePrimaryColor} name="light-up" size={20} />
-        ),
         "water-percent": (
             <MaterialCommunityIcons
                 color={theme.whitePrimaryColor}
@@ -65,13 +62,6 @@ const IconTable = (colorScheme) => {
             <FontAwesome
                 color={theme.whitePrimaryColor}
                 name="microchip"
-                size={20}
-            />
-        ),
-        probe: (
-            <MaterialCommunityIcons
-                color={theme.whitePrimaryColor}
-                name="thermometer-probe"
                 size={20}
             />
         ),
@@ -106,7 +96,7 @@ const IconTable = (colorScheme) => {
         combinedSoilMoisture: (
             <MaterialCommunityIcons
                 color={theme.whitePrimaryColor}
-                name="water-plus"
+                name="water-percent"
                 size={20}
             />
         ),
@@ -152,9 +142,9 @@ const IconTable = (colorScheme) => {
         ),
 
         combinedAgronomicIndex: (
-            <MaterialIcons
+            <FontAwesome5
                 color={theme.whitePrimaryColor}
-                name="alarm-light"
+                name="ruler-combined"
                 size={20}
             />
         ),
@@ -170,6 +160,96 @@ const IconTable = (colorScheme) => {
             <FontAwesome
                 color={theme.whitePrimaryColor}
                 name="balance-scale"
+                size={20}
+            />
+        ),
+        soilTemp: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="thermometer-probe"
+                size={20}
+            />
+        ),
+        airTemp: (
+            <Entypo color={theme.whitePrimaryColor} name="gauge" size={20} />
+        ),
+        humidity: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="air-humidifier"
+                size={20}
+            />
+        ),
+        pressure: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="gauge"
+                size={20}
+            />
+        ),
+        lux: (
+            <MaterialIcons
+                color={theme.whitePrimaryColor}
+                name="light"
+                size={20}
+            />
+        ),
+        uv: (
+            <Entypo color={theme.whitePrimaryColor} name="light-up" size={20} />
+        ),
+        tds: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="flask"
+                size={20}
+            />
+        ),
+        prongMoisture: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="water-plus"
+                size={20}
+            />
+        ),
+        capacitiveMoisture: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="water-plus"
+                size={20}
+            />
+        ),
+        tempStress: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="heat-wave"
+                size={20}
+            />
+        ),
+        vapourPressureDeficit: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="air-filter"
+                size={20}
+            />
+        ),
+        precipitation: (
+            <FontAwesome5
+                color={theme.whitePrimaryColor}
+                name="cloud-rain"
+                size={20}
+            />
+        ),
+        precipitationProbability: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="cloud-percent"
+                size={20}
+            />
+        ),
+        evapotranspiration: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="grain"
                 size={20}
             />
         ),

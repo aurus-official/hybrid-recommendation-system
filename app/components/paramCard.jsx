@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         alignSelf: "flex-start",
-        width: "85%",
+        width: "81%",
         marginLeft: 16,
         marginTop: 16,
         marginRight: 16
@@ -60,13 +60,13 @@ const styles = StyleSheet.create({
 
     },
     dataText: {
-        fontSize: 24,
+        fontSize: 20,
         marginTop: 32,
         marginBottom: 28,
         fontWeight: "bold"
     },
     subText: {
-        marginLeft: 12,
+        marginLeft: 8,
         flex: 1,
         flexShrink: 1
 

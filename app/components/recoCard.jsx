@@ -38,7 +38,6 @@ const styles = StyleSheet.create({
         borderStyle: "solid",
         borderWidth: 1.25,
         borderRadius: 12,
-        // boxShadow: "3 1 1 0 #5F6A6A",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -67,7 +66,7 @@ const styles = StyleSheet.create({
         opacity: 0.75
     },
     subText: {
-        marginLeft: 12,
+        marginLeft: 8,
         fontSize: 16
     }
 })

@@ -56,7 +56,7 @@ public class AggregatedSensorDataProcessor
 
         AggregatedSensorDataDTO soilTemp = new AggregatedSensorDataDTO(toFourDigitsDecimal(soilTempValue), "°C");
         AggregatedSensorDataDTO airTemp = new AggregatedSensorDataDTO(toFourDigitsDecimal(airTempValue), "°C");
-        AggregatedSensorDataDTO humidity = new AggregatedSensorDataDTO(toFourDigitsDecimal(humidityValue), "%RH");
+        AggregatedSensorDataDTO humidity = new AggregatedSensorDataDTO(toFourDigitsDecimal(humidityValue), "%");
         AggregatedSensorDataDTO pressure = new AggregatedSensorDataDTO(toFourDigitsDecimal(pressureValue), "hPa");
 
         AggregatedSensorDataDTO lux = new AggregatedSensorDataDTO(toFourDigitsDecimal(luxValue), "lux");

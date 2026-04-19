@@ -42,7 +42,6 @@ const Dashboard = () => {
     }
 
     const card2Data = [];
-    console.log(card2Data)
 
 
     const card3Data = [];
@@ -113,7 +112,13 @@ const Dashboard = () => {
 
         const { derivedSensorDataModel, derivedWeatherDataModel } = sseLatestData;
 
-        Object.entries({ ...derivedSensorDataModel }).slice(0, 3).forEach(([key, value]) => {
+        const {
+            aggregatedSensorDataId,
+            ...derivedSensorDataModelRemovedIds } = {
+            ...derivedSensorDataModel
+        }
+
+        Object.entries({ ...derivedSensorDataModelRemovedIds }).filter(([key, value]) => !key.endsWith("Unit")).slice(0, 3).forEach(([key, value]) => {
             if (key === "plantStressIndex" || key === "heatStressIndex") {
                 const text = titleTable[key.concat("Sensor")];
                 const icon = iconTable[key];
@@ -125,7 +130,13 @@ const Dashboard = () => {
             card2Data.push(<ParamCard key={key} text={text} subText={value} icon={icon} />);
         })
 
-        Object.entries({ ...derivedWeatherDataModel }).slice(0, 3).forEach(([key, value]) => {
+        const {
+            aggregatedWeatherDataId,
+            ...derivedWeatherDataModelRemovedIds } = {
+            ...derivedWeatherDataModel
+        }
+
+        Object.entries({ ...derivedWeatherDataModelRemovedIds }).filter(([key, value]) => !key.endsWith("Unit")).slice(0, 3).forEach(([key, value]) => {
             if (key === "plantStressIndex" || key === "heatStressIndex") {
                 const text = titleTable[key.concat("Weather")];
                 const icon = iconTable[key];
@@ -138,8 +149,36 @@ const Dashboard = () => {
             card2Data.push(<ParamCard key={key + value} text={text} subText={value} icon={icon} />);
         })
 
-        console.log(derivedSensorDataModel);
-        console.log(derivedWeatherDataModel);
+
+
+        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = sseLatestData;
+
+        const {
+            startingWindow, endingWindow,
+            ...aggregatedSensorDataModelRemovedTime } = {
+            ...aggregatedSensorDataModel
+        }
+
+
+        Object.entries({ ...aggregatedSensorDataModelRemovedTime }).slice(0, 3).forEach(([key, value]) => {
+            const text = titleTable[key];
+            const icon = iconTable[key];
+            card3Data.push(<ParamCard key={key} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
+        })
+
+        const {
+            processedWeatherDataId,
+            ...aggregatedWeatherDataModelRemovedTime } = {
+            ...aggregatedWeatherDataModel
+        }
+
+
+        Object.entries({ ...aggregatedWeatherDataModelRemovedTime }).slice(0, 3).forEach(([key, value]) => {
+            const text = titleTable[key];
+            const icon = iconTable[key];
+            card3Data.push(<ParamCard key={key + value} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
+        })
+
     }
 
 
@@ -225,8 +264,8 @@ const Dashboard = () => {
 
                 </View>
 
-                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Realtime Data View</Text>
-                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Raw sensor and environmental updated in real time</Text>
+                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Data Monitoring View</Text>
+                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Sensor and environmental data feed</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -238,18 +277,30 @@ const Dashboard = () => {
                     }]
                 }}>
                     <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
-                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >Raw Readings</Text>
-                        <TouchableOpacity name="quick_data" onPressIn={handlePress} onPressOut={handlePress} activeOpacity={0.75}>
-                            <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.quick_data ? theme.primaryColor : theme.whitePrimaryColor, borderColor: theme.primaryColor }}>
-                                <Text style={{ ...styles.subTitle3, color: isPressed.quick_data ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
-                                <Ionicons name='arrow-forward' size={20} color={isPressed.quick_data ? theme.whitePrimaryColor : theme.textPrimaryColor} />
-                            </View>
-                        </TouchableOpacity>
+                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >Data Readings</Text>
+                        {(card3Data.length > 0) &&
+                            <>
+                                <TouchableOpacity name="" onPressIn={handlePress} onPressOut={handlePress} activeOpacity={0.75}>
+                                    <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.derived ? theme.textPrimaryColor : theme.whitePrimaryColor, borderColor: theme.primaryColor }}>
+                                        <Text style={{ ...styles.subTitle3, color: isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
+                                        <Ionicons name='arrow-forward' size={20} color={isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor} />
+                                    </View>
+                                </TouchableOpacity>
+                            </>
+                        }
                     </View>
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
-                    <ParamCard />
+                    {(card3Data.length > 0) ?
+                        card3Data :
+                        <>
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                        </>
+                    }
+
                 </View>
             </View>
         </ScrollView>
