@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.aurus.server.llm.LLMRecommendationModel;
+import com.aurus.server.shared.AllDataDTO;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -26,13 +27,13 @@ public class SSEBroadcaster {
         emitter.onTimeout(() -> clients.remove(emitter));
         emitter.onError(e -> clients.remove(emitter));
 
-        SSEDataDTO sseDataDTO = sseDataManager.getSEEDataDTO();
+        AllDataDTO allDataDTO = sseDataManager.getAllDataDTO();
 
-        if (sseDataDTO != null) {
+        if (allDataDTO != null) {
             try {
                 emitter.send(SseEmitter.event()
-                        .name("sse-realtime-data")
-                        .data(sseDataManager.getSEEDataDTO()));
+                        .name("all-realtime-data")
+                        .data(sseDataManager.getAllDataDTO()));
             } catch (Exception e) {
                 emitter.complete();
                 clients.remove(emitter);
@@ -44,13 +45,13 @@ public class SSEBroadcaster {
 
     public void updateAndPushRealtimeData(LLMRecommendationModel llmRecommendationModel) {
         sseDataManager.updateToLatestData(llmRecommendationModel);
-        SSEDataDTO sseRealtimeDataDTO = sseDataManager.getSEEDataDTO();
+        AllDataDTO allDataDTO = sseDataManager.getAllDataDTO();
 
         for (SseEmitter emitter : clients) {
             try {
                 emitter.send(SseEmitter.event()
-                        .name("sse-realtime-data")
-                        .data(sseRealtimeDataDTO));
+                        .name("all-realtime-data")
+                        .data(allDataDTO));
             } catch (Exception e) {
                 emitter.complete();
                 clients.remove(emitter);

@@ -1,3 +1,4 @@
+import { Skeleton } from 'moti/skeleton';
 import { Dimensions, StyleSheet, Text, View } from 'react-native'
 import { BarChart } from 'react-native-gifted-charts';
 
@@ -20,20 +21,8 @@ const TrendCardLoading = ({ currentTheme }) => {
                 <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>Pattern</Text>
             </View>
             <View style{...styles.graphContainer}>
-                <Skeleton colorMode={theme} width="100%" height="164">
+                <Skeleton colorMode={theme} width="100%" height="190">
                 </Skeleton>
-            </View>
-            <View style={styles.legendWrapper}>
-                <View style={styles.legendItem}>
-                    <Skeleton colorMode={theme} width="100%" height="164">
-                    </Skeleton>
-                </View>
-                <View style={styles.legendItem}>
-                    <Skeleton colorMode={theme} width="12" height="12">
-                    </Skeleton>
-                    <Skeleton colorMode={theme} width="24" height="12">
-                    </Skeleton>
-                </View>
             </View>
         </View>
     )

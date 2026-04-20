@@ -11,7 +11,7 @@ export function createSSE(onMessage) {
         console.log("SSE connected");
     });
 
-    es.addEventListener("sse-realtime-data", (event) => {
+    es.addEventListener("all-realtime-data", (event) => {
         try {
             const data = JSON.parse(event.data);
             onMessage(data);

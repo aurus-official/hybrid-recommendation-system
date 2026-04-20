@@ -16,6 +16,7 @@ import com.aurus.server.batch.process.weather.ProcessedWeatherDataModel;
 import com.aurus.server.batch.process.weather.ProcessedWeatherDataRepository;
 import com.aurus.server.llm.LLMRecommendationModel;
 import com.aurus.server.llm.LLMRecommendationRepository;
+import com.aurus.server.shared.AllDataDTO;
 
 import org.springframework.stereotype.Service;
 
@@ -50,7 +51,7 @@ public class SSEDataManager {
 
     }
 
-    public SSEDataDTO getSEEDataDTO() {
+    public AllDataDTO getAllDataDTO() {
         if (this.derivedSensorDataModel == null ||
                 this.derivedWeatherDataModel == null ||
                 this.aggregatedSensorDataModel == null ||
@@ -60,7 +61,7 @@ public class SSEDataManager {
             return null;
         }
 
-        return new SSEDataDTO(
+        return new AllDataDTO(
                 this.derivedSensorDataModel,
                 this.derivedWeatherDataModel,
                 this.aggregatedSensorDataModel,

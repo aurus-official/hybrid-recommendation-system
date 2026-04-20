@@ -7,10 +7,10 @@ import {
     FontAwesome,
     FontAwesome5,
 } from "@expo/vector-icons";
-import { Colors } from "../constants/Colors";
 
-const IconTable = (colorScheme) => {
-    const theme = Colors[colorScheme] || Colors.light;
+const IconTable = (currentTheme) => {
+    const theme = currentTheme;
+    console.log(theme);
 
     const table = {
         water: (
@@ -97,7 +97,7 @@ const IconTable = (colorScheme) => {
             <MaterialCommunityIcons
                 color={theme.whitePrimaryColor}
                 name="water-percent"
-                size={20}
+                size={28}
             />
         ),
 

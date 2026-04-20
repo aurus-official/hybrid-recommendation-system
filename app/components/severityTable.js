@@ -1,7 +1,5 @@
-import { Colors } from "../constants/Colors";
-
-const SeverityTable = (colorScheme) => {
-    const theme = Colors[colorScheme] || Colors.light;
+const SeverityTable = (currentTheme) => {
+    const theme = currentTheme;
 
     const table = {
         0: {

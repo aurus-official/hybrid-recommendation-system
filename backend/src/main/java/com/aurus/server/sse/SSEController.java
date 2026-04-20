@@ -25,9 +25,4 @@ public class SSEController {
         return sseBroadcaster.subscribe();
     }
 
-    @GetMapping("/test")
-    public String getMethodName() {
-        return new String("testing");
-    }
-
 }

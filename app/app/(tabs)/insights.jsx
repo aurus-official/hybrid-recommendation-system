@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native'
 import { Colors } from '../../constants/Colors';
 import ParamCard from '../../components/paramCard';
 import IconTable from '../../components/iconTable';
@@ -6,7 +6,6 @@ import TitleTable from '../../components/titleTable';
 import SeverityTable from '../../components/severityTable';
 import { useSSE } from '../../components/sseProvider';
 import RecoCard from '../../components/recoCard';
-import { Fragment } from 'react/jsx-runtime';
 import ParamCardLoading from '../../components/paramCardLoading';
 import RecoCardLoading from '../../components/recoCardLoading';
 
@@ -14,9 +13,9 @@ const Insights = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
     const sseLatestData = useSSE();
-    const iconTable = IconTable.call(colorScheme);
+    const iconTable = IconTable(theme);
     const titleTable = TitleTable.call();
-    const severityTable = SeverityTable.call(colorScheme);
+    const severityTable = SeverityTable(theme);
 
     const card1Data = [];
     const card2Data = [];
@@ -102,7 +101,7 @@ const Insights = () => {
             ...derivedSensorDataModel
         }
 
-        Object.entries({ ...derivedSensorDataModelRemovedIds }).filter(([key, value]) => !(key.endsWith("Unit") || key.endsWith("id"))).forEach(([key, value]) => {
+        Object.entries({ ...derivedSensorDataModelRemovedIds }).filter(([key, _]) => !(key.endsWith("Unit") || key.endsWith("id"))).forEach(([key, value]) => {
             if (key === "plantStressIndex" || key === "heatStressIndex") {
                 const text = titleTable[key.concat("Sensor")];
                 const icon = iconTable[key];
@@ -120,7 +119,7 @@ const Insights = () => {
             ...derivedWeatherDataModel
         }
 
-        Object.entries({ ...derivedWeatherDataModelRemovedIds }).filter(([key, value]) => !(key.endsWith("Unit") || key.endsWith("id"))).forEach(([key, value]) => {
+        Object.entries({ ...derivedWeatherDataModelRemovedIds }).filter(([key, _]) => !(key.endsWith("Unit") || key.endsWith("id"))).forEach(([key, value]) => {
             if (key === "plantStressIndex" || key === "heatStressIndex") {
                 const text = titleTable[key.concat("Weather")];
                 const icon = iconTable[key];
@@ -245,24 +244,5 @@ const styles = StyleSheet.create({
         marginLeft: 24,
         paddingTop: 12,
         paddingBottom: 12,
-    },
-    moreButtonContainer: {
-        borderRadius: 12,
-        boxSizing: "border-box",
-        borderWidth: 1,
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        paddingRight: 16,
-        marginRight: 4,
-    },
-    subTitle3: {
-        fontSize: 16,
-        fontFamily: "Inter_500Regular",
-        letterSpacing: -0.5,
-        marginLeft: 20,
-        marginRight: 12,
-        paddingTop: 8,
-        paddingBottom: 8,
     },
 })

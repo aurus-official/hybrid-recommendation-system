@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } 
 import { Colors } from '../../constants/Colors';
 import ParamCard from '../../components/paramCard';
 import { Ionicons } from '@expo/vector-icons';
-import { useReducer, useState } from 'react';
+import { useReducer } from 'react';
 import { useSSE } from '../../components/sseProvider';
 import RecoCard from '../../components/recoCard';
 import IconTable from '../../components/iconTable';
@@ -15,10 +15,10 @@ import RecoCardLoading from '../../components/recoCardLoading';
 const Dashboard = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
-    const sseLatestData = useSSE();
-    const iconTable = IconTable.call(colorScheme);
+    const dataAcquired = useSSE();
+    const iconTable = IconTable(theme);
     const titleTable = TitleTable.call();
-    const severityTable = SeverityTable.call(colorScheme);
+    const severityTable = SeverityTable(theme);
 
     const [isPressed, dispatchPressed] = useReducer((prev, type) => {
         return {
@@ -46,12 +46,12 @@ const Dashboard = () => {
 
     const card3Data = [];
 
-    if (sseLatestData != null) {
+    if (dataAcquired != null) {
 
         const { irrigation, soilNutrient, microclimate, cropOperation, irrigationSeverityValue,
             soilNutrientSeverityValue, microclimateSeverityValue, cropOperationSeverityValue,
         } = {
-            ...sseLatestData["llmRecommendationModel"]
+            ...dataAcquired["llmRecommendationModel"]
         }
 
         const categoryWithSeverity = {
@@ -110,7 +110,7 @@ const Dashboard = () => {
         severityData.text = severityTable[severityValue].text;
         severityData.color = severityTable[severityValue].color;
 
-        const { derivedSensorDataModel, derivedWeatherDataModel } = sseLatestData;
+        const { derivedSensorDataModel, derivedWeatherDataModel } = dataAcquired;
 
         const {
             aggregatedSensorDataId,
@@ -118,7 +118,7 @@ const Dashboard = () => {
             ...derivedSensorDataModel
         }
 
-        Object.entries({ ...derivedSensorDataModelRemovedIds }).filter(([key, value]) => !key.endsWith("Unit")).slice(0, 3).forEach(([key, value]) => {
+        Object.entries({ ...derivedSensorDataModelRemovedIds }).filter(([key, _]) => !key.endsWith("Unit")).slice(0, 3).forEach(([key, value]) => {
             if (key === "plantStressIndex" || key === "heatStressIndex") {
                 const text = titleTable[key.concat("Sensor")];
                 const icon = iconTable[key];
@@ -136,7 +136,7 @@ const Dashboard = () => {
             ...derivedWeatherDataModel
         }
 
-        Object.entries({ ...derivedWeatherDataModelRemovedIds }).filter(([key, value]) => !key.endsWith("Unit")).slice(0, 3).forEach(([key, value]) => {
+        Object.entries({ ...derivedWeatherDataModelRemovedIds }).filter(([key, _]) => !key.endsWith("Unit")).slice(0, 3).forEach(([key, value]) => {
             if (key === "plantStressIndex" || key === "heatStressIndex") {
                 const text = titleTable[key.concat("Weather")];
                 const icon = iconTable[key];
@@ -151,7 +151,7 @@ const Dashboard = () => {
 
 
 
-        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = sseLatestData;
+        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = dataAcquired;
 
         const {
             startingWindow, endingWindow,
@@ -187,6 +187,7 @@ const Dashboard = () => {
             <View style={styles.viewContainerStyles} >
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Recommended Actions</Text>
                 <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Precise actions tailored to your field's current conditions.</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : Latest</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -330,6 +331,19 @@ const styles = StyleSheet.create({
         fontFamily: "Inter_500Regular",
         letterSpacing: -0.5,
         marginLeft: 1
+    },
+    subSubTitle1: {
+        fontSize: 13,
+        fontFamily: "Inter_500Regular",
+        letterSpacing: -0.5,
+        marginLeft: 1,
+        alignSelf: "flex-start",
+        marginTop: 8,
+        borderRadius: 8,
+        paddingTop: 4,
+        paddingBottom: 4,
+        paddingLeft: 8,
+        paddingRight: 8,
     },
     card1Container: {
         marginTop: 16,

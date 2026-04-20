@@ -3,6 +3,8 @@ export const Colors = {
         primaryColor: "#7A5C52",
         whitePrimaryColor: "#FFFFFF",
 
+        complimentaryColor: "#52707a",
+
         lowSeverityColor: "#0CC021",
         mediumSeverityColor: "#F15A1F",
         highSeverityColor: "#F11F22",

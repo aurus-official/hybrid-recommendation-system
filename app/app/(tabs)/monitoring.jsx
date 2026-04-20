@@ -10,7 +10,7 @@ const Monitoring = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
     const sseLatestData = useSSE();
-    const iconTable = IconTable.call(colorScheme);
+    const iconTable = IconTable(theme);
     const titleTable = TitleTable.call();
 
     const card1Data = [];
@@ -31,7 +31,6 @@ const Monitoring = () => {
             card1Data.push(<ParamCard key={key} text={text} subText={`${value.value} ${value.unit}`} icon={icon} />);
         })
 
-        console.log(aggregatedSensorDataModelRemovedTime)
 
         const {
             processedWeatherDataId, id,
