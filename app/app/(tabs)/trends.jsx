@@ -1,29 +1,22 @@
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { Colors } from '../../constants/Colors';
-import { useReducer, useState } from 'react';
-import { useSSE } from '../../components/sseProvider';
-import IconTable from '../../components/iconTable';
+import { useState } from 'react';
 import TitleTable from '../../components/titleTable';
-import SeverityTable from '../../components/severityTable';
 import Trend from '../../components/trendCard';
 import TrendCardLoading from '../../components/trendCardLoading';
 import { Entypo, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useRest } from '../../components/restProvider';
 import HistoryModal from '../../components/historyModal';
+import { useFarmData } from '../../components/farmDataProvider';
+import RecoCardLoading from '../../components/recoCardLoading';
 
 
 const Trends = () => {
-    const [isLatestDataToUse, setIsLatestDataToUse] = useState(true);
-    const [dateTimeTitle, setDateTimeTitle] = useState(null);
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] || Colors.light;
-    const { restData } = useRest();
-    const sseData = useSSE()
-    const dataAcquired = isLatestDataToUse ? sseData : restData;
-    console.log("DATA ACQUIRED : " + dataAcquired);
+    const { farmData, setDataSource, dataSource } = useFarmData();
     const [isLoadPastPageData, setLoadPastPageData] = useState(false);
     const titleTable = TitleTable();
-    const currentDataSource = isLatestDataToUse ? "Latest" : dateTimeTitle
+
 
     const handleLoadPastPageDataClick = () => {
         setLoadPastPageData(prev => !prev)
@@ -35,8 +28,8 @@ const Trends = () => {
     const card2Data = [];
     const card3Data = [];
 
-    if (dataAcquired != null) {
-        const { processedWeatherDataModel } = dataAcquired;
+    if (farmData != null) {
+        const { processedWeatherDataModel } = farmData;
         const { processedWeatherDataPointsHourly, processedWeatherDataPointsDaily } = processedWeatherDataModel;
 
         processedWeatherDataPointsHourly.slice(0, 6).forEach((element, index) => {
@@ -105,7 +98,7 @@ const Trends = () => {
         <ScrollView style={{ ...styles.viewStyles, backgroundColor: theme.screenBackgroundColor }}>
             <View style={styles.viewContainerStyles} >
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }}>Historical Records</Text>
-                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Tracking the success of previous directions</Text>
+                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Tracking the success of previous directions.</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -119,26 +112,32 @@ const Trends = () => {
                     <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
                         <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>View Historical Data</Text>
                     </View>
-                    <Text style={styles.historicalStyleText}>Current Data Loaded</Text>
-                    <Text style={styles.historicalStyleTextSecond}>{currentDataSource}</Text>
-                    <View style={styles.buttonContainer} >
-                        <HistoryModal handleSetDateTimeTitle={setDateTimeTitle} handleSetIsLatestDataToUse={setIsLatestDataToUse} currentTheme={theme} isLoadPastPageDataClicked={isLoadPastPageData} handleLoadPastPageDataClick={handleLoadPastPageDataClick} />
-                        <TouchableOpacity name="" onPressIn={handleLoadPastPageDataClick} activeOpacity={0.75}>
-                            <View style={{ ...styles.moreButtonContainer, backgroundColor: theme.primaryColor, borderColor: theme.primaryColor }}>
-                                <Entypo style={styles.buttonIconStyle} name='download' size={18} color={theme.whitePrimaryColor} />
-                                <Text style={{ ...styles.subTitle3, color: theme.whitePrimaryColor }} >Load Past Data</Text>
+                    <HistoryModal currentTheme={theme} isLoadPastPageDataClicked={isLoadPastPageData} handleLoadPastPageDataClick={handleLoadPastPageDataClick} />
+                    {(card1Data.length > 0) ?
+                        <>
+                            <Text style={styles.historicalStyleText}>Current Data Loaded</Text>
+                            <Text style={styles.historicalStyleTextSecond}>{dataSource}</Text>
+                            <View style={styles.buttonContainer} >
+                                <TouchableOpacity name="" onPressIn={handleLoadPastPageDataClick} activeOpacity={0.75}>
+                                    <View style={{ ...styles.moreButtonContainer, backgroundColor: theme.primaryColor, borderColor: theme.primaryColor }}>
+                                        <Entypo style={styles.buttonIconStyle} name='download' size={18} color={theme.whitePrimaryColor} />
+                                        <Text style={{ ...styles.subTitle3, color: theme.whitePrimaryColor }} >Load Past Data</Text>
+                                    </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity name="" onPressIn={() => setDataSource("Latest")} activeOpacity={0.5}>
+                                    <View style={{ ...styles.moreButtonContainer, backgroundColor: theme.whitePrimaryColor, borderColor: theme.primayColor }}>
+                                        <MaterialIcons style={styles.buttonIconStyle} name='reset-tv' size={20} color={theme.textPrimaryColor} />
+                                        <Text style={{ ...styles.subTitle3, color: theme.textPrimaryColor }} >Reset to Latest</Text>
+                                    </View>
+                                </TouchableOpacity>
                             </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity name="" onPressIn={() => { setIsLatestDataToUse(true) }} activeOpacity={0.5}>
-                            <View style={{ ...styles.moreButtonContainer, backgroundColor: theme.whitePrimaryColor, borderColor: theme.primayColor }}>
-                                <MaterialIcons style={styles.buttonIconStyle} name='reset-tv' size={20} color={theme.textPrimaryColor} />
-                                <Text style={{ ...styles.subTitle3, color: theme.textPrimaryColor }} >Reset to Latest</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </View>
+                        </>
+                        :
+                        <RecoCardLoading />
+                    }
                 </View>
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }}>Data Trends and Patterns</Text>
-                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Highlights data movement and direction</Text>
+                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Highlights data movement and direction.</Text>
                 {(card1Data.length > 0) ?
                     card1Data
                     : <TrendCardLoading currentTheme={theme} />

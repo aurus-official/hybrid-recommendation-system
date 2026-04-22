@@ -5,6 +5,7 @@ import com.aurus.server.batch.aggregate.weather.AggregatedWeatherDataModel;
 import com.aurus.server.batch.derive.sensor.DerivedSensorDataModel;
 import com.aurus.server.batch.derive.weather.DerivedWeatherDataModel;
 import com.aurus.server.batch.process.weather.ProcessedWeatherDataModel;
+import com.aurus.server.ingestion.health_check.RawHealthCheckDataModel;
 import com.aurus.server.llm.LLMRecommendationModel;
 
 public record AllDataDTO(
@@ -13,6 +14,7 @@ public record AllDataDTO(
         AggregatedSensorDataModel aggregatedSensorDataModel,
         AggregatedWeatherDataModel aggregatedWeatherDataModel,
         ProcessedWeatherDataModel processedWeatherDataModel,
-        LLMRecommendationModel llmRecommendationModel) {
+        LLMRecommendationModel llmRecommendationModel,
+        RawHealthCheckDataModel rawHealthCheckDataModel) {
 
 }

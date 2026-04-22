@@ -3,21 +3,21 @@ import { Colors } from '../../constants/Colors';
 import ParamCard from '../../components/paramCard';
 import IconTable from '../../components/iconTable';
 import TitleTable from '../../components/titleTable';
-import { useSSE } from '../../components/sseProvider';
 import ParamCardLoading from '../../components/paramCardLoading';
+import { useFarmData } from '../../components/farmDataProvider';
 
 const Monitoring = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
-    const sseLatestData = useSSE();
+    const { farmData, dataSource } = useFarmData();
     const iconTable = IconTable(theme);
     const titleTable = TitleTable.call();
 
     const card1Data = [];
     const card2Data = [];
 
-    if (sseLatestData != null) {
-        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = sseLatestData;
+    if (farmData != null) {
+        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = farmData;
 
         const {
             startingWindow, endingWindow,
@@ -50,7 +50,8 @@ const Monitoring = () => {
         <ScrollView style={{ ...styles.viewStyles, backgroundColor: theme.screenBackgroundColor }}>
             <View style={styles.viewContainerStyles} >
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Data Monitoring</Text>
-                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Data Source : Live</Text>
+                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Environmental snapshots synchronized every 20 minutes.</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : {dataSource}</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -160,5 +161,18 @@ const styles = StyleSheet.create({
         marginLeft: 24,
         paddingTop: 12,
         paddingBottom: 12,
+    },
+    subSubTitle1: {
+        fontSize: 13,
+        fontFamily: "Inter_500Regular",
+        letterSpacing: -0.5,
+        marginLeft: 1,
+        alignSelf: "flex-start",
+        marginTop: 8,
+        borderRadius: 8,
+        paddingTop: 4,
+        paddingBottom: 4,
+        paddingLeft: 8,
+        paddingRight: 8,
     },
 })

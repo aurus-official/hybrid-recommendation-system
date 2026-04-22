@@ -32,6 +32,11 @@ const TitleTable = () => {
         evapotranspiration: "Evapotranspiration",
         temperature: "Weather Temperature",
         precipitationProbability: "Precipitation Probability",
+        ads1: "ADS1",
+        ads2: "ADS2",
+        bme280: "BME280",
+        guvas12sd: "GUVAS12SD",
+        ds18b20: "DS18B20",
     };
 
     return table;

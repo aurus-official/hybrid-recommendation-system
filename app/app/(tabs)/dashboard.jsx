@@ -3,22 +3,24 @@ import { Colors } from '../../constants/Colors';
 import ParamCard from '../../components/paramCard';
 import { Ionicons } from '@expo/vector-icons';
 import { useReducer } from 'react';
-import { useSSE } from '../../components/sseProvider';
 import RecoCard from '../../components/recoCard';
 import IconTable from '../../components/iconTable';
 import TitleTable from '../../components/titleTable';
 import SeverityTable from '../../components/severityTable';
 import ParamCardLoading from '../../components/paramCardLoading';
 import RecoCardLoading from '../../components/recoCardLoading';
+import { useFarmData } from '../../components/farmDataProvider';
+import { useNavigation } from 'expo-router';
 
 
 const Dashboard = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
-    const dataAcquired = useSSE();
+    const { farmData, dataSource } = useFarmData();
     const iconTable = IconTable(theme);
-    const titleTable = TitleTable.call();
+    const titleTable = TitleTable();
     const severityTable = SeverityTable(theme);
+    const navigation = useNavigation();
 
     const [isPressed, dispatchPressed] = useReducer((prev, type) => {
         return {
@@ -46,13 +48,14 @@ const Dashboard = () => {
 
     const card3Data = [];
 
-    if (dataAcquired != null) {
+    if (farmData != null) {
 
         const { irrigation, soilNutrient, microclimate, cropOperation, irrigationSeverityValue,
             soilNutrientSeverityValue, microclimateSeverityValue, cropOperationSeverityValue,
         } = {
-            ...dataAcquired["llmRecommendationModel"]
+            ...farmData["llmRecommendationModel"]
         }
+
 
         const categoryWithSeverity = {
             irrigation: {
@@ -72,6 +75,7 @@ const Dashboard = () => {
                 severityValue: cropOperationSeverityValue
             }
         }
+
 
         let severityValue = 4;
         const maxCategoryWithSeverity = Object.entries(categoryWithSeverity).reduce((maxSeverityObjects, [key, value]) => {
@@ -110,7 +114,7 @@ const Dashboard = () => {
         severityData.text = severityTable[severityValue].text;
         severityData.color = severityTable[severityValue].color;
 
-        const { derivedSensorDataModel, derivedWeatherDataModel } = dataAcquired;
+        const { derivedSensorDataModel, derivedWeatherDataModel } = farmData;
 
         const {
             aggregatedSensorDataId,
@@ -151,7 +155,7 @@ const Dashboard = () => {
 
 
 
-        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = dataAcquired;
+        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = farmData;
 
         const {
             startingWindow, endingWindow,
@@ -187,7 +191,7 @@ const Dashboard = () => {
             <View style={styles.viewContainerStyles} >
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Recommended Actions</Text>
                 <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Precise actions tailored to your field's current conditions.</Text>
-                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : Latest</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : {dataSource}</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -203,7 +207,10 @@ const Dashboard = () => {
                         {(severityData.text.length > 0 && card1Data.length > 0) ?
                             <>
                                 <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>{severityData.text}</Text>
-                                <TouchableOpacity name="" onPressIn={handlePress} onPressOut={handlePress} activeOpacity={0.75}>
+                                <TouchableOpacity name="" onPressIn={handlePress} onPressOut={() => {
+                                    handlePress
+                                    navigation.navigate("insights");
+                                }} activeOpacity={0.75}>
                                     <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.critical ? theme.highSeverityColor : theme.whitePrimaryColor, borderColor: theme.highSeverityColor }}>
                                         <Text style={{ ...styles.subTitle3, color: isPressed.critical ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
                                         <Ionicons name='arrow-forward' size={20} color={isPressed.critical ? theme.whitePrimaryColor : theme.textPrimaryColor} />
@@ -224,8 +231,9 @@ const Dashboard = () => {
 
                 </View>
 
-                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Smart Metrics</Text>
-                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Key indicators showing your crop and environmental health</Text>
+                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Smart Metrics Snapshot</Text>
+                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Key indicators showing your crop and environmental health.</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : {dataSource}</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -242,7 +250,10 @@ const Dashboard = () => {
 
                         {(card2Data.length > 0) &&
                             <>
-                                <TouchableOpacity name="" onPressIn={handlePress} onPressOut={handlePress} activeOpacity={0.75}>
+                                <TouchableOpacity name="" onPressIn={handlePress} onPressOut={() => {
+                                    handlePress
+                                    navigation.navigate("insights");
+                                }} activeOpacity={0.75}>
                                     <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.derived ? theme.textPrimaryColor : theme.whitePrimaryColor, borderColor: theme.primaryColor }}>
                                         <Text style={{ ...styles.subTitle3, color: isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
                                         <Ionicons name='arrow-forward' size={20} color={isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor} />
@@ -265,8 +276,9 @@ const Dashboard = () => {
 
                 </View>
 
-                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Data Monitoring View</Text>
-                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Sensor and environmental data feed</Text>
+                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Quick Data View</Text>
+                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Sensor and environmental data feed.</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : {dataSource}</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -281,7 +293,10 @@ const Dashboard = () => {
                         <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >Data Readings</Text>
                         {(card3Data.length > 0) &&
                             <>
-                                <TouchableOpacity name="" onPressIn={handlePress} onPressOut={handlePress} activeOpacity={0.75}>
+                                <TouchableOpacity name="" onPressIn={handlePress} onPressOut={() => {
+                                    handlePress
+                                    navigation.navigate("monitoring");
+                                }} activeOpacity={0.75}>
                                     <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.derived ? theme.textPrimaryColor : theme.whitePrimaryColor, borderColor: theme.primaryColor }}>
                                         <Text style={{ ...styles.subTitle3, color: isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
                                         <Ionicons name='arrow-forward' size={20} color={isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor} />

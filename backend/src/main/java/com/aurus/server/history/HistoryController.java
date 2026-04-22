@@ -1,8 +1,5 @@
 package com.aurus.server.history;
 
-import java.util.List;
-
-import com.aurus.server.llm.LLMRecommendationDTO;
 import com.aurus.server.shared.AllDataDTO;
 
 import org.springframework.http.ResponseEntity;
@@ -22,11 +19,11 @@ public class HistoryController {
     }
 
     @GetMapping("/page/{pageNumber}")
-    public ResponseEntity<List<LLMRecommendationDTO>> getRecommendationTimeIdPage(
+    public ResponseEntity<HistoryPageDTO> getRecommendationTimeIdPage(
             @PathVariable() int pageNumber) {
-        List<LLMRecommendationDTO> llmRecommendationDTOs = historyService.getRecommendationPage(pageNumber);
+        HistoryPageDTO historyPageDTO = historyService.getRecommendationPage(pageNumber);
         System.out.println("PAGEE");
-        return ResponseEntity.ok(llmRecommendationDTOs);
+        return ResponseEntity.ok(historyPageDTO);
     }
 
     @GetMapping("/id/{id}")

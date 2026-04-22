@@ -53,7 +53,7 @@ const GroupLayout = () => {
             }}></Tabs.Screen>
             <Tabs.Screen name="trends" options={{
                 tabBarLabel: "Trends",
-                headerTitle: ((props) => (<HeaderLeft {...props} titleName="Trends and Historical View" />)),
+                headerTitle: ((props) => (<HeaderLeft {...props} titleName="Trends" />)),
                 tabBarIcon: (({ focused }) => {
                     return <Ionicons
                         name={focused ? 'receipt' : 'receipt-outline'}
@@ -64,7 +64,7 @@ const GroupLayout = () => {
             }}></Tabs.Screen>
             <Tabs.Screen name="status" options={{
                 tabBarLabel: "Status",
-                headerTitle: ((props) => (<HeaderLeft{...props} titleName="System Health Check" />)),
+                headerTitle: ((props) => (<HeaderLeft{...props} titleName="Status" />)),
                 tabBarIcon: (({ focused }) => {
                     return <Ionicons
                         name={focused ? 'settings' : 'settings-outline'}

@@ -6,11 +6,11 @@ import {
     Entypo,
     FontAwesome,
     FontAwesome5,
+    AntDesign,
 } from "@expo/vector-icons";
 
 const IconTable = (currentTheme) => {
     const theme = currentTheme;
-    console.log(theme);
 
     const table = {
         water: (
@@ -252,6 +252,37 @@ const IconTable = (currentTheme) => {
                 name="grain"
                 size={20}
             />
+        ),
+        ads1: (
+            <Ionicons
+                color={theme.whitePrimaryColor}
+                name="hardware-chip"
+                size={20}
+            />
+        ),
+        ads2: (
+            <Ionicons
+                color={theme.whitePrimaryColor}
+                name="hardware-chip"
+                size={20}
+            />
+        ),
+        bme280: (
+            <MaterialIcons
+                color={theme.whitePrimaryColor}
+                name="edgesensor-low"
+                size={20}
+            />
+        ),
+        guvas12sd: (
+            <FontAwesome5
+                color={theme.whitePrimaryColor}
+                name="fantasy-flight-games"
+                size={20}
+            />
+        ),
+        ds18b20: (
+            <AntDesign color={theme.whitePrimaryColor} name="line" size={20} />
         ),
     };
 

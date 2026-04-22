@@ -3,58 +3,39 @@ import { Colors } from '../../constants/Colors';
 import ParamCard from '../../components/paramCard';
 import { Ionicons } from '@expo/vector-icons';
 import { useReducer, useState } from 'react';
-import { useSSE } from '../../components/sseProvider';
 import RecoCard from '../../components/recoCard';
 import IconTable from '../../components/iconTable';
 import TitleTable from '../../components/titleTable';
 import SeverityTable from '../../components/severityTable';
 import ParamCardLoading from '../../components/paramCardLoading';
 import RecoCardLoading from '../../components/recoCardLoading';
+import { useFarmData } from '../../components/farmDataProvider';
 
 
 const Status = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
-    const sseLatestData = useSSE();
-    const iconTable = IconTable.call(colorScheme);
+    const { farmData } = useFarmData();
+    const iconTable = IconTable(theme);
     const titleTable = TitleTable.call();
-    const severityTable = SeverityTable.call(colorScheme);
-
-    const [isPressed, dispatchPressed] = useReducer((prev, type) => {
-        return {
-            ...prev,
-            [type]: !prev[type]
-        }
-    }, {
-        derived: false,
-        recommendation: false,
-        quick_data: false
-    });
-
-    const handlePress = (event) => {
-        dispatchPressed(event.target.name);
-    }
 
     const card1Data = [];
-    const severityData = {
-        text: "",
-        color: "",
+
+    if (farmData != null) {
+        const { rawHealthCheckDataModel: { id, createdAt, ...parameters } } = farmData;
+
+        Object.entries(parameters).forEach(([key, value]) => {
+            const text = titleTable[key];
+            const icon = iconTable[key];
+            card1Data.push(<ParamCard key={key} text={text} subText={value ? "On" : "Off"} icon={icon}></ParamCard>)
+        })
     }
-
-    const card2Data = [];
-
-    const card3Data = [];
-
-    if (sseLatestData != null) {
-
-    }
-
 
     return (
         <ScrollView style={{ ...styles.viewStyles, backgroundColor: theme.screenBackgroundColor }}>
             <View style={styles.viewContainerStyles} >
-                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Recommended Actions</Text>
-                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Precise actions tailored to your field's current conditions.</Text>
+                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >System Health Check</Text>
+                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Diagnostic overview ensuring hardware are working.</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -65,9 +46,18 @@ const Status = () => {
                         color: theme.paramBorderColor
                     }]
                 }}>
-                    <View style={{ ...styles.subTitle2Container, backgroundColor: (severityData.color) ? severityData.color : theme.primaryColor }}>
-                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>Suggested Steps</Text>
+                    <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
+                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >One-Wire Sensor and ADC</Text>
                     </View>
+                    {(card1Data.length > 0) ?
+                        card1Data :
+                        <>
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                            <ParamCardLoading />
+                        </>
+                    }
                 </View>
             </View>
         </ScrollView>
@@ -148,4 +138,18 @@ const styles = StyleSheet.create({
         paddingTop: 8,
         paddingBottom: 8,
     },
+    subSubTitle1: {
+        fontSize: 13,
+        fontFamily: "Inter_500Regular",
+        letterSpacing: -0.5,
+        marginLeft: 1,
+        alignSelf: "flex-start",
+        marginTop: 8,
+        borderRadius: 8,
+        paddingTop: 4,
+        paddingBottom: 4,
+        paddingLeft: 8,
+        paddingRight: 8,
+    },
 })
+

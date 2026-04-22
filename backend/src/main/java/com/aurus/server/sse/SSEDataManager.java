@@ -14,6 +14,8 @@ import com.aurus.server.batch.derive.weather.DerivedWeatherDataModel;
 import com.aurus.server.batch.derive.weather.DerivedWeatherDataRepository;
 import com.aurus.server.batch.process.weather.ProcessedWeatherDataModel;
 import com.aurus.server.batch.process.weather.ProcessedWeatherDataRepository;
+import com.aurus.server.ingestion.health_check.RawHealthCheckDataModel;
+import com.aurus.server.ingestion.health_check.RawHealthCheckDataRepository;
 import com.aurus.server.llm.LLMRecommendationModel;
 import com.aurus.server.llm.LLMRecommendationRepository;
 import com.aurus.server.shared.AllDataDTO;
@@ -28,6 +30,7 @@ public class SSEDataManager {
     private final AggregatedWeatherDataRepository aggregatedWeatherDataRepository;
     private final DerivedWeatherDataRepository derivedWeatherDataRepository;
     private final LLMRecommendationRepository llmRecommendationRepository;
+    private final RawHealthCheckDataRepository rawHealthCheckDataRepository;
 
     private volatile DerivedSensorDataModel derivedSensorDataModel;
     private volatile DerivedWeatherDataModel derivedWeatherDataModel;
@@ -35,19 +38,22 @@ public class SSEDataManager {
     private volatile AggregatedSensorDataModel aggregatedSensorDataModel;
     private volatile AggregatedWeatherDataModel aggregatedWeatherDataModel;
     private volatile LLMRecommendationModel llmRecommendationModel;
+    private volatile RawHealthCheckDataModel rawHealthCheckDataModel;
 
     public SSEDataManager(DerivedSensorDataRepository derivedSensorDataRepository,
             ProcessedWeatherDataRepository processedWeatherDataRepository,
             AggregatedWeatherDataRepository aggregatedWeatherDataRepository,
             DerivedWeatherDataRepository derivedWeatherDataRepository,
             LLMRecommendationRepository llmRecommendationRepository,
-            AggregatedSensorDataRepository aggregatedSensorDataRepository) {
+            AggregatedSensorDataRepository aggregatedSensorDataRepository,
+            RawHealthCheckDataRepository rawHealthCheckDataRepository) {
         this.derivedSensorDataRepository = derivedSensorDataRepository;
         this.processedWeatherDataRepository = processedWeatherDataRepository;
         this.aggregatedWeatherDataRepository = aggregatedWeatherDataRepository;
         this.derivedWeatherDataRepository = derivedWeatherDataRepository;
         this.llmRecommendationRepository = llmRecommendationRepository;
         this.aggregatedSensorDataRepository = aggregatedSensorDataRepository;
+        this.rawHealthCheckDataRepository = rawHealthCheckDataRepository;
 
     }
 
@@ -57,7 +63,8 @@ public class SSEDataManager {
                 this.aggregatedSensorDataModel == null ||
                 this.aggregatedWeatherDataModel == null ||
                 this.processedWeatherDataModel == null ||
-                this.llmRecommendationModel == null) {
+                this.llmRecommendationModel == null ||
+                this.rawHealthCheckDataModel == null) {
             return null;
         }
 
@@ -67,7 +74,8 @@ public class SSEDataManager {
                 this.aggregatedSensorDataModel,
                 this.aggregatedWeatherDataModel,
                 this.processedWeatherDataModel,
-                this.llmRecommendationModel);
+                this.llmRecommendationModel,
+                this.rawHealthCheckDataModel);
     }
 
     public void updateToLatestData(LLMRecommendationModel llmRecommendationModel) {
@@ -115,6 +123,8 @@ public class SSEDataManager {
             this.processedWeatherDataModel = processedWeatherDataRepository
                     .findById(this.aggregatedWeatherDataModel.getProcessedWeatherDataId())
                     .orElseGet(() -> new ProcessedWeatherDataModel());
+
+            this.rawHealthCheckDataModel = rawHealthCheckDataRepository.findFirstByOrderByIdDesc().get();
         }
     }
 

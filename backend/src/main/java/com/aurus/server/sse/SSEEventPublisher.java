@@ -14,7 +14,7 @@ public class SSEEventPublisher {
     }
 
     public void publishSSERealtimeDataUpdateEvent(LLMRecommendationModel llmRecommendationModel) {
-        this.applicationEventPublisher.publishEvent(new SSERealtimeDataUpdateEvent(llmRecommendationModel));
+        this.applicationEventPublisher.publishEvent(new SSEDataUpdateEvent(llmRecommendationModel));
     }
 
 }

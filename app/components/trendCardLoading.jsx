@@ -20,7 +20,17 @@ const TrendCardLoading = ({ currentTheme }) => {
             <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
                 <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>Pattern</Text>
             </View>
-            <View style{...styles.graphContainer}>
+            <View style={{
+                ...styles.graphContainer,
+                backgroundColor: theme.cardBackgroundColor,
+                borderColor: theme.paramBorderColor,
+                boxShadow: [{
+                    offsetX: 0,
+                    offsetY: 0,
+                    blurRadius: 4,
+                    color: theme.paramBorderColor
+                }]
+            }}>
                 <Skeleton colorMode={theme} width="100%" height="190">
                 </Skeleton>
             </View>
@@ -66,6 +76,11 @@ const styles = StyleSheet.create({
     },
     graphContainer: {
         width: "90%",
+        borderWidth: 1.25,
+        borderRadius: 12,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
     },
     legendWrapper: {
         flexDirection: 'row',

@@ -16,8 +16,8 @@ public class SSEEventListener {
 
     @EventListener
     @Async
-    public void listenSSERealtimeDataUpdateEvent(SSERealtimeDataUpdateEvent sseRealtimeDataUpdateEvent) {
-        sseBroadcaster.updateAndPushRealtimeData(sseRealtimeDataUpdateEvent.llmRecommendationModel());
+    public void listenSSERealtimeDataUpdateEvent(SSEDataUpdateEvent sseDataUpdateEvent) {
+        sseBroadcaster.updateAndPushRealtimeData(sseDataUpdateEvent.llmRecommendationModel());
 
     }
 }

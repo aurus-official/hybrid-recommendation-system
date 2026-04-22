@@ -1,7 +1,11 @@
 package com.aurus.server.ingestion.health_check;
 
-import org.springframework.data.repository.CrudRepository;
+import java.util.Optional;
 
-public interface RawHealthCheckDataRepository extends CrudRepository<RawHealthCheckDataModel, Long> {
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
+public interface RawHealthCheckDataRepository extends JpaRepository<RawHealthCheckDataModel, Long> {
+    Optional<RawHealthCheckDataModel> findFirstByOrderByIdDesc();
 }

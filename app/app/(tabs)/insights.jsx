@@ -4,15 +4,15 @@ import ParamCard from '../../components/paramCard';
 import IconTable from '../../components/iconTable';
 import TitleTable from '../../components/titleTable';
 import SeverityTable from '../../components/severityTable';
-import { useSSE } from '../../components/sseProvider';
 import RecoCard from '../../components/recoCard';
 import ParamCardLoading from '../../components/paramCardLoading';
 import RecoCardLoading from '../../components/recoCardLoading';
+import { useFarmData } from '../../components/farmDataProvider';
 
 const Insights = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
-    const sseLatestData = useSSE();
+    const { farmData, dataSource } = useFarmData();
     const iconTable = IconTable(theme);
     const titleTable = TitleTable.call();
     const severityTable = SeverityTable(theme);
@@ -20,11 +20,11 @@ const Insights = () => {
     const card1Data = [];
     const card2Data = [];
 
-    if (sseLatestData != null) {
+    if (farmData != null) {
         const { irrigation, soilNutrient, microclimate, cropOperation, irrigationSeverityValue,
             soilNutrientSeverityValue, microclimateSeverityValue, cropOperationSeverityValue,
         } = {
-            ...sseLatestData["llmRecommendationModel"]
+            ...farmData["llmRecommendationModel"]
         }
 
         const categoryWithSeverity = {
@@ -93,7 +93,7 @@ const Insights = () => {
         })
 
 
-        const { derivedSensorDataModel, derivedWeatherDataModel } = sseLatestData;
+        const { derivedSensorDataModel, derivedWeatherDataModel } = farmData;
 
         const {
             aggregatedSensorDataId,
@@ -138,7 +138,8 @@ const Insights = () => {
         <ScrollView style={{ ...styles.viewStyles, backgroundColor: theme.screenBackgroundColor }}>
             <View style={styles.viewContainerStyles} >
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Insights and Recommendations</Text>
-                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Data Source : Live</Text>
+                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Prioritized tasks based on latest sensor analysis.</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : {dataSource}</Text>
                 {card1Data.length > 0 ?
                     card1Data
                     :
@@ -244,5 +245,18 @@ const styles = StyleSheet.create({
         marginLeft: 24,
         paddingTop: 12,
         paddingBottom: 12,
+    },
+    subSubTitle1: {
+        fontSize: 13,
+        fontFamily: "Inter_500Regular",
+        letterSpacing: -0.5,
+        marginLeft: 1,
+        alignSelf: "flex-start",
+        marginTop: 8,
+        borderRadius: 8,
+        paddingTop: 4,
+        paddingBottom: 4,
+        paddingLeft: 8,
+        paddingRight: 8,
     },
 })

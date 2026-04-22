@@ -12,6 +12,8 @@ import com.aurus.server.batch.derive.weather.DerivedWeatherDataModel;
 import com.aurus.server.batch.derive.weather.DerivedWeatherDataRepository;
 import com.aurus.server.batch.process.weather.ProcessedWeatherDataModel;
 import com.aurus.server.batch.process.weather.ProcessedWeatherDataRepository;
+import com.aurus.server.ingestion.health_check.RawHealthCheckDataModel;
+import com.aurus.server.ingestion.health_check.RawHealthCheckDataRepository;
 import com.aurus.server.llm.LLMRecommendationDTO;
 import com.aurus.server.llm.LLMRecommendationModel;
 import com.aurus.server.llm.LLMRecommendationRepository;
@@ -33,30 +35,33 @@ public class HistoryService {
     private final AggregatedWeatherDataRepository aggregatedWeatherDataRepository;
     private final DerivedWeatherDataRepository derivedWeatherDataRepository;
     private final LLMRecommendationRepository llmRecommendationRepository;
+    private final RawHealthCheckDataRepository rawHealthCheckDataRepository;
 
     public HistoryService(DerivedSensorDataRepository derivedSensorDataRepository,
             ProcessedWeatherDataRepository processedWeatherDataRepository,
             AggregatedSensorDataRepository aggregatedSensorDataRepository,
             AggregatedWeatherDataRepository aggregatedWeatherDataRepository,
             DerivedWeatherDataRepository derivedWeatherDataRepository,
-            LLMRecommendationRepository llmRecommendationRepository) {
+            LLMRecommendationRepository llmRecommendationRepository,
+            RawHealthCheckDataRepository rawHealthCheckDataRepository) {
         this.derivedSensorDataRepository = derivedSensorDataRepository;
         this.processedWeatherDataRepository = processedWeatherDataRepository;
         this.aggregatedSensorDataRepository = aggregatedSensorDataRepository;
         this.aggregatedWeatherDataRepository = aggregatedWeatherDataRepository;
         this.derivedWeatherDataRepository = derivedWeatherDataRepository;
         this.llmRecommendationRepository = llmRecommendationRepository;
+        this.rawHealthCheckDataRepository = rawHealthCheckDataRepository;
     }
 
-    public List<LLMRecommendationDTO> getRecommendationPage(int pageNumber) {
+    public HistoryPageDTO getRecommendationPage(int pageNumber) {
         Pageable pageable = PageRequest.of(pageNumber - 1, PAGE_SIZE, Sort.by(Sort.Order.desc("id")));
-        Page<LLMRecommendationModel> recommendationModels = llmRecommendationRepository.findAll(pageable);
+        Page<LLMRecommendationModel> recommendationModelsPage = llmRecommendationRepository.findAll(pageable);
 
-        List<LLMRecommendationDTO> llmRecommendationDTOs = recommendationModels.toList().stream().map(model -> {
+        List<LLMRecommendationDTO> llmRecommendationDTOs = recommendationModelsPage.toList().stream().map(model -> {
             return new LLMRecommendationDTO(model.getId(), model.getCreatedAt());
         }).toList();
 
-        return llmRecommendationDTOs;
+        return new HistoryPageDTO(llmRecommendationDTOs, recommendationModelsPage.getTotalPages());
     }
 
     public AllDataDTO getAllDataDTO(long id) {
@@ -78,13 +83,18 @@ public class HistoryService {
                 .findById(aggregatedWeatherDataModel.getProcessedWeatherDataId())
                 .orElseGet(() -> new ProcessedWeatherDataModel());
 
+        RawHealthCheckDataModel rawHealthCheckDataModel = rawHealthCheckDataRepository.findFirstByOrderByIdDesc().get();
+
         return new AllDataDTO(
                 derivedSensorDataModel,
                 derivedWeatherDataModel,
                 aggregatedSensorDataModel,
                 aggregatedWeatherDataModel,
                 processedWeatherDataModel,
-                llmRecommendationModel);
+                llmRecommendationModel,
+                rawHealthCheckDataModel
+
+        );
     }
 
 }
