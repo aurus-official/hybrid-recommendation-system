@@ -1,15 +1,10 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native'
 import { Colors } from '../../constants/Colors';
 import ParamCard from '../../components/paramCard';
-import { Ionicons } from '@expo/vector-icons';
-import { useReducer, useState } from 'react';
-import RecoCard from '../../components/recoCard';
-import IconTable from '../../components/iconTable';
-import TitleTable from '../../components/titleTable';
-import SeverityTable from '../../components/severityTable';
+import IconTable from '../../utils/iconTable';
+import TitleTable from '../../utils/titleTable';
 import ParamCardLoading from '../../components/paramCardLoading';
-import RecoCardLoading from '../../components/recoCardLoading';
-import { useFarmData } from '../../components/farmDataProvider';
+import { useFarmData } from '../../contexts/farmDataProvider';
 
 
 const Status = () => {

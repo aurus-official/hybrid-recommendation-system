@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-import { createSSE } from "./sseClient";
+import { createSSE } from "../utils/sseClient";
 
 const BASE_URL = "http://192.168.18.3:8080"
 

@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 import { Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
-import { FarmDataProvider } from '../components/farmDataProvider';
+import { FarmDataProvider } from '../contexts/farmDataProvider';
 
 export default function RootLayout() {
     let [fontsLoaded] = useFonts({

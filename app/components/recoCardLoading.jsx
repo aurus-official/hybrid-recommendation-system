@@ -1,8 +1,8 @@
-import { StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { StyleSheet, useColorScheme, View } from 'react-native'
 import { Colors } from '../constants/Colors';
 import { Skeleton } from 'moti/skeleton';
 
-const RecoCardLoading = ({ text, icon, subText }) => {
+const RecoCardLoading = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
 
@@ -33,7 +33,6 @@ const styles = StyleSheet.create({
         borderStyle: "solid",
         borderWidth: 1.25,
         borderRadius: 12,
-        // boxShadow: "3 1 1 0 #5F6A6A",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",

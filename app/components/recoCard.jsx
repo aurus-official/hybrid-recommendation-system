@@ -1,6 +1,5 @@
 import { StyleSheet, Text, useColorScheme, View } from 'react-native'
 import { Colors } from '../constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
 
 const RecoCard = ({ text, icon, subText }) => {
     const colorScheme = useColorScheme();

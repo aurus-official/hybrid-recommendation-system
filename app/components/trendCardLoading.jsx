@@ -1,8 +1,6 @@
 import { Skeleton } from 'moti/skeleton';
-import { Dimensions, StyleSheet, Text, View } from 'react-native'
-import { BarChart } from 'react-native-gifted-charts';
+import { StyleSheet, Text, View } from 'react-native'
 
-const width = Dimensions.get("window").width
 
 const TrendCardLoading = ({ currentTheme }) => {
     const theme = currentTheme;

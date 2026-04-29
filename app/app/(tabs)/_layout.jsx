@@ -84,6 +84,6 @@ const styles = StyleSheet.create({
         height: 56,
     },
     headerStyle: {
-        height: 120,
+        height: 108,
     },
 })

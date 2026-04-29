@@ -1,13 +1,14 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { Entypo, MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { useState } from 'react';
-import TitleTable from '../../components/titleTable';
+import { useFarmData } from '../../contexts/farmDataProvider';
 import Trend from '../../components/trendCard';
 import TrendCardLoading from '../../components/trendCardLoading';
-import { Entypo, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import HistoryModal from '../../components/historyModal';
-import { useFarmData } from '../../components/farmDataProvider';
 import RecoCardLoading from '../../components/recoCardLoading';
+import TitleTable from '../../utils/titleTable';
+import App from '../../utils/registerForPushNotifications';
 
 
 const Trends = () => {
@@ -25,8 +26,6 @@ const Trends = () => {
     const trend1Temperature = [];
     const trend2PrecipitationProbability = [];
     const card1Data = [];
-    const card2Data = [];
-    const card3Data = [];
 
     if (farmData != null) {
         const { processedWeatherDataModel } = farmData;
@@ -50,7 +49,7 @@ const Trends = () => {
             trend1Temperature.push({
                 value: element.temperature,
                 label: currentHour,
-                frontColor: 'transparent', // Makes it "outline only"
+                frontColor: 'transparent',
                 barBorderColor: theme.primaryColor,
                 barBorderWidth: 2,
                 dashWidth: 5,
@@ -143,6 +142,8 @@ const Trends = () => {
                     : <TrendCardLoading currentTheme={theme} />
                 }
             </View>
+
+            <App />
         </ScrollView>
     )
 }

@@ -17,7 +17,7 @@ const NotifBell = () => {
         <TouchableOpacity style={styles.buttonStyle} onPress={handleClick}  >
             <Ionicons
                 name={isClicked ? 'notifications' : 'notifications-outline'}
-                color={Colors.light.screenBackgroundColor}
+                color={theme.screenBackgroundColor}
                 size={28}
             />
             <NotifModal isClicked={isClicked} handleClick={handleClick} />

@@ -1,8 +1,8 @@
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import ReactNativeModal from 'react-native-modal'
-import { Entypo, Foundation, MaterialIcons } from '@expo/vector-icons';
+import { Entypo, Foundation } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { useFarmData } from './farmDataProvider';
+import { useFarmData } from '../contexts/farmDataProvider';
 
 const HistoryModal = ({ isLoadPastPageDataClicked, handleLoadPastPageDataClick, currentTheme }) => {
     const { restPageData, fetchRestData, fetchRestPageData, setDataSource } = useFarmData();

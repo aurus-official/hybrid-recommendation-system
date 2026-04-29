@@ -1,9 +1,8 @@
-
-import { StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { StyleSheet, useColorScheme, View } from 'react-native'
 import { Colors } from '../constants/Colors';
 import { Skeleton } from 'moti/skeleton';
 
-const ParamCardLoading = ({ loading }) => {
+const ParamCardLoading = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
 
@@ -21,14 +20,6 @@ const ParamCardLoading = ({ loading }) => {
             <Skeleton colorMode={theme} width="100%" height="148">
             </Skeleton>
         </View>
-
-
-        // <Skeleton.Group show={loading}>
-        //     <Skeleton width="50%">
-        //     </Skeleton>
-        //     <Skeleton width="50%">
-        //     </Skeleton>
-        // </Skeleton.Group>
     )
 }
 
@@ -41,7 +32,6 @@ const styles = StyleSheet.create({
         borderStyle: "solid",
         borderWidth: 1.25,
         borderRadius: 12,
-        // boxShadow: "3 1 1 0 #5F6A6A",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",

@@ -24,8 +24,8 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
     logoStyle: {
-        width: 42,
-        height: 42,
+        width: 38,
+        height: 38,
         resizeMode: "contain",
     },
     textStyle: {

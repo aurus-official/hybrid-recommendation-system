@@ -1,10 +1,10 @@
 import { ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native'
 import { Colors } from '../../constants/Colors';
 import ParamCard from '../../components/paramCard';
-import IconTable from '../../components/iconTable';
-import TitleTable from '../../components/titleTable';
+import IconTable from '../../utils/iconTable';
+import TitleTable from '../../utils/titleTable';
 import ParamCardLoading from '../../components/paramCardLoading';
-import { useFarmData } from '../../components/farmDataProvider';
+import { useFarmData } from '../../contexts/farmDataProvider';
 
 const Monitoring = () => {
     const colorScheme = useColorScheme();

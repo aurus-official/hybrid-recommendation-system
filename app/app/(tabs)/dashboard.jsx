@@ -4,12 +4,12 @@ import ParamCard from '../../components/paramCard';
 import { Ionicons } from '@expo/vector-icons';
 import { useReducer } from 'react';
 import RecoCard from '../../components/recoCard';
-import IconTable from '../../components/iconTable';
-import TitleTable from '../../components/titleTable';
-import SeverityTable from '../../components/severityTable';
+import IconTable from '../../utils/iconTable';
+import TitleTable from '../../utils/titleTable';
+import SeverityTable from '../../utils/severityTable';
 import ParamCardLoading from '../../components/paramCardLoading';
 import RecoCardLoading from '../../components/recoCardLoading';
-import { useFarmData } from '../../components/farmDataProvider';
+import { useFarmData } from '../../contexts/farmDataProvider';
 import { useNavigation } from 'expo-router';
 
 
