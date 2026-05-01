@@ -8,7 +8,6 @@ import TrendCardLoading from '../../components/trendCardLoading';
 import HistoryModal from '../../components/historyModal';
 import RecoCardLoading from '../../components/recoCardLoading';
 import TitleTable from '../../utils/titleTable';
-import App from '../../utils/registerForPushNotifications';
 
 
 const Trends = () => {
@@ -132,7 +131,7 @@ const Trends = () => {
                             </View>
                         </>
                         :
-                        <RecoCardLoading />
+                        <RecoCardLoading currentTheme={theme} />
                     }
                 </View>
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }}>Data Trends and Patterns</Text>
@@ -143,7 +142,6 @@ const Trends = () => {
                 }
             </View>
 
-            <App />
         </ScrollView>
     )
 }

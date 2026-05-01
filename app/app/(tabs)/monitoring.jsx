@@ -28,7 +28,7 @@ const Monitoring = () => {
         Object.entries({ ...aggregatedSensorDataModelRemovedTime }).filter(([key, value]) => !(key === "id")).forEach(([key, value]) => {
             const text = titleTable[key];
             const icon = iconTable[key];
-            card1Data.push(<ParamCard key={key} text={text} subText={`${value.value} ${value.unit}`} icon={icon} />);
+            card1Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={`${value.value} ${value.unit}`} icon={icon} />);
         })
 
 
@@ -41,7 +41,7 @@ const Monitoring = () => {
         Object.entries({ ...aggregatedWeatherDataModelRemovedTime }).filter(([key, value]) => !(key === "id")).forEach(([key, value]) => {
             const text = titleTable[key];
             const icon = iconTable[key];
-            card2Data.push(<ParamCard key={key + value} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
+            card2Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
         })
 
     }
@@ -68,12 +68,12 @@ const Monitoring = () => {
                     {(card1Data.length > 0) ?
                         card1Data :
                         <>
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
                         </>
                     }
                 </View>
@@ -93,12 +93,12 @@ const Monitoring = () => {
                     {(card2Data.length > 0) ?
                         card2Data :
                         <>
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
                         </>
                     }
                 </View>

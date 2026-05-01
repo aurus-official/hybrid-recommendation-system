@@ -107,7 +107,7 @@ const Dashboard = () => {
             Object.entries(value).forEach(([key, value]) => {
                 const text = titleTable[key];
                 const icon = iconTable[key];
-                card1Data.push(<RecoCard key={key} text={text} subText={value.text} icon={icon} />);
+                card1Data.push(<RecoCard key={key} currentTheme={theme} text={text} subText={value.text} icon={icon} />);
             })
         });
 
@@ -126,12 +126,12 @@ const Dashboard = () => {
             if (key === "plantStressIndex" || key === "heatStressIndex") {
                 const text = titleTable[key.concat("Sensor")];
                 const icon = iconTable[key];
-                card2Data.push(<ParamCard key={key + value} text={text} subText={value} icon={icon} />);
+                card2Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={value} icon={icon} />);
                 return;
             }
             const text = titleTable[key];
             const icon = iconTable[key];
-            card2Data.push(<ParamCard key={key} text={text} subText={value} icon={icon} />);
+            card2Data.push(<ParamCard key={key} currentTheme={theme} text={text} subText={value} icon={icon} />);
         })
 
         const {
@@ -144,13 +144,13 @@ const Dashboard = () => {
             if (key === "plantStressIndex" || key === "heatStressIndex") {
                 const text = titleTable[key.concat("Weather")];
                 const icon = iconTable[key];
-                card2Data.push(<ParamCard key={key + value} text={text} subText={value} icon={icon} />);
+                card2Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={value} icon={icon} />);
                 return;
             }
 
             const text = titleTable[key];
             const icon = iconTable[key];
-            card2Data.push(<ParamCard key={key + value} text={text} subText={value} icon={icon} />);
+            card2Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={value} icon={icon} />);
         })
 
 
@@ -165,9 +165,16 @@ const Dashboard = () => {
 
 
         Object.entries({ ...aggregatedSensorDataModelRemovedTime }).slice(0, 3).forEach(([key, value]) => {
+            if (key === "humidity") {
+                const text = titleTable[key.concat("Sensor")];
+                const icon = iconTable[key];
+                card3Data.push(<ParamCard key={key + value + text} currentTheme={theme} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
+                return;
+            }
+
             const text = titleTable[key];
             const icon = iconTable[key];
-            card3Data.push(<ParamCard key={key} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
+            card3Data.push(<ParamCard key={key + value + text} currentTheme={theme} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
         })
 
         const {
@@ -178,9 +185,15 @@ const Dashboard = () => {
 
 
         Object.entries({ ...aggregatedWeatherDataModelRemovedTime }).slice(0, 3).forEach(([key, value]) => {
+            if (key === "humidity") {
+                const text = titleTable[key.concat("Weather")];
+                const icon = iconTable[key];
+                card3Data.push(<ParamCard key={key + value + text} currentTheme={theme} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
+                return;
+            }
             const text = titleTable[key];
             const icon = iconTable[key];
-            card3Data.push(<ParamCard key={key + value} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
+            card3Data.push(<ParamCard key={key + value + text} currentTheme={theme} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
         })
 
     }
@@ -224,8 +237,8 @@ const Dashboard = () => {
                     {(severityData.text.length > 0 && card1Data.length > 0) ?
                         card1Data :
                         <>
-                            <RecoCardLoading />
-                            <RecoCardLoading />
+                            <RecoCardLoading currentTheme={theme} />
+                            <RecoCardLoading currentTheme={theme} />
                         </>
                     }
 
@@ -265,12 +278,12 @@ const Dashboard = () => {
                     {(card2Data.length > 0) ?
                         card2Data :
                         <>
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
                         </>
                     }
 
@@ -308,12 +321,12 @@ const Dashboard = () => {
                     {(card3Data.length > 0) ?
                         card3Data :
                         <>
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
                         </>
                     }
 

@@ -5,7 +5,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -16,16 +15,6 @@ import org.springframework.stereotype.Service;
 public class LLMGenerator {
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
-
-    public CompletableFuture<String> generateRecommendationAsync(String prompt) {
-        try {
-            String result = generateRecommendation(prompt);
-            return CompletableFuture.completedFuture(result);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return CompletableFuture.completedFuture("fallback");
-        }
-    }
 
     public String generateRecommendation(String prompt) {
         System.out.println(prompt);

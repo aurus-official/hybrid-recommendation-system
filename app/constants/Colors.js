@@ -18,6 +18,12 @@ export const Colors = {
         recoBackgroundColor: "#F3F3F3",
         recoBorderColor: "#999999",
 
+        notifBackgroundColor: "#F3F3F3",
+        notifBorderColor: "#999999",
+
+        trendBackgroundColor: "#F3F3F3",
+        trendBorderColor: "#999999",
+
         textPrimaryColor: "#1B1F23",
         textSecondaryColor: "#5F6A6A",
     },

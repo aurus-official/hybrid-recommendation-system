@@ -20,9 +20,9 @@ import com.aurus.server.llm.LLMRecommendationModel;
 import com.aurus.server.llm.LLMRecommendationRepository;
 import com.aurus.server.shared.AllDataDTO;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 public class SSEDataManager {
     private final DerivedSensorDataRepository derivedSensorDataRepository;
     private final ProcessedWeatherDataRepository processedWeatherDataRepository;

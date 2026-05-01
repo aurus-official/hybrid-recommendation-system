@@ -13,7 +13,7 @@ const TrendCard = ({ currentTheme, data, title, suffix }) => {
                 offsetX: 0,
                 offsetY: 0,
                 blurRadius: 4,
-                color: theme.paramBorderColor
+                color: theme.trendBorderColor
             }]
         }}>
             <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>

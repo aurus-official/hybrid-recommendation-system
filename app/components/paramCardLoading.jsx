@@ -1,10 +1,8 @@
-import { StyleSheet, useColorScheme, View } from 'react-native'
-import { Colors } from '../constants/Colors';
+import { StyleSheet, View } from 'react-native'
 import { Skeleton } from 'moti/skeleton';
 
-const ParamCardLoading = () => {
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] || Colors.light;
+const ParamCardLoading = ({ currentTheme }) => {
+    const theme = currentTheme;
 
     return (
         <View style={{

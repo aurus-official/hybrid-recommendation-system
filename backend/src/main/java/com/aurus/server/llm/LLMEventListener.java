@@ -21,7 +21,6 @@ public class LLMEventListener {
     @EventListener
     public void listenLLMRecommendationReadyEvent(LLMRecommendationReadyEvent llmRecommendationReadyEvent)
             throws JsonProcessingException {
-        System.out.println("TESTING HELLOOOOO!");
         llmRecommendationService
                 .generateRecommendationsAndSaveToDb(llmRecommendationReadyEvent.engineEvaluationOutputDTO());
     }

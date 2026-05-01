@@ -19,6 +19,8 @@ const TitleTable = () => {
         soilTemp: "Soil Temperature",
         airTemp: "Air Temperature",
         humidity: "Humidity",
+        humiditySensor: "Sensor Humidity",
+        humidityWeather: "Weather Humidity",
         pressure: "Atmospheric Pressure",
         lux: "Light Level",
         uv: "UV Index",

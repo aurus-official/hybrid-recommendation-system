@@ -1,5 +1,4 @@
 import { ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native'
-import { Colors } from '../../constants/Colors';
 import ParamCard from '../../components/paramCard';
 import IconTable from '../../utils/iconTable';
 import TitleTable from '../../utils/titleTable';
@@ -8,6 +7,7 @@ import RecoCard from '../../components/recoCard';
 import ParamCardLoading from '../../components/paramCardLoading';
 import RecoCardLoading from '../../components/recoCardLoading';
 import { useFarmData } from '../../contexts/farmDataProvider';
+import { Colors } from '../../constants/Colors';
 
 const Insights = () => {
     const colorScheme = useColorScheme();
@@ -71,7 +71,7 @@ const Insights = () => {
             key.forEach(value2 => {
                 const recoTitle = titleTable[value2.title];
                 const icon = iconTable[value2.title];
-                data.push(<RecoCard key={value2.title} text={recoTitle} subText={value2.text} icon={icon} />);
+                data.push(<RecoCard key={value2.title} currentTheme={theme} text={recoTitle} subText={value2.text} icon={icon} />);
             })
             card1Data.unshift(
                 <View key={key} style={{
@@ -105,12 +105,12 @@ const Insights = () => {
             if (key === "plantStressIndex" || key === "heatStressIndex") {
                 const text = titleTable[key.concat("Sensor")];
                 const icon = iconTable[key];
-                card2Data.push(<ParamCard key={key + value} text={text} subText={value} icon={icon} />);
+                card2Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={value} icon={icon} />);
                 return;
             }
             const text = titleTable[key];
             const icon = iconTable[key];
-            card2Data.push(<ParamCard key={key} text={text} subText={value} icon={icon} />);
+            card2Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={value} icon={icon} />);
         })
 
         const {
@@ -123,13 +123,13 @@ const Insights = () => {
             if (key === "plantStressIndex" || key === "heatStressIndex") {
                 const text = titleTable[key.concat("Weather")];
                 const icon = iconTable[key];
-                card2Data.push(<ParamCard key={key + value} text={text} subText={value} icon={icon} />);
+                card2Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={value} icon={icon} />);
                 return;
             }
 
             const text = titleTable[key];
             const icon = iconTable[key];
-            card2Data.push(<ParamCard key={key + value} text={text} subText={value} icon={icon} />);
+            card2Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={value} icon={icon} />);
         })
 
     }
@@ -156,9 +156,9 @@ const Insights = () => {
                         <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
                             <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>Recommended Actions</Text>
                         </View>
-                        <RecoCardLoading />
-                        <RecoCardLoading />
-                        <RecoCardLoading />
+                        <RecoCardLoading currentTheme={theme} />
+                        <RecoCardLoading currentTheme={theme} />
+                        <RecoCardLoading currentTheme={theme} />
                     </View>
                 }
                 <View style={{
@@ -177,12 +177,12 @@ const Insights = () => {
                     {card2Data.length > 0 ?
                         card2Data :
                         <>
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
                         </>
                     }
                 </View>

@@ -1,5 +1,7 @@
 package com.aurus.server.sse;
 
+import java.io.IOException;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -20,9 +22,11 @@ public class SSEController {
     }
 
     @GetMapping("/latest")
-    public SseEmitter stream(HttpServletRequest httpServletRequest) {
+    public SseEmitter stream(HttpServletRequest httpServletRequest) throws IOException {
+        String expoPushToken = httpServletRequest.getHeader("X-Expo-Push-Token");
+        String deviceId = httpServletRequest.getHeader("X-Device-Id");
         logger.info(String.format("\"%s\" was subscribed to SSE.", httpServletRequest.getLocalAddr()));
-        return sseBroadcaster.subscribe();
+        return sseBroadcaster.subscribe(expoPushToken, deviceId);
     }
 
 }

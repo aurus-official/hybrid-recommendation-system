@@ -1,9 +1,7 @@
-import { StyleSheet, Text, useColorScheme, View } from 'react-native'
-import { Colors } from '../constants/Colors';
+import { StyleSheet, Text, View } from 'react-native'
 
-const ParamCard = ({ text, icon, subText }) => {
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] || Colors.light;
+const ParamCard = ({ text, icon, subText, currentTheme }) => {
+    const theme = currentTheme;
 
     return (
         <View style={{

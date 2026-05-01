@@ -4,9 +4,8 @@ import { useState } from 'react'
 import { Colors } from '../constants/Colors';
 import NotifModal from './notifModal';
 
-const NotifBell = () => {
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] || Colors.light;
+const NotifBell = ({ currentTheme }) => {
+    const theme = currentTheme;
     const [isClicked, setIsClicked] = useState(false);
 
     const handleClick = () => {
@@ -20,7 +19,7 @@ const NotifBell = () => {
                 color={theme.screenBackgroundColor}
                 size={28}
             />
-            <NotifModal isClicked={isClicked} handleClick={handleClick} />
+            <NotifModal currentTheme={theme} isClicked={isClicked} handleClick={handleClick} />
         </TouchableOpacity>
     )
 }

@@ -1,9 +1,8 @@
 import { StyleSheet, Text, useColorScheme, View } from 'react-native'
 import { Colors } from '../constants/Colors';
 
-const RecoCard = ({ text, icon, subText }) => {
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] || Colors.light;
+const RecoCard = ({ text, icon, subText, currentTheme }) => {
+    const theme = currentTheme;
 
     return (
         <View style={{

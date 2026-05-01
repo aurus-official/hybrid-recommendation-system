@@ -15,7 +15,7 @@ const GroupLayout = () => {
             tabBarStyle: styles.tabBarStyle,
             tabBarActiveTintColor: theme.textPrimaryColor,
             headerStyle: { ...styles.headerStyle, backgroundColor: theme.primaryColor },
-            headerRight: ((props) => (<NotifBell {...props} />)),
+            headerRight: ((props) => (<NotifBell currentTheme={theme} {...props} />)),
         }} >
             <Tabs.Screen name="dashboard" options={{
                 tabBarLabel: "Dashboard",

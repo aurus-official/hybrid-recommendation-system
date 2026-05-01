@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.aurus.server.llm.LLMRecommendationModel;
+import com.aurus.server.notification.NotificationDataManager;
+import com.aurus.server.notification.NotificationDataModel;
+import com.aurus.server.notification.NotificationService;
 import com.aurus.server.shared.AllDataDTO;
 
 import org.springframework.stereotype.Service;
@@ -14,12 +17,18 @@ public class SSEBroadcaster {
 
     private final List<SseEmitter> clients = new CopyOnWriteArrayList<>();
     private final SSEDataManager sseDataManager;
+    private final NotificationDataManager notificationDataManager;
+    private final NotificationService notificationService;
 
-    public SSEBroadcaster(SSEDataManager sseDataManager) {
+    public SSEBroadcaster(SSEDataManager sseDataManager, NotificationService notificationService,
+            NotificationDataManager notificationDataManager) {
         this.sseDataManager = sseDataManager;
+        this.notificationDataManager = notificationDataManager;
+        this.notificationService = notificationService;
     }
 
-    public SseEmitter subscribe() {
+    public SseEmitter subscribe(String expoPushToken, String deviceId) {
+        notificationService.addDeviceToNotificationService(expoPushToken, deviceId);
         SseEmitter emitter = new SseEmitter(0L);
         clients.add(emitter);
 
@@ -40,6 +49,18 @@ public class SSEBroadcaster {
             }
         }
 
+        List<NotificationDataModel> notificationModels = notificationDataManager.getTop5MostRecentNotifications();
+        if (notificationModels.size() < 0) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("top-5-most-notifications")
+                        .data(notificationModels));
+            } catch (Exception e) {
+                emitter.complete();
+                clients.remove(emitter);
+            }
+        }
+
         return emitter;
     }
 
@@ -52,6 +73,21 @@ public class SSEBroadcaster {
                 emitter.send(SseEmitter.event()
                         .name("all-realtime-data")
                         .data(allDataDTO));
+            } catch (Exception e) {
+                emitter.complete();
+                clients.remove(emitter);
+            }
+        }
+    }
+
+    public void updateAndPushNotification() {
+        notificationDataManager.updateToLatestData();
+        List<NotificationDataModel> notificationModels = notificationDataManager.getTop5MostRecentNotifications();
+        for (SseEmitter emitter : clients) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("top-5-most-notifications")
+                        .data(notificationModels));
             } catch (Exception e) {
                 emitter.complete();
                 clients.remove(emitter);

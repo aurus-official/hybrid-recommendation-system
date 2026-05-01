@@ -22,7 +22,7 @@ const Status = () => {
         Object.entries(parameters).forEach(([key, value]) => {
             const text = titleTable[key];
             const icon = iconTable[key];
-            card1Data.push(<ParamCard key={key} text={text} subText={value ? "On" : "Off"} icon={icon}></ParamCard>)
+            card1Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={value ? "On" : "Off"} icon={icon}></ParamCard>)
         })
     }
 
@@ -47,10 +47,10 @@ const Status = () => {
                     {(card1Data.length > 0) ?
                         card1Data :
                         <>
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
-                            <ParamCardLoading />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
                         </>
                     }
                 </View>

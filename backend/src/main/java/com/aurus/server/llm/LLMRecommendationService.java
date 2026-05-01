@@ -5,6 +5,8 @@ import java.util.Map;
 
 import com.aurus.server.engine.EngineCategoryOutputDTO;
 import com.aurus.server.engine.EngineEvaluationOutputDTO;
+import com.aurus.server.notification.NotificationCriticalDataDTO;
+import com.aurus.server.notification.NotificationEventPublisher;
 import com.aurus.server.shared.CategoryType;
 import com.aurus.server.shared.SeverityLevel;
 import com.aurus.server.sse.SSEEventPublisher;
@@ -19,13 +21,16 @@ public class LLMRecommendationService {
     private final LLMPromptBuilder llmPromptBuilder;
     private final LLMRecommendationRepository llmRecommendationRepository;
     private final SSEEventPublisher sseEventPublisher;
+    private final NotificationEventPublisher notificationEventPublisher;
 
     public LLMRecommendationService(LLMGenerator llmGenerator, LLMPromptBuilder llmPromptBuilder,
-            LLMRecommendationRepository llmRecommendationRepository, SSEEventPublisher sseEventPublisher) {
+            LLMRecommendationRepository llmRecommendationRepository, SSEEventPublisher sseEventPublisher,
+            NotificationEventPublisher notificationEventPublisher) {
         this.llmGenerator = llmGenerator;
         this.llmPromptBuilder = llmPromptBuilder;
         this.llmRecommendationRepository = llmRecommendationRepository;
         this.sseEventPublisher = sseEventPublisher;
+        this.notificationEventPublisher = notificationEventPublisher;
     }
 
     public void generateRecommendationsAndSaveToDb(EngineEvaluationOutputDTO engineEvaluationOutputDTO)
@@ -43,7 +48,6 @@ public class LLMRecommendationService {
             severityMap.put(
                     engineCategoryOutputDTO.getCategoryType(),
                     engineCategoryOutputDTO.getSeverityLevel());
-
         }
 
         LLMRecommendationModel llmRecommendationModel = new LLMRecommendationModel(
@@ -54,7 +58,13 @@ public class LLMRecommendationService {
                 engineEvaluationOutputDTO.derivedSensorId(),
                 engineEvaluationOutputDTO.derivedWeatherId());
 
-        llmRecommendationRepository.save(llmRecommendationModel);
+        LLMRecommendationModel addedLLMRecommendationModel = llmRecommendationRepository.save(llmRecommendationModel);
+
+        if (severityMap.values().stream().anyMatch(value -> value == SeverityLevel.MODERATE)) {
+            notificationEventPublisher.publishNotificationCriticalEvent(new NotificationCriticalDataDTO(
+                    addedLLMRecommendationModel.getCreatedAt(), addedLLMRecommendationModel.getId()));
+        }
+
         sseEventPublisher.publishSSERealtimeDataUpdateEvent(llmRecommendationModel);
     }
 }

@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 import { createSSE } from "../utils/sseClient";
+import { useNotificationData } from "./notificationProvider";
 
 const BASE_URL = "http://192.168.18.3:8080"
 
@@ -10,17 +11,21 @@ export function FarmDataProvider({ children }) {
     const [restData, setRestData] = useState(null);
     const [restPageData, setRestPageData] = useState(null);
     const [sseData, setSSEData] = useState(null);
+    const [notificationData, setNotificationData] = useState(null)
     const [dataSource, setDataSource] = useState("None");
+    const { expoPushToken, deviceId } = useNotificationData();
 
     const farmData = (dataSource === "Latest") ? sseData : restData
 
     useEffect(() => {
-        const es = createSSE(setSSEData, setDataSource);
+        if (expoPushToken == "" || deviceId == "") return;
+
+        const es = createSSE(setSSEData, setDataSource, setNotificationData, expoPushToken, deviceId);
 
         return () => {
             es.close();
         };
-    }, []);
+    }, [expoPushToken, deviceId]);
 
     const fetchRestPageData = async (pageNumber) => {
         try {
@@ -39,7 +44,7 @@ export function FarmDataProvider({ children }) {
     };
 
     return (
-        <FarmDataContext.Provider value={{ farmData, restPageData, dataSource, setDataSource, fetchRestPageData, fetchRestData }}>
+        <FarmDataContext.Provider value={{ farmData, restPageData, notificationData, dataSource, setDataSource, fetchRestPageData, fetchRestData }}>
             {children}
         </FarmDataContext.Provider>
     );

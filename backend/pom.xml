@@ -78,6 +78,11 @@
             <artifactId>drools-mvel</artifactId>
             <version>9.44.0.Final</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.hlspablo</groupId>
+            <artifactId>expo-server-sdk-java</artifactId>
+            <version>3.1.6</version>
+        </dependency>
 
 
         <dependency>

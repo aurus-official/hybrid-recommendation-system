@@ -1,34 +1,36 @@
-import { StyleSheet, useColorScheme, View } from 'react-native'
-import { Colors } from '../constants/Colors';
-import { Skeleton } from 'moti/skeleton';
+import { StyleSheet, Text, useColorScheme, View } from 'react-native'
 
-const RecoCardLoading = ({ currentTheme }) => {
+const NotificationItem = ({ text, icon, subText, currentTheme }) => {
     const theme = currentTheme;
 
     return (
         <View style={{
-            ...styles.recoCardStyle,
-            borderColor: theme.recoBorderColor,
+            ...styles.notifItemStyle,
+            borderColor: theme.notifBorderColor,
             boxShadow: [{
                 offsetX: 0,
                 offsetY: 0,
                 blurRadius: 4,
-                color: theme.recoBorderColor
+                color: theme.notifBorderColor
             }]
         }}>
-
-            <Skeleton colorMode={theme} width="100%" height="148">
-            </Skeleton>
+            <View style={{ ...styles.viewStyleSubText }}>
+                <View style={{ ...styles.viewStyleImage, backgroundColor: theme.primaryColor }}>
+                    {icon}
+                </View>
+                <Text style={styles.subText}>{text}</Text>
+            </View>
+            <Text style={styles.dataText}>{subText}</Text>
         </View>
     )
 }
 
-export default RecoCardLoading
+export default NotificationItem
 
 const styles = StyleSheet.create({
-    recoCardStyle: {
+    notifItemStyle: {
         width: "89%",
-        minHeight: "148",
+        minHeight: "50",
         borderStyle: "solid",
         borderWidth: 1.25,
         borderRadius: 12,
@@ -60,7 +62,7 @@ const styles = StyleSheet.create({
         opacity: 0.75
     },
     subText: {
-        marginLeft: 12,
+        marginLeft: 8,
         fontSize: 16
     }
 })
