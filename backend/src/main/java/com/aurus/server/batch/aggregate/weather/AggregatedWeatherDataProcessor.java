@@ -17,11 +17,23 @@ public class AggregatedWeatherDataProcessor
 
     @Override
     public @Nullable AggregatedWeatherDataModel process(ProcessedWeatherDataModel model) throws Exception {
-        float tempStressValue = Math.max(tempStress(average(model.getProcessedWeatherDataPointsHourly().stream()
-                .map(ProcessedWeatherDataPointHourly::getTemperature).collect(Collectors.toList()))),
-                tempStress(model.getProcessedWeatherDataPointsHourly().stream()
-                        .max(Comparator.comparingDouble(ProcessedWeatherDataPointHourly::getTemperature)).get()
-                        .getTemperature()));
+        List<Float> stresses = model.getProcessedWeatherDataPointsHourly()
+                .stream()
+                .map(p -> tempStress((float) p.getTemperature()))
+                .toList();
+
+        float avgStress = (float) stresses.stream()
+                .mapToDouble(Float::doubleValue)
+                .average()
+                .orElse(0.0);
+
+        float maxStress = (float) stresses.stream()
+                .mapToDouble(Float::doubleValue)
+                .max()
+                .orElse(0.0);
+
+        float tempStressValue = 0.65f * avgStress +
+                0.35f * maxStress;
         float humidityValue = average(model.getProcessedWeatherDataPointsHourly().stream()
                 .map(ProcessedWeatherDataPointHourly::getHumidity).map(a -> (float) a).collect(Collectors.toList()));
         float vapourPressureDeficitValue = model.getProcessedWeatherDataPointsHourly().get(0)
@@ -69,6 +81,15 @@ public class AggregatedWeatherDataProcessor
     }
 
     private float tempStress(float tempValue) {
-        return 1f - (float) Math.exp(-Math.pow((tempValue - 24f), 2) / 50f);
+
+        float optimal = 26f;
+        float scale = 80f;
+
+        return clamp(1f - (float) Math.exp(
+                -Math.pow((tempValue - optimal), 2) / scale));
+    }
+
+    private float clamp(float value) {
+        return Math.max(0f, Math.min(1f, value));
     }
 }

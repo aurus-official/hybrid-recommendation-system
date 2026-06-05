@@ -1,4 +1,4 @@
-package com.aurus.server.ingestion.health_check;
+package com.aurus.server.ingestion.hardware_status;
 
 import java.time.LocalDateTime;
 
@@ -10,9 +10,11 @@ import jakarta.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-@Table(name = "raw_health_check_data")
-@Entity(name = "raw_health_check_data")
-public class RawHealthCheckDataModel {
+// TODO: Implement if no data is being collected, flag the device as offline
+
+@Table(name = "hardware_status")
+@Entity(name = "hardware_status")
+public class HardwareStatusModel {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
@@ -26,10 +28,10 @@ public class RawHealthCheckDataModel {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    public RawHealthCheckDataModel() {
+    public HardwareStatusModel() {
     }
 
-    public RawHealthCheckDataModel(boolean ads1, boolean ads2, boolean bme280, boolean guvas12sd, boolean ds18b20) {
+    public HardwareStatusModel(boolean ads1, boolean ads2, boolean bme280, boolean guvas12sd, boolean ds18b20) {
         this.ads1 = ads1;
         this.ads2 = ads2;
         this.bme280 = bme280;

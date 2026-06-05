@@ -25,7 +25,6 @@ public class AggregatedWeatherDataReader implements ItemReader<ProcessedWeatherD
     public void beforeStep(StepExecution stepExecution) {
         StepExecutionListener.super.beforeStep(stepExecution);
         id = stepExecution.getJobParameters().getLong("processedWeatherId");
-        System.out.println("before step process id : " + id);
     }
 
     @Override

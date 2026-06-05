@@ -1,4 +1,4 @@
-package com.aurus.server.notification;
+package com.aurus.server.notification.device;
 
 import java.util.Optional;
 

@@ -12,7 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 @Entity(name = "notification_data")
 @Table(name = "notification_data")
-public class NotificationDataModel {
+public class NotificationModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -21,15 +21,18 @@ public class NotificationDataModel {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    private long llmRecommendationId;
-    private LocalDateTime llmRecommendationCreatedAt;
+    private long referenceId;
+    private LocalDateTime referenceCreatedAt;
 
-    public NotificationDataModel(long llmRecommendationId, LocalDateTime llmRecommendationCreatedAt) {
-        this.llmRecommendationId = llmRecommendationId;
-        this.llmRecommendationCreatedAt = llmRecommendationCreatedAt;
+    private NotificationType notificationType;
+
+    public NotificationModel() {
     }
 
-    public NotificationDataModel() {
+    public NotificationModel(long referenceId, LocalDateTime referenceCreatedAt, NotificationType notificationType) {
+        this.referenceId = referenceId;
+        this.referenceCreatedAt = referenceCreatedAt;
+        this.notificationType = notificationType;
     }
 
     public long getId() {
@@ -44,12 +47,15 @@ public class NotificationDataModel {
         this.createdAt = createdAt;
     }
 
-    public long getLlmRecommendationId() {
-        return llmRecommendationId;
+    public long getReferenceId() {
+        return referenceId;
     }
 
-    public LocalDateTime getLlmRecommendationCreatedAt() {
-        return llmRecommendationCreatedAt;
+    public LocalDateTime getReferenceCreatedAt() {
+        return referenceCreatedAt;
     }
 
+    public NotificationType getNotificationType() {
+        return notificationType;
+    }
 }

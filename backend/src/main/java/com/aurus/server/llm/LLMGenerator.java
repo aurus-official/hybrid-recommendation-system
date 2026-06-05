@@ -17,7 +17,6 @@ public class LLMGenerator {
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     public String generateRecommendation(String prompt) {
-        System.out.println(prompt);
         try {
             ObjectMapper mapper = new ObjectMapper();
 
@@ -38,7 +37,6 @@ public class LLMGenerator {
             HttpResponse<String> response = httpClient.send(
                     request,
                     HttpResponse.BodyHandlers.ofString());
-            System.out.println(requestBody);
 
             return extractResponse(response.body());
         } catch (Exception e) {

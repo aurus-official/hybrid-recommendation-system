@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.aurus.server.llm.LLMRecommendationModel;
-import com.aurus.server.notification.NotificationDataManager;
-import com.aurus.server.notification.NotificationDataModel;
-import com.aurus.server.notification.NotificationService;
+import com.aurus.server.notification.NotificationManager;
+import com.aurus.server.notification.NotificationModel;
+import com.aurus.server.notification.recommendation.NotificationHighPriorityRecommendationService;
 import com.aurus.server.shared.AllDataDTO;
 
 import org.springframework.stereotype.Service;
@@ -17,18 +17,18 @@ public class SSEBroadcaster {
 
     private final List<SseEmitter> clients = new CopyOnWriteArrayList<>();
     private final SSEDataManager sseDataManager;
-    private final NotificationDataManager notificationDataManager;
-    private final NotificationService notificationService;
+    private final NotificationManager notificationManager;
+    private final NotificationHighPriorityRecommendationService notificationHighPriorityRecommendationService;
 
-    public SSEBroadcaster(SSEDataManager sseDataManager, NotificationService notificationService,
-            NotificationDataManager notificationDataManager) {
+    public SSEBroadcaster(SSEDataManager sseDataManager, NotificationManager notificationManager,
+            NotificationHighPriorityRecommendationService notificationHighPriorityRecommendationService) {
         this.sseDataManager = sseDataManager;
-        this.notificationDataManager = notificationDataManager;
-        this.notificationService = notificationService;
+        this.notificationManager = notificationManager;
+        this.notificationHighPriorityRecommendationService = notificationHighPriorityRecommendationService;
     }
 
     public SseEmitter subscribe(String expoPushToken, String deviceId) {
-        notificationService.addDeviceToNotificationService(expoPushToken, deviceId);
+        notificationHighPriorityRecommendationService.addDeviceToNotificationService(expoPushToken, deviceId);
         SseEmitter emitter = new SseEmitter(0L);
         clients.add(emitter);
 
@@ -42,15 +42,15 @@ public class SSEBroadcaster {
             try {
                 emitter.send(SseEmitter.event()
                         .name("all-realtime-data")
-                        .data(sseDataManager.getAllDataDTO()));
+                        .data(allDataDTO));
             } catch (Exception e) {
                 emitter.complete();
                 clients.remove(emitter);
             }
         }
 
-        List<NotificationDataModel> notificationModels = notificationDataManager.getTop5MostRecentNotifications();
-        if (notificationModels.size() < 0) {
+        List<NotificationModel> notificationModels = notificationManager.getTop5MostRecentNotifications();
+        if (notificationModels != null) {
             try {
                 emitter.send(SseEmitter.event()
                         .name("top-5-most-notifications")
@@ -81,8 +81,8 @@ public class SSEBroadcaster {
     }
 
     public void updateAndPushNotification() {
-        notificationDataManager.updateToLatestData();
-        List<NotificationDataModel> notificationModels = notificationDataManager.getTop5MostRecentNotifications();
+        notificationManager.updateToLatestData();
+        List<NotificationModel> notificationModels = notificationManager.getTop5MostRecentNotifications();
         for (SseEmitter emitter : clients) {
             try {
                 emitter.send(SseEmitter.event()

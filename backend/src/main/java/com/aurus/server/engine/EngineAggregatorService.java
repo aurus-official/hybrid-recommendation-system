@@ -40,11 +40,6 @@ public class EngineAggregatorService {
         EngineEvaluationOutputDTO engineEvaluationOutputDTO = new EngineEvaluationOutputDTO(allCategoryOutputs,
                 derivedSensorId, derivedWeatherId);
 
-        System.out.println(irrigationFinalOutput.toString());
-        System.out.println(soilNutrientFinalOutput.toString());
-        System.out.println(microClimateFinalOutput.toString());
-        System.out.println(cropOperationFinalOutput.toString());
-
         llmEventPublisher.publishLLMRecommendationReadyEvent(engineEvaluationOutputDTO);
     }
 }

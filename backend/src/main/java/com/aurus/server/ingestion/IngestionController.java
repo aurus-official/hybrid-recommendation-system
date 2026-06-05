@@ -23,6 +23,7 @@ public class IngestionController {
     void ingestRawData(@RequestBody RawDataDTO rawDataDTO) throws JobInstanceAlreadyCompleteException,
             JobExecutionAlreadyRunningException, InvalidJobParametersException, JobRestartException {
         ingestionService.ingestRawSensorDataToDatabase(rawDataDTO.rawSensorData());
-        ingestionService.ingestRawHealthCheckDataToDatabase(rawDataDTO.rawHealthCheckData());
+        ingestionService.ingestHardwareStatusToDatabase(rawDataDTO.hardwareStatus());
+
     }
 }

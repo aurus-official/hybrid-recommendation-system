@@ -1,4 +1,4 @@
-package com.aurus.server.notification;
+package com.aurus.server.notification.recommendation;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,6 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.aurus.server.notification.NotificationEventPublisher;
+import com.aurus.server.notification.NotificationModel;
+import com.aurus.server.notification.NotificationRepository;
+import com.aurus.server.notification.NotificationType;
+import com.aurus.server.notification.device.NotificationDeviceModel;
+import com.aurus.server.notification.device.NotificationDeviceRepository;
 import com.niamedtech.expo.exposerversdk.ExpoPushNotificationClient;
 import com.niamedtech.expo.exposerversdk.request.PushNotification;
 import com.niamedtech.expo.exposerversdk.response.Status;
@@ -18,24 +24,22 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NotificationService {
+public class NotificationHighPriorityRecommendationService {
 
     private final NotificationDeviceRepository notificationDeviceRepository;
-    private final NotificationDataRepository notificationDataRepository;
-    private final NotificationDataToDeviceRepository notificationDataToDeviceRepository;
+    private final NotificationRepository notificationRepository;
     private final NotificationEventPublisher notificationEventPublisher;
 
-    public NotificationService(NotificationDeviceRepository notificationDeviceRepository,
-            NotificationDataRepository notificationDataRepository,
-            NotificationDataToDeviceRepository notificationDataToDeviceRepository,
+    public NotificationHighPriorityRecommendationService(NotificationDeviceRepository notificationDeviceRepository,
+            NotificationRepository notificationRepository,
             NotificationEventPublisher notificationEventPublisher) {
         this.notificationDeviceRepository = notificationDeviceRepository;
-        this.notificationDataRepository = notificationDataRepository;
-        this.notificationDataToDeviceRepository = notificationDataToDeviceRepository;
+        this.notificationRepository = notificationRepository;
         this.notificationEventPublisher = notificationEventPublisher;
     }
 
-    public void startPushNotification(NotificationCriticalDataDTO notificationCriticalDataDTO)
+    public void startPushNotification(
+            NotificationHighPriorityRecommendationDTO notificationHighPriorityRecommendationDTO)
             throws IOException {
 
         List<NotificationDeviceModel> notificationDeviceModels = notificationDeviceRepository.findAll();
@@ -53,12 +57,16 @@ public class NotificationService {
                 .build();
 
         Map<String, Object> data = new HashMap<>();
-        data.put("id", String.valueOf(notificationCriticalDataDTO.id()));
-        data.put("createdAt", notificationCriticalDataDTO.createdAt().toString());
+        data.put("id", String.valueOf(notificationHighPriorityRecommendationDTO.id()));
+        data.put("createdAt", notificationHighPriorityRecommendationDTO.createdAt().toString());
+
+        StringBuilder firstWord = new StringBuilder(
+                notificationHighPriorityRecommendationDTO.severityLevel().getValue());
+        firstWord.replace(0, 1, String.valueOf(Character.toUpperCase(firstWord.charAt(0))));
 
         PushNotification pushNotification = new PushNotification();
         pushNotification.setTo(to);
-        pushNotification.setTitle("Critical Severity Detected!");
+        pushNotification.setTitle(String.format("%s Severity Detected!", firstWord.toString()));
         pushNotification.setBody("Check the status and recommendations.");
         pushNotification.setData(data);
 
@@ -67,16 +75,14 @@ public class NotificationService {
 
         List<TicketResponse.Ticket> response = client.sendPushNotifications(notifications);
 
-        NotificationDataModel notificationDataModel = new NotificationDataModel(notificationCriticalDataDTO.id(),
-                notificationCriticalDataDTO.createdAt());
-        NotificationDataModel addedNotificationDataModel = notificationDataRepository.save(notificationDataModel);
+        NotificationModel notificationDataModel = new NotificationModel(notificationHighPriorityRecommendationDTO.id(),
+                notificationHighPriorityRecommendationDTO.createdAt(), NotificationType.RECOMMENDATION_SEVERITY_ISSUE);
+        notificationRepository.save(notificationDataModel);
 
-        boolean isThereNewNotification = false;
+        boolean isThereNewPushNotification = false;
 
         for (int i = 0; i < response.size(); ++i) {
             TicketResponse.Ticket ticket = response.get(i);
-            System.out.println("ID : " + ticket.getId());
-            System.out.println("Status : " + ticket.getStatus());
             // OK on success, ERROR on error
             // use import com.niamedtech.expo.exposerversdk.response.Status;
 
@@ -85,10 +91,7 @@ public class NotificationService {
             // System.out.println(ticket.getDetails().getSentAt());
             // System.out
             if (ticket.getStatus() == Status.OK) {
-                NotificationDataToDeviceModel notificationDataToDeviceModel = new NotificationDataToDeviceModel(
-                        notificationDeviceModels.get(i).getId(),
-                        ticket.getId(), addedNotificationDataModel.getId());
-                notificationDataToDeviceRepository.save(notificationDataToDeviceModel);
+                isThereNewPushNotification = true;
                 continue;
             }
 
@@ -98,8 +101,8 @@ public class NotificationService {
             }
         }
 
-        if (isThereNewNotification) {
-            this.notificationEventPublisher.publishNotificationDataUpdateEvent();
+        if (isThereNewPushNotification) {
+            this.notificationEventPublisher.publishNotificationUpdateEvent();
 
         }
     }

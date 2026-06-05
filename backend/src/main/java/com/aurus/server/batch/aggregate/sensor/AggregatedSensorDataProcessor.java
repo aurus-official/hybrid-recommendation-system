@@ -17,42 +17,64 @@ public class AggregatedSensorDataProcessor
 
     private LocalDateTime startingWindow;
     private LocalDateTime endingWindow;
+    private final float INVALID_VALUE = -1f;
+    private StepExecution stepExecution;
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
         this.startingWindow = stepExecution.getJobParameters().getLocalDateTime("startingWindow");
         this.endingWindow = stepExecution.getJobParameters().getLocalDateTime("endingWindow");
+        this.stepExecution = stepExecution;
+        stepExecution.getJobExecution().getExecutionContext().put("isThereInvalidValue", false);
     }
 
     @Override
     public @Nullable AggregatedSensorDataModel process(List<ProcessedSensorDataModel> models) throws Exception {
 
         float soilTempValue = average(models.stream().map(ProcessedSensorDataModel::getSoilTemp)
-                .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
+                .map(ProcessedSensorDataDTO::value)
+                .filter(value -> value != INVALID_VALUE)
+                .collect(Collectors.toList()));
 
         float airTempValue = average(models.stream().map(ProcessedSensorDataModel::getAirTemp)
-                .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
+                .map(ProcessedSensorDataDTO::value)
+                .filter(value -> value != INVALID_VALUE)
+                .collect(Collectors.toList()));
 
         float humidityValue = average(models.stream().map(ProcessedSensorDataModel::getHumidity)
-                .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
+                .map(ProcessedSensorDataDTO::value)
+                .filter(value -> value != INVALID_VALUE)
+                .collect(Collectors.toList()));
 
         float pressureValue = average(models.stream().map(ProcessedSensorDataModel::getPressure)
-                .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
+                .map(ProcessedSensorDataDTO::value)
+                .filter(value -> value != INVALID_VALUE)
+                .collect(Collectors.toList()));
 
         float luxValue = average(models.stream().map(ProcessedSensorDataModel::getLux)
-                .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
+                .map(ProcessedSensorDataDTO::value)
+                .filter(value -> value != INVALID_VALUE)
+                .collect(Collectors.toList()));
 
         float uvValue = average(models.stream().map(ProcessedSensorDataModel::getUv)
-                .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
+                .map(ProcessedSensorDataDTO::value)
+                .filter(value -> value != INVALID_VALUE)
+                .collect(Collectors.toList()));
 
         float tdsValue = average(models.stream().map(ProcessedSensorDataModel::getTds)
-                .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
+                .map(ProcessedSensorDataDTO::value)
+                .filter(value -> value != INVALID_VALUE)
+                .collect(Collectors.toList()));
 
         float prongMoistureValue = average(models.stream().map(ProcessedSensorDataModel::getProngMoisture)
-                .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
+                .map(ProcessedSensorDataDTO::value)
+                .filter(value -> value != INVALID_VALUE)
+                .collect(Collectors.toList()));
 
         float capacitiveMoistureValue = average(models.stream().map(ProcessedSensorDataModel::getCapacitiveMoisture)
-                .map(ProcessedSensorDataDTO::value).collect(Collectors.toList()));
+                .map(ProcessedSensorDataDTO::value)
+                .filter(value -> value != INVALID_VALUE)
+                .collect(Collectors.toList()));
 
         AggregatedSensorDataDTO soilTemp = new AggregatedSensorDataDTO(toFourDigitsDecimal(soilTempValue), "°C");
         AggregatedSensorDataDTO airTemp = new AggregatedSensorDataDTO(toFourDigitsDecimal(airTempValue), "°C");
@@ -80,6 +102,11 @@ public class AggregatedSensorDataProcessor
     }
 
     private float average(List<Float> pastProcessedSensorDataValues) {
+        if (pastProcessedSensorDataValues.size() < 1) {
+            stepExecution.getJobExecution().getExecutionContext().put("isThereInvalidValue", true);
+            return -1f;
+        }
+
         return (float) pastProcessedSensorDataValues.stream().mapToDouble(item -> item).average().getAsDouble();
     }
 

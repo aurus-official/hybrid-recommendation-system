@@ -1,4 +1,4 @@
-package com.aurus.server.history;
+package com.aurus.server.llm;
 
 import com.aurus.server.shared.AllDataDTO;
 
@@ -9,27 +9,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/history")
-public class HistoryController {
+@RequestMapping("/recommendations")
+public class LLMRecommendationController {
 
-    private final HistoryService historyService;
+    private final LLMRecommendationService llmRecommendationService;
 
-    public HistoryController(HistoryService historyService) {
-        this.historyService = historyService;
+    public LLMRecommendationController(LLMRecommendationService llmRecommendationService) {
+        this.llmRecommendationService = llmRecommendationService;
     }
 
     @GetMapping("/page/{pageNumber}")
-    public ResponseEntity<HistoryPageDTO> getRecommendationTimeIdPage(
+    public ResponseEntity<LLMPageRecommendationDTO> getRecommendationTimeIdPage(
             @PathVariable() int pageNumber) {
-        HistoryPageDTO historyPageDTO = historyService.getRecommendationPage(pageNumber);
+        LLMPageRecommendationDTO llmPageRecommendationDTO = llmRecommendationService.getRecommendationPage(pageNumber);
         System.out.println("PAGEE");
-        return ResponseEntity.ok(historyPageDTO);
+        return ResponseEntity.ok(llmPageRecommendationDTO);
     }
 
     @GetMapping("/id/{id}")
     public ResponseEntity<AllDataDTO> getAllDataDTO(@PathVariable long id) {
         System.out.println("IDDEEE");
-        AllDataDTO allDataDTO = historyService.getAllDataDTO(id);
+        AllDataDTO allDataDTO = llmRecommendationService.getAllDataDTO(id);
 
         return ResponseEntity.ok(allDataDTO);
     }

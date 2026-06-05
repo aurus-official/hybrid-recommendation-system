@@ -8,6 +8,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 @Table(name = "aggregated_sensor_data")
 @Entity(name = "aggregated_sensor_data")
 public class AggregatedSensorDataModel {
@@ -45,6 +47,9 @@ public class AggregatedSensorDataModel {
 
     private LocalDateTime startingWindow;
     private LocalDateTime endingWindow;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     public AggregatedSensorDataModel() {
     }
@@ -134,6 +139,10 @@ public class AggregatedSensorDataModel {
 
     public LocalDateTime getEndingWindow() {
         return endingWindow;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
 }

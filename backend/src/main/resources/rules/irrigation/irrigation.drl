@@ -7,143 +7,294 @@ import com.aurus.server.shared.PriorityLevel;
 import com.aurus.server.shared.SeverityLevel;
 import com.aurus.server.shared.CategoryType;
 
-
 global java.util.List intermediateOutputs;
 
 
-rule "Irrigation - Suspend Due to Heavy Rain"
+/* =========================================================
+   FACTORY FUNCTION (WITH GLOBAL CONFIDENCE SCALING)
+   ========================================================= */
+function EngineCategoryOutputDTO buildIrrigationOutput(
+    String action,
+    SeverityLevel severity,
+    PriorityLevel priority,
+    float confidence
+) {
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.IRRIGATION);
+    out.setAction(action);
+    out.setSeverityLevel(severity);
+    out.setPriorityLevel(priority);
+
+    float multiplier;
+
+    if (severity == SeverityLevel.CRITICAL) {
+        multiplier = 1.15f;
+    } else if (severity == SeverityLevel.HIGH) {
+        multiplier = 1.08f;
+    } else if (severity == SeverityLevel.MODERATE) {
+        multiplier = 1.00f;
+    } else {
+        multiplier = 0.95f;
+    }
+
+    float c = confidence * multiplier;
+
+    if (c < 0f) c = 0f;
+    if (c > 1f) c = 1f;
+
+    out.setConfidence(c);
+
+    return out;
+}
+
+
+/* =========================================================
+   CRITICAL - EMERGENCY IRRIGATION
+   ========================================================= */
+rule "IRR - Emergency Irrigation"
 salience 100
 when
-    $w : DerivedWeatherDataModel(rainImpactIndex >= 0.75)
+    $s : DerivedSensorDataModel(
+        combinedSoilMoisture < 0.25f
+    )
+
+    $w : DerivedWeatherDataModel()
 then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.IRRIGATION);
-    out.setAction("suspend_irrigation_due_to_rain");
-    out.setSeverityLevel(SeverityLevel.CRITICAL);
-    out.setPriorityLevel(PriorityLevel.P0);
-
-    out.setConfidence($w.getRainImpactIndex());
-    intermediateOutputs.add(out);
-end
-
-
-rule "Irrigation - Emergency Deep Irrigation"
-salience 95
-when
-    $w : DerivedWeatherDataModel(waterBalanceIndex <= 0.3)
-    $s : DerivedSensorDataModel(evaporationDryingRisk >= 0.7)
-then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.IRRIGATION);
-    out.setAction("apply_deep_irrigation_immediately");
-    out.setSeverityLevel(SeverityLevel.CRITICAL);
-    out.setPriorityLevel(PriorityLevel.P0);
+    float sm = $s.getCombinedSoilMoisture();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
 
     float confidence =
-        0.5f * (1 - $w.getWaterBalanceIndex()) +
-        0.3f * $s.getEvaporationDryingRisk() +
-        0.2f * (1 - $w.getRainImpactIndex());
+        (0.65f * (1f - sm))
+      + (0.25f * dry)
+      + (0.10f * (1f - rain));
 
-    out.setConfidence(Math.min(1f, confidence));
+    EngineCategoryOutputDTO out =
+        buildIrrigationOutput(
+            "apply_emergency_irrigation",
+            SeverityLevel.CRITICAL,
+            PriorityLevel.P0,
+            confidence
+        );
+
+    out.setRationale(
+        "Critical soil moisture deficit detected with elevated drying conditions."
+    );
+
+    out.addEvidence(
+        "Soil Moisture",
+        sm,
+        0.25f,
+        "<"
+    );
+
+    out.addEvidence(
+        "Evaporation Drying Risk",
+        dry,
+        0.70f,
+        ">"
+    );
+
+    out.addEvidence(
+        "Rain Impact Index",
+        rain,
+        0.75f,
+        "<"
+    );
+
     intermediateOutputs.add(out);
 end
 
 
-rule "Irrigation - Increase Frequency"
+/* =========================================================
+   HIGH - INCREASE IRRIGATION
+   ========================================================= */
+rule "IRR - Increase Irrigation"
 salience 90
 when
-    $w : DerivedWeatherDataModel(waterBalanceIndex < 0.5, rainImpactIndex < 0.6)
-    $s : DerivedSensorDataModel(evaporationDryingRisk >= 0.6 && evaporationDryingRisk < 0.75)
+    $s : DerivedSensorDataModel(
+        combinedSoilMoisture >= 0.25f,
+        combinedSoilMoisture < 0.40f
+    )
+
+    $w : DerivedWeatherDataModel()
 then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.IRRIGATION);
-    out.setAction("increase_irrigation_frequency");
-    out.setSeverityLevel(SeverityLevel.HIGH);
-    out.setPriorityLevel(PriorityLevel.P1);
+    float sm = $s.getCombinedSoilMoisture();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
 
     float confidence =
-        0.5f * (1 - $w.getWaterBalanceIndex()) +
-        0.5f * $s.getEvaporationDryingRisk();
+        (0.55f * (1f - sm))
+      + (0.30f * dry)
+      + (0.15f * (1f - rain));
 
-    out.setConfidence(Math.min(1f, confidence));
+    EngineCategoryOutputDTO out =
+        buildIrrigationOutput(
+            "increase_irrigation_frequency",
+            SeverityLevel.HIGH,
+            PriorityLevel.P1,
+            confidence
+        );
+
+    out.setRationale(
+        "Soil moisture is below the recommended cultivation range."
+    );
+
+    out.addEvidence(
+        "Soil Moisture",
+        sm,
+        0.40f,
+        "<"
+    );
+
+    out.addEvidence(
+        "Evaporation Drying Risk",
+        dry,
+        0.60f,
+        ">"
+    );
+
+    out.addEvidence(
+        "Rain Impact Index",
+        rain,
+        0.75f,
+        "<"
+    );
+
     intermediateOutputs.add(out);
 end
 
 
-rule "Irrigation - Split Irrigation Scheduling"
-salience 85
-when
-    $w : DerivedWeatherDataModel(waterBalanceIndex >= 0.3 && waterBalanceIndex < 0.5, rainImpactIndex < 0.6)
-    $s : DerivedSensorDataModel(evaporationDryingRisk >= 0.5 && evaporationDryingRisk < 0.6)
-then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.IRRIGATION);
-    out.setAction("apply_split_irrigation_schedule");
-    out.setSeverityLevel(SeverityLevel.HIGH);
-    out.setPriorityLevel(PriorityLevel.P1);
-
-    float confidence =
-        0.5f * (1 - $w.getWaterBalanceIndex()) +
-        0.5f * $s.getEvaporationDryingRisk();
-
-    out.setConfidence(Math.min(1f, confidence));
-    intermediateOutputs.add(out);
-end
-
-
-rule "Irrigation - Maintain Balanced Irrigation"
+/* =========================================================
+   MODERATE - ADJUST IRRIGATION
+   ========================================================= */
+rule "IRR - Moderate Irrigation"
 salience 80
 when
-    $w : DerivedWeatherDataModel(waterBalanceIndex >= 0.5 && waterBalanceIndex <= 0.7, rainImpactIndex < 0.6)
-    $s : DerivedSensorDataModel(evaporationDryingRisk < 0.5)
+    $s : DerivedSensorDataModel(
+        combinedSoilMoisture >= 0.40f,
+        combinedSoilMoisture < 0.60f
+    )
+
+    $w : DerivedWeatherDataModel()
 then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.IRRIGATION);
-    out.setAction("maintain_current_irrigation_schedule");
-    out.setSeverityLevel(SeverityLevel.MODERATE);
-    out.setPriorityLevel(PriorityLevel.P2);
+    float sm = $s.getCombinedSoilMoisture();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
 
     float confidence =
-        1f - Math.abs($w.getWaterBalanceIndex() - 0.6f);
+        (0.45f * sm)
+      + (0.35f * (1f - dry))
+      + (0.20f * rain);
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    EngineCategoryOutputDTO out =
+        buildIrrigationOutput(
+            "maintain_or_adjust_irrigation",
+            SeverityLevel.MODERATE,
+            PriorityLevel.P2,
+            confidence
+        );
+
+    out.setRationale(
+        "Soil moisture remains within an acceptable cultivation range."
+    );
+
+    out.addEvidence(
+        "Soil Moisture",
+        sm,
+        0.40f,
+        ">="
+    );
+
+    out.addEvidence(
+        "Soil Moisture",
+        sm,
+        0.60f,
+        "<"
+    );
+
+    out.addEvidence(
+        "Rain Impact Index",
+        rain,
+        0.50f,
+        ">="
+    );
+
     intermediateOutputs.add(out);
 end
 
 
-rule "Irrigation - Reduce Irrigation Volume"
+/* =========================================================
+   LOW - MAINTAIN IRRIGATION
+   ========================================================= */
+rule "IRR - Maintain Irrigation"
 salience 70
 when
-    $w : DerivedWeatherDataModel(waterBalanceIndex > 0.7 && rainImpactIndex < 0.75)
-    $s : DerivedSensorDataModel(evaporationDryingRisk < 0.5)
+    $s : DerivedSensorDataModel(
+        combinedSoilMoisture >= 0.60f
+    )
+
+    $w : DerivedWeatherDataModel()
 then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.IRRIGATION);
-    out.setAction("reduce_irrigation_volume");
-    out.setSeverityLevel(SeverityLevel.LOW);
-    out.setPriorityLevel(PriorityLevel.P3);
+    float sm = $s.getCombinedSoilMoisture();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
 
     float confidence =
-        0.6f * $w.getWaterBalanceIndex() +
-        0.4f * (1 - $s.getEvaporationDryingRisk());
+        (0.55f * sm)
+      + (0.25f * (1f - dry))
+      + (0.20f * rain);
 
-    out.setConfidence(Math.min(1f, confidence));
+    EngineCategoryOutputDTO out =
+        buildIrrigationOutput(
+            "maintain_current_irrigation_schedule",
+            SeverityLevel.LOW,
+            PriorityLevel.P3,
+            confidence
+        );
+
+    out.setRationale(
+        "Soil moisture is within the optimal cultivation range."
+    );
+
+    out.addEvidence(
+        "Soil Moisture",
+        sm,
+        0.60f,
+        ">="
+    );
+
+    out.addEvidence(
+        "Rain Impact Index",
+        rain,
+        0.50f,
+        ">="
+    );
+
     intermediateOutputs.add(out);
 end
 
 
-rule "Irrigation - Default Safe Irrigation"
-salience 10
+/* =========================================================
+   FALLBACK - GUARANTEED SAFE OUTPUT
+   ========================================================= */
+rule "IRR - Fallback"
+salience -999
 when
-    $w : DerivedWeatherDataModel()
     $s : DerivedSensorDataModel()
 then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.IRRIGATION);
-    out.setAction("apply_light_irrigation_monitor_conditions");
-    out.setSeverityLevel(SeverityLevel.LOW);
-    out.setPriorityLevel(PriorityLevel.P3);
+    EngineCategoryOutputDTO out =
+        buildIrrigationOutput(
+            "monitor_conditions_only",
+            SeverityLevel.LOW,
+            PriorityLevel.P3,
+            0.05f
+        );
 
-    out.setConfidence(0.5f);
+    out.setRationale(
+        "No irrigation condition requiring intervention was detected."
+    );
+
     intermediateOutputs.add(out);
 end

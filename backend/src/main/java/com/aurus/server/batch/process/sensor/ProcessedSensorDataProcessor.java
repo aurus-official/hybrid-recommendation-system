@@ -25,46 +25,60 @@ public class ProcessedSensorDataProcessor implements ItemProcessor<RawSensorData
         final float uvScalingFactor = 5.5f;
         final float ecCalibrationFactor = 320f;
         final float tdsCalibrationFactor = 0.6f;
-        final float prongMoistureDry = 3.3f;
-        final float prongMoistureWet = 2.0f;
-        final float capacitiveMoistureDry = 2.25f;
-        final float capacitiveMoistureWet = 0.8f;
+        final float tdsMaxOutput = 2.3f;
+        final float prongMoistureDry = 3.7f;
+        final float prongMoistureWet = 0f;
+        final float capacitiveMoistureDry = 2.8f;
+        final float capacitiveMoistureWet = 0f;
 
         Deque<RawSensorDataModel> pastRawSensorDataModels = new ArrayDeque<>(rawSensorDataRepository
                 .findTwoPastRawSensorDataModels(item.getId()));
 
         pastRawSensorDataModels.addFirst(item);
 
-        float soilTempValue = movingAverage(pastRawSensorDataModels.stream()
-                .map(RawSensorDataModel::getSoilTemp).collect(Collectors.toList()).reversed());
-        float airTempValue = movingAverage(pastRawSensorDataModels.stream()
-                .map(RawSensorDataModel::getAirTemp).collect(Collectors.toList()).reversed());
-        float humidityValue = movingAverage(pastRawSensorDataModels.stream()
-                .map(RawSensorDataModel::getHumidity).collect(Collectors.toList()).reversed());
-        float pressureValue = movingAverage(pastRawSensorDataModels.stream()
-                .map(RawSensorDataModel::getPressure).collect(Collectors.toList()).reversed());
-        float luxValue = median(pastRawSensorDataModels.stream()
-                .sorted(Comparator.comparingDouble(RawSensorDataModel::getLux)).map(RawSensorDataModel::getLux)
-                .collect(Collectors.toList()));
-        float uvValue = median(pastRawSensorDataModels.stream()
-                .sorted(Comparator.comparingDouble(RawSensorDataModel::getUvVolts)).map(RawSensorDataModel::getUvVolts)
-                .collect(Collectors.toList())) * uvScalingFactor;
-        float tdsValue = median(pastRawSensorDataModels.stream()
-                .sorted(Comparator.comparingDouble(RawSensorDataModel::getTdsVolts))
-                .map(RawSensorDataModel::getTdsVolts)
-                .collect(Collectors.toList())) * ecCalibrationFactor * tdsCalibrationFactor;
-        float prongMoistureValue = Math.max(0.0f,
-                Math.min(100,
-                        (prongMoistureDry
-                                - average(pastRawSensorDataModels.stream().map(RawSensorDataModel::getProngMoisture)
-                                        .collect(Collectors.toList())))
-                                / (prongMoistureDry - prongMoistureWet)))
-                * 100f;
+        float soilTempValue = (item.getSoilTemp() == -1f) ? -1f
+                : movingAverage(pastRawSensorDataModels.stream()
+                        .map(RawSensorDataModel::getSoilTemp).collect(Collectors.toList()).reversed());
+        float airTempValue = (item.getAirTemp() == -1f) ? -1f
+                : movingAverage(pastRawSensorDataModels.stream()
+                        .map(RawSensorDataModel::getAirTemp).collect(Collectors.toList()).reversed());
+        float humidityValue = (item.getHumidity() == -1f) ? -1f
+                : movingAverage(pastRawSensorDataModels.stream()
+                        .map(RawSensorDataModel::getHumidity).collect(Collectors.toList()).reversed());
+        float pressureValue = (item.getPressure() == -1f) ? -1f
+                : movingAverage(pastRawSensorDataModels.stream()
+                        .map(RawSensorDataModel::getPressure).collect(Collectors.toList()).reversed());
+        float luxValue = (item.getLux() == -1f) ? -1f
+                : median(pastRawSensorDataModels.stream()
+                        .sorted(Comparator.comparingDouble(RawSensorDataModel::getLux)).map(RawSensorDataModel::getLux)
+                        .collect(Collectors.toList()));
+        float uvValue = (item.getUvVolts() == -1f) ? -1f
+                : median(pastRawSensorDataModels.stream()
+                        .sorted(Comparator.comparingDouble(RawSensorDataModel::getUvVolts))
+                        .map(RawSensorDataModel::getUvVolts)
+                        .collect(Collectors.toList())) * uvScalingFactor;
+        float tdsValue = (item.getTdsVolts() == -1f) ? -1f
+                : (float) (Math.pow(median(pastRawSensorDataModels.stream()
+                        .sorted(Comparator.comparingDouble(RawSensorDataModel::getTdsVolts))
+                        .map(RawSensorDataModel::getTdsVolts)
+                        .collect(Collectors.toList())) / tdsMaxOutput, 1.5f) * 1000f)
+                        / (1f + 0.02f * (soilTempValue - 25f));
 
-        float capacitiveMoistureValue = Math.max(0.0f, Math.min(100, (capacitiveMoistureDry - average(
-                pastRawSensorDataModels.stream().map(RawSensorDataModel::getCapacitiveMoisture)
-                        .collect(Collectors.toList())))
-                / (capacitiveMoistureDry - capacitiveMoistureWet))) * 100f;
+        float prongMoistureValue = (item.getProngMoisture() == -1f) ? -1f
+                : Math.max(0.0f,
+                        Math.min(100,
+                                (prongMoistureDry
+                                        - average(pastRawSensorDataModels.stream()
+                                                .map(RawSensorDataModel::getProngMoisture)
+                                                .collect(Collectors.toList())))
+                                        / (prongMoistureDry - prongMoistureWet)))
+                        * 100f;
+
+        float capacitiveMoistureValue = (item.getCapacitiveMoisture() == -1f) ? -1f
+                : Math.max(0.0f, Math.min(100, (capacitiveMoistureDry - average(
+                        pastRawSensorDataModels.stream().map(RawSensorDataModel::getCapacitiveMoisture)
+                                .collect(Collectors.toList())))
+                        / (capacitiveMoistureDry - capacitiveMoistureWet))) * 100f;
 
         ProcessedSensorDataDTO soilTemp = new ProcessedSensorDataDTO(toFourDigitsDecimal(soilTempValue), "°C");
         ProcessedSensorDataDTO airTemp = new ProcessedSensorDataDTO(toFourDigitsDecimal(airTempValue), "°C");

@@ -9,136 +9,454 @@ import com.aurus.server.shared.CategoryType;
 
 global java.util.List intermediateOutputs;
 
-/* =========================
-   CRITICAL – Suspend Operations
-   ========================= */
-rule "Crop - Suspend Operations (Extreme Stress)"
+
+/* =========================================================
+   SHARED FUNCTIONS
+   ========================================================= */
+
+function float clampConfidence(float c) {
+    if (c < 0f) return 0f;
+    if (c > 1f) return 1f;
+    return c;
+}
+
+
+/* =========================================================
+   FACTORY FUNCTION
+   ========================================================= */
+
+function EngineCategoryOutputDTO buildCropOutput(
+    String action,
+    SeverityLevel severity,
+    PriorityLevel priority,
+    float confidence
+) {
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.CROP_OPERATION);
+    out.setAction(action);
+    out.setSeverityLevel(severity);
+    out.setPriorityLevel(priority);
+
+    float multiplier;
+
+    if (severity == SeverityLevel.CRITICAL) {
+        multiplier = 1.15f;
+    } else if (severity == SeverityLevel.HIGH) {
+        multiplier = 1.08f;
+    } else if (severity == SeverityLevel.MODERATE) {
+        multiplier = 1.00f;
+    } else {
+        multiplier = 0.95f;
+    }
+
+    float scaledConfidence = confidence * multiplier;
+
+    out.setConfidence(
+        clampConfidence(scaledConfidence)
+    );
+
+    return out;
+}
+
+
+/* =========================================================
+   CRITICAL - EXTREME CROP STRESS
+   ========================================================= */
+
+rule "Crop - Extreme Stress Emergency"
 salience 100
 when
-    $s : DerivedSensorDataModel()
-    $w : DerivedWeatherDataModel()
-    eval(
-        (0.6f * $s.getPlantStressIndex() + 0.4f * $w.getPlantStressIndex()) >= 0.85f ||
-        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) >= 0.85f
+    $s : DerivedSensorDataModel(
+        plantStressIndex >= 0.68f ||
+        heatStressIndex >= 0.72f
     )
-then
-    float psi = 0.6f * $s.getPlantStressIndex() + 0.4f * $w.getPlantStressIndex();
-    float hsi = 0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex();
 
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.CROP_OPERATION);
-    out.setAction("suspend_field_operations_protect_crop");
-    out.setSeverityLevel(SeverityLevel.CRITICAL);
-    out.setPriorityLevel(PriorityLevel.P0);
-
-    float confidence = 0.5f * psi + 0.5f * hsi;
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-
-    intermediateOutputs.add(out);
-end
-
-
-/* =========================
-   VERY HIGH – Delay Operations
-   ========================= */
-rule "Crop - Delay Operations (High Stress)"
-salience 90
-when
-    $s : DerivedSensorDataModel()
     $w : DerivedWeatherDataModel()
-    eval(
-        (0.6f * $s.getPlantStressIndex() + 0.4f * $w.getPlantStressIndex()) >= 0.7f &&
-        (0.6f * $s.getPlantStressIndex() + 0.4f * $w.getPlantStressIndex()) < 0.85f
-    )
 then
-    float psi = 0.6f * $s.getPlantStressIndex() + 0.4f * $w.getPlantStressIndex();
 
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.CROP_OPERATION);
-    out.setAction("delay_non_essential_crop_operations");
-    out.setSeverityLevel(SeverityLevel.CRITICAL);
-    out.setPriorityLevel(PriorityLevel.P0);
-
-    out.setConfidence(Math.min(1f, psi));
-    intermediateOutputs.add(out);
-end
-
-
-/* =========================
-   HIGH – Rain-Based Adjustment
-   ========================= */
-rule "Crop - Rain Adjust Operations"
-salience 80
-when
-    $w : DerivedWeatherDataModel(rainImpactIndex >= 0.7)
-then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-
-    out.setCategoryType(CategoryType.CROP_OPERATION);
-    out.setAction("adjust_operations_due_to_high_rainfall");
-    out.setSeverityLevel(SeverityLevel.HIGH);
-    out.setPriorityLevel(PriorityLevel.P1);
-
-    float confidence = $w.getRainImpactIndex();
-
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-    intermediateOutputs.add(out);
-end
-
-
-/* =========================
-   MODERATE – Controlled Operations
-   ========================= */
-rule "Crop - Controlled Operations (Moderate Stress)"
-salience 70
-when
-    $s : DerivedSensorDataModel()
-    $w : DerivedWeatherDataModel()
-    eval(
-        (0.6f * $s.getPlantStressIndex() + 0.4f * $w.getPlantStressIndex()) >= 0.5f &&
-        (0.6f * $s.getPlantStressIndex() + 0.4f * $w.getPlantStressIndex()) < 0.7f
-    )
-then
-    float psi = 0.6f * $s.getPlantStressIndex() + 0.4f * $w.getPlantStressIndex();
-
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.CROP_OPERATION);
-    out.setAction("perform_operations_with_caution_reduce_stress");
-    out.setSeverityLevel(SeverityLevel.MODERATE);
-    out.setPriorityLevel(PriorityLevel.P2);
+    float psi = $s.getPlantStressIndex();
+    float hsi = $s.getHeatStressIndex();
+    float rain = $w.getRainImpactIndex();
 
     float confidence =
-        1f - Math.abs(psi - 0.6f) * 2f;
+        (0.55f * psi)
+      + (0.35f * hsi)
+      + (0.10f * (1f - rain));
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    EngineCategoryOutputDTO out =
+        buildCropOutput(
+            "suspend_field_operations_and_protect_pechay_from_severe_environmental_stress",
+            SeverityLevel.CRITICAL,
+            PriorityLevel.P0,
+            confidence
+        );
+
+    out.setRationale(
+        "Severe crop stress detected. Immediate protection measures are recommended."
+    );
+
+    out.addEvidence(
+        "Plant Stress Index",
+        psi,
+        0.68f,
+        ">="
+    );
+
+    out.addEvidence(
+        "Heat Stress Index",
+        hsi,
+        0.72f,
+        ">="
+    );
+
     intermediateOutputs.add(out);
+
 end
 
 
-/* =========================
-   LOW – Optimal Operations
-   ========================= */
+/* =========================================================
+   HIGH - HEAT RESTRICTION
+   ========================================================= */
+
+rule "Crop - Limit Midday Operations"
+salience 90
+when
+    $s : DerivedSensorDataModel(
+        heatStressIndex >= 0.60f,
+        heatStressIndex < 0.72f
+    )
+
+    $w : DerivedWeatherDataModel()
+then
+
+    float hsi = $s.getHeatStressIndex();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
+
+    float confidence =
+        (0.70f * hsi)
+      + (0.20f * (1f - dry))
+      + (0.10f * (1f - rain));
+
+    EngineCategoryOutputDTO out =
+        buildCropOutput(
+            "limit_midday_field_operations_and_reduce_crop_heat_exposure",
+            SeverityLevel.HIGH,
+            PriorityLevel.P1,
+            confidence
+        );
+
+    out.setRationale(
+        "Elevated heat stress increases the risk of crop damage during field operations."
+    );
+
+    out.addEvidence(
+        "Heat Stress Index",
+        hsi,
+        0.60f,
+        ">="
+    );
+
+    out.addEvidence(
+        "Heat Stress Index",
+        hsi,
+        0.72f,
+        "<"
+    );
+
+    intermediateOutputs.add(out);
+
+end
+
+
+/* =========================================================
+   HIGH - DELAY OPERATIONS
+   ========================================================= */
+
+rule "Crop - Delay Non Essential Operations"
+salience 85
+when
+    $s : DerivedSensorDataModel(
+        plantStressIndex >= 0.52f,
+        plantStressIndex < 0.68f
+    )
+
+    $w : DerivedWeatherDataModel()
+then
+
+    float psi = $s.getPlantStressIndex();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
+
+    float confidence =
+        (0.70f * psi)
+      + (0.20f * (1f - dry))
+      + (0.10f * (1f - rain));
+
+    EngineCategoryOutputDTO out =
+        buildCropOutput(
+            "delay_non_essential_crop_operations_until_plant_stress_reduces",
+            SeverityLevel.HIGH,
+            PriorityLevel.P1,
+            confidence
+        );
+
+    out.setRationale(
+        "Crop stress remains elevated and may worsen if unnecessary operations continue."
+    );
+
+    out.addEvidence(
+        "Plant Stress Index",
+        psi,
+        0.52f,
+        ">="
+    );
+
+    out.addEvidence(
+        "Plant Stress Index",
+        psi,
+        0.68f,
+        "<"
+    );
+
+    intermediateOutputs.add(out);
+
+end
+
+
+/* =========================================================
+   HIGH - RAINFALL ADJUSTMENT
+   ========================================================= */
+
+rule "Crop - Rainfall Operation Adjustment"
+salience 80
+when
+    $w : DerivedWeatherDataModel(
+        rainImpactIndex >= 0.68f
+    )
+
+    $s : DerivedSensorDataModel()
+then
+
+    float rain = $w.getRainImpactIndex();
+    float psi = $s.getPlantStressIndex();
+
+    float confidence =
+        (0.70f * rain)
+      + (0.30f * (1f - psi));
+
+    EngineCategoryOutputDTO out =
+        buildCropOutput(
+            "postpone_field_activities_due_to_expected_heavy_rainfall",
+            SeverityLevel.HIGH,
+            PriorityLevel.P1,
+            confidence
+        );
+
+    out.setRationale(
+        "Heavy rainfall conditions may negatively affect planned cultivation activities."
+    );
+
+    out.addEvidence(
+        "Rain Impact Index",
+        rain,
+        0.68f,
+        ">="
+    );
+
+    intermediateOutputs.add(out);
+
+end
+
+
+/* =========================================================
+   MODERATE - CONTROLLED OPERATIONS
+   ========================================================= */
+
+rule "Crop - Controlled Operations"
+salience 75
+when
+    $s : DerivedSensorDataModel(
+        plantStressIndex >= 0.35f,
+        plantStressIndex < 0.52f
+    )
+
+    $w : DerivedWeatherDataModel()
+then
+
+    float psi = $s.getPlantStressIndex();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
+
+    float confidence =
+        (0.55f * psi)
+      + (0.25f * (1f - dry))
+      + (0.20f * rain);
+
+    EngineCategoryOutputDTO out =
+        buildCropOutput(
+            "perform_crop_operations_cautiously_and_reduce_plant_disturbance",
+            SeverityLevel.MODERATE,
+            PriorityLevel.P2,
+            confidence
+        );
+
+    out.setRationale(
+        "Moderate crop stress requires careful handling during cultivation activities."
+    );
+
+    out.addEvidence(
+        "Plant Stress Index",
+        psi,
+        0.35f,
+        ">="
+    );
+
+    out.addEvidence(
+        "Plant Stress Index",
+        psi,
+        0.52f,
+        "<"
+    );
+
+    intermediateOutputs.add(out);
+
+end
+
+
+/* =========================================================
+   LOW - ROUTINE OPERATIONS
+   ========================================================= */
+
+rule "Crop - Continue Routine Operations"
+salience 65
+when
+    $s : DerivedSensorDataModel(
+        plantStressIndex >= 0.18f,
+        plantStressIndex < 0.35f
+    )
+
+    $w : DerivedWeatherDataModel()
+then
+
+    float psi = $s.getPlantStressIndex();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
+
+    float confidence =
+        (0.70f * (1f - psi))
+      + (0.15f * (1f - dry))
+      + (0.15f * rain);
+
+    EngineCategoryOutputDTO out =
+        buildCropOutput(
+            "continue_routine_crop_operations_with_regular_crop_monitoring",
+            SeverityLevel.LOW,
+            PriorityLevel.P3,
+            confidence
+        );
+
+    out.setRationale(
+        "Crop conditions remain acceptable for routine cultivation activities."
+    );
+
+    out.addEvidence(
+        "Plant Stress Index",
+        psi,
+        0.18f,
+        ">="
+    );
+
+    out.addEvidence(
+        "Plant Stress Index",
+        psi,
+        0.35f,
+        "<"
+    );
+
+    intermediateOutputs.add(out);
+
+end
+
+
+/* =========================================================
+   OPTIMAL CONDITIONS
+   ========================================================= */
+
 rule "Crop - Optimal Conditions"
 salience 60
 when
-    $s : DerivedSensorDataModel()
-    $w : DerivedWeatherDataModel()
-    eval(
-        (0.6f * $s.getPlantStressIndex() + 0.4f * $w.getPlantStressIndex()) < 0.5f
+    $s : DerivedSensorDataModel(
+        plantStressIndex < 0.18f,
+        heatStressIndex < 0.22f
     )
-then
-    float psi = 0.6f * $s.getPlantStressIndex() + 0.4f * $w.getPlantStressIndex();
 
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.CROP_OPERATION);
-    out.setAction("proceed_with_normal_crop_operations");
-    out.setSeverityLevel(SeverityLevel.LOW);
-    out.setPriorityLevel(PriorityLevel.P3);
+    $w : DerivedWeatherDataModel()
+then
+
+    float psi = $s.getPlantStressIndex();
+    float hsi = $s.getHeatStressIndex();
+    float rain = $w.getRainImpactIndex();
 
     float confidence =
-        0.7f * (1 - psi) +
-        0.3f * (1 - $w.getRainImpactIndex());
+        (0.75f * (1f - psi))
+      + (0.15f * (1f - hsi))
+      + (0.10f * rain);
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    EngineCategoryOutputDTO out =
+        buildCropOutput(
+            "proceed_with_normal_crop_operations_under_stable_conditions",
+            SeverityLevel.LOW,
+            PriorityLevel.P3,
+            confidence
+        );
+
+    out.setRationale(
+        "Crop and environmental conditions are currently within optimal operating ranges."
+    );
+
+    out.addEvidence(
+        "Plant Stress Index",
+        psi,
+        0.18f,
+        "<"
+    );
+
+    out.addEvidence(
+        "Heat Stress Index",
+        hsi,
+        0.22f,
+        "<"
+    );
+
     intermediateOutputs.add(out);
+
+end
+
+
+/* =========================================================
+   FALLBACK - GUARANTEED SAFE OUTPUT
+   ========================================================= */
+
+rule "Crop - Fallback Monitoring"
+salience -999
+when
+    $s : DerivedSensorDataModel()
+then
+
+    EngineCategoryOutputDTO out =
+        buildCropOutput(
+            "continue_monitoring_crop_conditions_before_major_field_operations",
+            SeverityLevel.LOW,
+            PriorityLevel.P3,
+            0.05f
+        );
+
+    out.setRationale(
+        "No crop operation intervention requiring action was detected."
+    );
+
+    intermediateOutputs.add(out);
+
 end

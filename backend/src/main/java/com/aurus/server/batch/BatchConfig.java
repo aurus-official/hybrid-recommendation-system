@@ -40,6 +40,9 @@ import com.aurus.server.ingestion.sensor.RawSensorDataModel;
 import com.aurus.server.ingestion.sensor.RawSensorDataRepository;
 import com.aurus.server.ingestion.weather.RawWeatherDataModel;
 import com.aurus.server.ingestion.weather.RawWeatherDataRepository;
+import com.aurus.server.notification.NotificationEventPublisher;
+import com.aurus.server.notification.health_status.NotificationHighPriorityHealthStatusDTO;
+import com.aurus.server.reading_status.ReadingStatusService;
 import com.aurus.server.shared.TdsWindowNormalization;
 
 import org.springframework.batch.core.BatchStatus;
@@ -160,16 +163,34 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     Job aggregatingSensorDataJob(JobRepository jobRepository, Step aggregatingSensorDataStep,
-            BatchEventPublisher batchEventPublisher) {
+            BatchEventPublisher batchEventPublisher,
+            ItemProcessor<List<ProcessedSensorDataModel>, AggregatedSensorDataModel> aggregatingSensorDataProcessor,
+            ItemWriter<AggregatedSensorDataModel> aggregatingSensorDataWriter,
+            NotificationEventPublisher notificationEventPublisher) {
         return new JobBuilder("aggregatingSensorData", jobRepository)
                 .listener(afterJobListener(jobExecution -> {
                     BatchStatus batchStatus = jobExecution.getStatus();
                     if (batchStatus == BatchStatus.COMPLETED) {
                         long aggregatedSensorId = jobExecution.getExecutionContext().getLong("aggregatedSensorId");
                         batchEventPublisher.publishDerivingSensorDataEvent(aggregatedSensorId);
+                        return;
                     }
+
+                    Object value = jobExecution.getExecutionContext().get("isThereInvalidValue");
+                    Boolean isThereInvalidValue = (value != null) ? (Boolean) value : false;
+
+                    if (batchStatus == BatchStatus.FAILED && isThereInvalidValue) {
+                        NotificationHighPriorityHealthStatusDTO notificationHighPriorityHealthStatusDTO = (NotificationHighPriorityHealthStatusDTO) jobExecution
+                                .getExecutionContext().get("health-status-dto");
+                        notificationEventPublisher.publishNotificationHighPriorityHealthStatusEvent(
+                                notificationHighPriorityHealthStatusDTO);
+                        return;
+                    }
+
                 }))
                 .start(aggregatingSensorDataStep)
+                .listener(aggregatingSensorDataProcessor)
+                .listener(aggregatingSensorDataWriter)
                 .build();
     }
 
@@ -201,8 +222,9 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
 
     @Bean
     ItemWriter<AggregatedSensorDataModel> aggregatingSensorDataWriter(
-            AggregatedSensorDataRepository aggregatedSensorDataRepository) {
-        return new AggregatedSensorDataWriter(aggregatedSensorDataRepository);
+            AggregatedSensorDataRepository aggregatedSensorDataRepository,
+            ReadingStatusService readingStatusService) {
+        return new AggregatedSensorDataWriter(aggregatedSensorDataRepository, readingStatusService);
     }
 
     @Bean

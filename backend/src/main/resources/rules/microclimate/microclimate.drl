@@ -10,149 +10,351 @@ import com.aurus.server.shared.CategoryType;
 global java.util.List intermediateOutputs;
 
 
-/* =========================
-   CRITICAL – Extreme Heat
-   ========================= */
-rule "Microclimate - Emergency Cooling"
+/* =========================================================
+   SHARED FUNCTIONS
+   ========================================================= */
+
+function float clampConfidence(float c) {
+    if (c < 0f) return 0f;
+    if (c > 1f) return 1f;
+    return c;
+}
+
+
+/* =========================================================
+   FACTORY FUNCTION
+   ========================================================= */
+
+function EngineCategoryOutputDTO buildMicroclimateOutput(
+    String action,
+    SeverityLevel severity,
+    PriorityLevel priority,
+    float confidence
+) {
+    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+
+    out.setCategoryType(CategoryType.MICROCLIMATE);
+    out.setAction(action);
+    out.setSeverityLevel(severity);
+    out.setPriorityLevel(priority);
+
+    float multiplier;
+
+    if (severity == SeverityLevel.CRITICAL) {
+        multiplier = 1.15f;
+    } else if (severity == SeverityLevel.HIGH) {
+        multiplier = 1.08f;
+    } else if (severity == SeverityLevel.MODERATE) {
+        multiplier = 1.00f;
+    } else {
+        multiplier = 0.95f;
+    }
+
+    float scaledConfidence = confidence * multiplier;
+
+    out.setConfidence(
+        clampConfidence(scaledConfidence)
+    );
+
+    return out;
+}
+
+
+/* =========================================================
+   CRITICAL - EMERGENCY COOLING
+   ========================================================= */
+
+rule "MC - Emergency Cooling"
 salience 100
 when
-    $s : DerivedSensorDataModel()
-    $w : DerivedWeatherDataModel()
-    eval(
-        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) >= 0.85f
+    $s : DerivedSensorDataModel(
+        heatStressIndex >= 0.70f
     )
-then
-    float hsi = 0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex();
 
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.MICROCLIMATE);
-    out.setAction("apply_immediate_cooling_shading_or_misting");
-    out.setSeverityLevel(SeverityLevel.CRITICAL);
-    out.setPriorityLevel(PriorityLevel.P0);
+    $w : DerivedWeatherDataModel()
+then
+
+    float heat = $s.getHeatStressIndex();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
 
     float confidence =
-        0.7f * hsi +
-        0.3f * (1 - $w.getRainImpactIndex());
+        (0.75f * heat)
+      + (0.15f * (1f - dry))
+      + (0.10f * (1f - rain));
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    EngineCategoryOutputDTO out =
+        buildMicroclimateOutput(
+            "apply_emergency_cooling_and_full_shading",
+            SeverityLevel.CRITICAL,
+            PriorityLevel.P0,
+            confidence
+        );
+
+    out.setRationale(
+        "Severe heat stress detected requiring immediate microclimate intervention."
+    );
+
+    out.addEvidence(
+        "Heat Stress Index",
+        heat,
+        0.70f,
+        ">="
+    );
+
+    out.addEvidence(
+        "Evaporation Drying Risk",
+        dry,
+        0.70f,
+        ">"
+    );
+
+    out.addEvidence(
+        "Rain Impact Index",
+        rain,
+        0.75f,
+        "<"
+    );
+
     intermediateOutputs.add(out);
+
 end
 
 
-/* =========================
-   HIGH – Strong Heat Mitigation
-   ========================= */
-rule "Microclimate - Heat Mitigation"
+/* =========================================================
+   HIGH - STRONG HEAT MITIGATION
+   ========================================================= */
+
+rule "MC - Strong Cooling Response"
 salience 90
 when
-    $s : DerivedSensorDataModel()
+    $s : DerivedSensorDataModel(
+        heatStressIndex >= 0.55f,
+        heatStressIndex < 0.70f
+    )
+
     $w : DerivedWeatherDataModel()
-    eval(
-        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) >= 0.70f &&
-        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) < 0.85f &&
-        $w.getRainImpactIndex() < 0.6f   // avoid overlap with rain cooling
-    )
 then
-    float hsi = 0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex();
 
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.MICROCLIMATE);
-    out.setAction("increase_shading_and_reduce_heat_exposure");
-    out.setSeverityLevel(SeverityLevel.HIGH);
-    out.setPriorityLevel(PriorityLevel.P1);
+    float heat = $s.getHeatStressIndex();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
 
     float confidence =
-        0.6f * hsi +
-        0.4f * (1 - $w.getRainImpactIndex());
+        (0.65f * heat)
+      + (0.20f * (1f - dry))
+      + (0.15f * (1f - rain));
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    EngineCategoryOutputDTO out =
+        buildMicroclimateOutput(
+            "increase_shading_and_reduce_heat_exposure",
+            SeverityLevel.HIGH,
+            PriorityLevel.P1,
+            confidence
+        );
+
+    out.setRationale(
+        "Elevated heat stress levels indicate the need for additional shading."
+    );
+
+    out.addEvidence(
+        "Heat Stress Index",
+        heat,
+        0.55f,
+        ">="
+    );
+
+    out.addEvidence(
+        "Rain Impact Index",
+        rain,
+        0.75f,
+        "<"
+    );
+
     intermediateOutputs.add(out);
+
 end
 
 
-/* =========================
-   MODERATE – Rain-Assisted Cooling
-   ========================= */
-rule "Microclimate - Rain Cooling"
-salience 85
+/* =========================================================
+   MODERATE - ACTIVE MONITORING
+   ========================================================= */
+
+rule "MC - Moderate Heat Management"
+salience 80
 when
-    $s : DerivedSensorDataModel()
-    $w : DerivedWeatherDataModel(rainImpactIndex >= 0.6)
-    eval(
-        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) >= 0.6f &&
-        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) < 0.85f
+    $s : DerivedSensorDataModel(
+        heatStressIndex >= 0.35f,
+        heatStressIndex < 0.55f
     )
-then
-    float hsi = 0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex();
 
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.MICROCLIMATE);
-    out.setAction("leverage_rainfall_for_passive_cooling_reduce_manual_intervention");
-    out.setSeverityLevel(SeverityLevel.MODERATE);
-    out.setPriorityLevel(PriorityLevel.P2);
-
-    float confidence =
-        0.5f * hsi +
-        0.5f * $w.getRainImpactIndex();
-
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-    intermediateOutputs.add(out);
-end
-
-
-/* =========================
-   MODERATE – Controlled Heat Management
-   ========================= */
-rule "Microclimate - Moderate Heat Management"
-salience 75
-when
-    $s : DerivedSensorDataModel()
     $w : DerivedWeatherDataModel()
-    eval(
-        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) >= 0.50f &&
-        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) < 0.70f &&
-        $w.getRainImpactIndex() < 0.6f
-    )
 then
-    float hsi = 0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex();
 
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.MICROCLIMATE);
-    out.setAction("apply_light_shading_and_monitor_temperature");
-    out.setSeverityLevel(SeverityLevel.MODERATE);
-    out.setPriorityLevel(PriorityLevel.P2);
+    float heat = $s.getHeatStressIndex();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
 
     float confidence =
-        0.6f * hsi +
-        0.4f * (1 - $w.getRainImpactIndex());
+        (0.55f * heat)
+      + (0.25f * (1f - dry))
+      + (0.20f * rain);
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    EngineCategoryOutputDTO out =
+        buildMicroclimateOutput(
+            "apply_partial_shading_and_monitor_conditions",
+            SeverityLevel.MODERATE,
+            PriorityLevel.P2,
+            confidence
+        );
+
+    out.setRationale(
+        "Moderate heat stress detected. Preventive microclimate management is recommended."
+    );
+
+    out.addEvidence(
+        "Heat Stress Index",
+        heat,
+        0.35f,
+        ">="
+    );
+
+    out.addEvidence(
+        "Heat Stress Index",
+        heat,
+        0.55f,
+        "<"
+    );
+
     intermediateOutputs.add(out);
+
 end
 
 
-/* =========================
-   LOW – Optimal Conditions
-   ========================= */
-rule "Microclimate - Optimal Conditions"
+/* =========================================================
+   LOW - STABLE CONDITIONS
+   ========================================================= */
+
+rule "MC - Stable Conditions"
+salience 70
+when
+    $s : DerivedSensorDataModel(
+        heatStressIndex >= 0.15f,
+        heatStressIndex < 0.35f
+    )
+
+    $w : DerivedWeatherDataModel()
+then
+
+    float heat = $s.getHeatStressIndex();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
+
+    float confidence =
+        (0.70f * (1f - heat))
+      + (0.15f * (1f - dry))
+      + (0.15f * rain);
+
+    EngineCategoryOutputDTO out =
+        buildMicroclimateOutput(
+            "maintain_light_shading_and_continue_monitoring",
+            SeverityLevel.MODERATE,
+            PriorityLevel.P2,
+            confidence
+        );
+
+    out.setRationale(
+        "Environmental conditions remain generally stable with minor heat exposure."
+    );
+
+    out.addEvidence(
+        "Heat Stress Index",
+        heat,
+        0.15f,
+        ">="
+    );
+
+    out.addEvidence(
+        "Heat Stress Index",
+        heat,
+        0.35f,
+        "<"
+    );
+
+    intermediateOutputs.add(out);
+
+end
+
+
+/* =========================================================
+   OPTIMAL CONDITIONS
+   ========================================================= */
+
+rule "MC - Optimal Conditions"
 salience 60
 when
-    $s : DerivedSensorDataModel()
-    $w : DerivedWeatherDataModel()
-    eval(
-        (0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex()) < 0.50f
+    $s : DerivedSensorDataModel(
+        heatStressIndex < 0.15f
     )
+
+    $w : DerivedWeatherDataModel()
 then
-    float hsi = 0.6f * $s.getHeatStressIndex() + 0.4f * $w.getHeatStressIndex();
 
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
-    out.setCategoryType(CategoryType.MICROCLIMATE);
-    out.setAction("maintain_current_microclimate_conditions");
-    out.setSeverityLevel(SeverityLevel.LOW);
-    out.setPriorityLevel(PriorityLevel.P3);
+    float heat = $s.getHeatStressIndex();
+    float dry = $s.getEvaporationDryingRisk();
+    float rain = $w.getRainImpactIndex();
 
-    float confidence = 1f - hsi;
+    float confidence =
+        (0.80f * (1f - heat))
+      + (0.10f * (1f - dry))
+      + (0.10f * rain);
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
+    EngineCategoryOutputDTO out =
+        buildMicroclimateOutput(
+            "maintain_current_microclimate_conditions",
+            SeverityLevel.LOW,
+            PriorityLevel.P3,
+            confidence
+        );
+
+    out.setRationale(
+        "Microclimate conditions are currently within the optimal cultivation range."
+    );
+
+    out.addEvidence(
+        "Heat Stress Index",
+        heat,
+        0.15f,
+        "<"
+    );
+
     intermediateOutputs.add(out);
+
+end
+
+
+/* =========================================================
+   FALLBACK - GUARANTEED SAFE OUTPUT
+   ========================================================= */
+
+rule "MC - Fallback Monitor"
+salience -999
+when
+    $s : DerivedSensorDataModel()
+then
+
+    EngineCategoryOutputDTO out =
+        buildMicroclimateOutput(
+            "monitor_microclimate_conditions",
+            SeverityLevel.LOW,
+            PriorityLevel.P3,
+            0.05f
+        );
+
+    out.setRationale(
+        "No microclimate intervention requiring action was detected."
+    );
+
+    intermediateOutputs.add(out);
+
 end

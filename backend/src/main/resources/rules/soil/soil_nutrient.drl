@@ -10,129 +10,315 @@ import com.aurus.server.shared.CategoryType;
 global java.util.List intermediateOutputs;
 
 
-/* =========================
-   CRITICAL – Leaching Risk
-   ========================= */
-rule "Soil - Avoid Fertilization (Leaching)"
-salience 100
-when
-    $s : DerivedSensorDataModel(soilFertilityIndex < 0.5)
-    $w : DerivedWeatherDataModel(rainImpactIndex > 0.8)
-then
+/* =========================================================
+   FACTORY FUNCTION
+   ========================================================= */
+
+function EngineCategoryOutputDTO buildSoilOutput(
+    String action,
+    SeverityLevel severity,
+    PriorityLevel priority,
+    float confidence
+) {
     EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
 
     out.setCategoryType(CategoryType.SOIL_NUTRIENT);
-    out.setAction("avoid_fertilizer_application_due_to_high_leaching_risk");
-    out.setSeverityLevel(SeverityLevel.CRITICAL);
-    out.setPriorityLevel(PriorityLevel.P0);
+    out.setAction(action);
+    out.setSeverityLevel(severity);
+    out.setPriorityLevel(priority);
+
+    float c = confidence;
+
+    if (c < 0f) c = 0f;
+    if (c > 1f) c = 1f;
+
+    out.setConfidence(c);
+
+    return out;
+}
+
+
+/* =========================================================
+   CRITICAL - SUSPEND FERTILIZER
+   ========================================================= */
+
+rule "Soil - Suspend Fertilizer Application"
+salience 100
+when
+    $s : DerivedSensorDataModel(
+        soilFertilityIndex < 0.45f
+    )
+
+    $w : DerivedWeatherDataModel()
+then
+
+    float sfi = $s.getSoilFertilityIndex();
 
     float confidence =
-        0.5f * (1 - $s.getSoilFertilityIndex()) +
-        0.5f * $w.getRainImpactIndex();
+        (0.55f * (1f - sfi))
+        +
+        (0.45f * $w.getRainImpactIndex());
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-    intermediateOutputs.add(out);
+    String action =
+        "Soil fertility index is critically low (" +
+        String.format("%.2f", sfi) +
+        "). Suspend fertilizer application temporarily due to elevated nutrient leaching risk from expected rainfall.";
+
+    intermediateOutputs.add(
+        buildSoilOutput(
+            action,
+            SeverityLevel.CRITICAL,
+            PriorityLevel.P0,
+            confidence
+        )
+    );
 end
 
 
-/* =========================
-   CRITICAL – Delay Fertilization
-   ========================= */
+/* =========================================================
+   CRITICAL - DELAY FERTILIZATION
+   ========================================================= */
+
 rule "Soil - Delay Fertilization"
 salience 95
 when
-    $s : DerivedSensorDataModel(soilFertilityIndex < 0.4)
+    $s : DerivedSensorDataModel(
+        soilFertilityIndex < 0.40f
+    )
+
     $w : DerivedWeatherDataModel(
-        rainImpactIndex >= 0.6 && rainImpactIndex <= 0.8
+        rainImpactIndex >= 0.65f,
+        rainImpactIndex < 0.85f
     )
 then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
 
-    out.setCategoryType(CategoryType.SOIL_NUTRIENT);
-    out.setAction("delay_fertilizer_application_until_soil_conditions_improve");
-    out.setSeverityLevel(SeverityLevel.CRITICAL);
-    out.setPriorityLevel(PriorityLevel.P0);
+    float sfi = $s.getSoilFertilityIndex();
 
     float confidence =
-        0.5f * (1 - $s.getSoilFertilityIndex()) +
-        0.5f * $w.getRainImpactIndex();
+        (0.60f * (1f - sfi))
+        +
+        (0.40f * $w.getRainImpactIndex());
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-    intermediateOutputs.add(out);
+    String action =
+        "Soil fertility index is " +
+        String.format("%.2f", sfi) +
+        " with significant rainfall influence detected. Delay fertilizer application until soil moisture and weather conditions stabilize.";
+
+    intermediateOutputs.add(
+        buildSoilOutput(
+            action,
+            SeverityLevel.CRITICAL,
+            PriorityLevel.P0,
+            confidence
+        )
+    );
 end
 
 
-/* =========================
-   HIGH – Apply Fertilizer
-   ========================= */
-rule "Soil - Apply Fertilizer"
+/* =========================================================
+   HIGH - IMMEDIATE NUTRIENT RECOVERY
+   ========================================================= */
+
+rule "Soil - Immediate Nutrient Recovery"
+salience 92
+when
+    $s : DerivedSensorDataModel(
+        soilFertilityIndex < 0.25f
+    )
+
+    $w : DerivedWeatherDataModel(
+        rainImpactIndex < 0.65f
+    )
+then
+
+    float sfi = $s.getSoilFertilityIndex();
+
+    float confidence =
+        (0.75f * (1f - sfi))
+        +
+        (0.25f * (1f - $w.getRainImpactIndex()));
+
+    String action =
+        "Soil fertility index is extremely low (" +
+        String.format("%.2f", sfi) +
+        "). Apply immediate nutrient recovery measures and reassess soil conditions during the next monitoring cycle.";
+
+    intermediateOutputs.add(
+        buildSoilOutput(
+            action,
+            SeverityLevel.HIGH,
+            PriorityLevel.P1,
+            confidence
+        )
+    );
+end
+
+
+/* =========================================================
+   HIGH - INCREASE FERTILITY SUPPORT
+   ========================================================= */
+
+rule "Soil - Increase Fertility Support"
 salience 90
 when
-    $s : DerivedSensorDataModel(soilFertilityIndex < 0.4)
-    $w : DerivedWeatherDataModel(rainImpactIndex < 0.6)
-then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
+    $s : DerivedSensorDataModel(
+        soilFertilityIndex >= 0.25f,
+        soilFertilityIndex < 0.40f
+    )
 
-    out.setCategoryType(CategoryType.SOIL_NUTRIENT);
-    out.setAction("apply_fertilizer_to_improve_low_soil_nutrients");
-    out.setSeverityLevel(SeverityLevel.HIGH);
-    out.setPriorityLevel(PriorityLevel.P1);
+    $w : DerivedWeatherDataModel(
+        rainImpactIndex < 0.65f
+    )
+then
+
+    float sfi = $s.getSoilFertilityIndex();
 
     float confidence =
-        0.6f * (1 - $s.getSoilFertilityIndex()) +
-        0.4f * (1 - $w.getRainImpactIndex());
+        (0.70f * (1f - sfi))
+        +
+        (0.30f * (1f - $w.getRainImpactIndex()));
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-    intermediateOutputs.add(out);
+    String action =
+        "Soil fertility index is below the desired range (" +
+        String.format("%.2f", sfi) +
+        "). Increase nutrient support gradually and monitor soil fertility trends before the next fertilization cycle.";
+
+    intermediateOutputs.add(
+        buildSoilOutput(
+            action,
+            SeverityLevel.HIGH,
+            PriorityLevel.P1,
+            confidence
+        )
+    );
 end
 
 
-/* =========================
-   MODERATE – Maintain Soil
-   ========================= */
-rule "Soil - Maintain Soil Condition"
+/* =========================================================
+   MODERATE - MAINTAIN STABILITY
+   ========================================================= */
+
+rule "Soil - Maintain Nutrient Stability"
+salience 80
+when
+    $s : DerivedSensorDataModel(
+        soilFertilityIndex >= 0.40f,
+        soilFertilityIndex < 0.60f
+    )
+then
+
+    float sfi = $s.getSoilFertilityIndex();
+
+    float confidence =
+        1f - Math.abs(sfi - 0.50f);
+
+    String action =
+        "Soil fertility index is within the acceptable operating range (" +
+        String.format("%.2f", sfi) +
+        "). Maintain the current nutrient program and continue routine monitoring.";
+
+    intermediateOutputs.add(
+        buildSoilOutput(
+            action,
+            SeverityLevel.MODERATE,
+            PriorityLevel.P2,
+            confidence
+        )
+    );
+end
+
+
+/* =========================================================
+   LOW - BALANCED CONDITION
+   ========================================================= */
+
+rule "Soil - Balanced Nutrient Condition"
 salience 70
 when
     $s : DerivedSensorDataModel(
-        soilFertilityIndex >= 0.4 &&
-        soilFertilityIndex <= 0.7
+        soilFertilityIndex >= 0.60f,
+        soilFertilityIndex < 0.80f
     )
-then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
 
-    out.setCategoryType(CategoryType.SOIL_NUTRIENT);
-    out.setAction("maintain_current_soil_nutrient_management_practices");
-    out.setSeverityLevel(SeverityLevel.MODERATE);
-    out.setPriorityLevel(PriorityLevel.P2);
+    $w : DerivedWeatherDataModel()
+then
+
+    float sfi = $s.getSoilFertilityIndex();
 
     float confidence =
-        1f - Math.abs($s.getSoilFertilityIndex() - 0.55f) * 2f;
+        (0.75f * sfi)
+        +
+        (0.25f * $w.getWaterBalanceIndex());
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-    intermediateOutputs.add(out);
+    String action =
+        "Soil fertility index is healthy (" +
+        String.format("%.2f", sfi) +
+        "). Maintain balanced nutrient management and avoid unnecessary fertilizer additions.";
+
+    intermediateOutputs.add(
+        buildSoilOutput(
+            action,
+            SeverityLevel.LOW,
+            PriorityLevel.P3,
+            confidence
+        )
+    );
 end
 
 
-/* =========================
-   LOW – Optimize Uptake
-   ========================= */
-rule "Soil - Optimize Nutrient Uptake"
-salience 60
+/* =========================================================
+   LOW - EXCESS NUTRIENT CONDITION
+   ========================================================= */
+
+rule "Soil - Reduce Excess Nutrient Input"
+salience 65
 when
-    $s : DerivedSensorDataModel(soilFertilityIndex > 0.7)
+    $s : DerivedSensorDataModel(
+        soilFertilityIndex >= 0.80f
+    )
+
     $w : DerivedWeatherDataModel()
 then
-    EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
 
-    out.setCategoryType(CategoryType.SOIL_NUTRIENT);
-    out.setAction("optimize_nutrient_uptake_and_reduce_excess_application");
-    out.setSeverityLevel(SeverityLevel.LOW);
-    out.setPriorityLevel(PriorityLevel.P3);
+    float sfi = $s.getSoilFertilityIndex();
 
     float confidence =
-        0.6f * $s.getSoilFertilityIndex() +
-        0.4f * $w.getWaterBalanceIndex();
+        (0.80f * sfi)
+        +
+        (0.20f * $w.getWaterBalanceIndex());
 
-    out.setConfidence(Math.min(1f, Math.max(0f, confidence)));
-    intermediateOutputs.add(out);
+    String action =
+        "Soil fertility index is elevated (" +
+        String.format("%.2f", sfi) +
+        "). Reduce additional fertilizer inputs and prioritize nutrient-use efficiency.";
+
+    intermediateOutputs.add(
+        buildSoilOutput(
+            action,
+            SeverityLevel.LOW,
+            PriorityLevel.P3,
+            confidence
+        )
+    );
+end
+
+
+/* =========================================================
+   FALLBACK
+   ========================================================= */
+
+rule "Soil - Default Soil Monitoring"
+salience -999
+when
+    $s : DerivedSensorDataModel()
+then
+
+    intermediateOutputs.add(
+        buildSoilOutput(
+            "Continue monitoring soil fertility conditions and reassess nutrient management requirements during the next recommendation cycle.",
+            SeverityLevel.LOW,
+            PriorityLevel.P3,
+            0.05f
+        )
+    );
 end

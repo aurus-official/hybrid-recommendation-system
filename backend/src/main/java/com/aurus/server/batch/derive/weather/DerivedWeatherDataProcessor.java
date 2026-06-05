@@ -10,38 +10,70 @@ public class DerivedWeatherDataProcessor
         implements ItemProcessor<AggregatedWeatherDataModel, DerivedWeatherDataModel>, StepExecutionListener {
 
     @Override
-    public @Nullable DerivedWeatherDataModel process(AggregatedWeatherDataModel model) throws Exception {
-        float humidityStress = (100f - model.getHumidity().value()) / 100f;
-        float vapourPressureDeficitNorm = model.getVapourPressureDeficit().value() / 3f;
-        float precipitationNorm = model.getPrecipitation().value() / 10f;
-        float precipitationProbabilityNorm = model.getPrecipitationProbability().value() / 100f;
-        float evapotranspirationNorm = model.getEvapotranspiration().value() / 3f;
+    public @Nullable DerivedWeatherDataModel process(
+            AggregatedWeatherDataModel model) throws Exception {
 
-        float plantStressIndexValue = Math.max(0f, Math.min(1f, (0.5f * model.getTempStress().value())
-                + (0.3f * humidityStress)
-                + (0.2f * vapourPressureDeficitNorm)));
+        float tempStress = clamp(model.getTempStress().value());
 
-        float heatStressIndexValue = Math.max(0f,
-                Math.min(1f, (0.7f * model.getTempStress().value()) + (0.3f * humidityStress)));
+        float vpdStress = clamp(
+                model.getVapourPressureDeficit().value() / 3.0f);
 
-        float rainImpactIndexValue = Math.max(0f,
-                Math.min(1f, (0.6f * precipitationProbabilityNorm) + (0.4f * precipitationNorm)));
-        float waterBalanceIndexValue = Math.max(0f,
-                Math.min(1f, (0.5f + (precipitationNorm - evapotranspirationNorm) / 2f)));
+        float precipitationNorm = clamp(
+                model.getPrecipitation().value() / 10.0f);
 
-        DerivedWeatherDataDTO plantStressIndex = new DerivedWeatherDataDTO(toFourDigitsDecimal(plantStressIndexValue),
+        float precipitationProbabilityNorm = clamp(
+                model.getPrecipitationProbability().value() / 100.0f);
+
+        float evapotranspirationNorm = clamp(
+                model.getEvapotranspiration().value() / 3.0f);
+
+        float rainImpactIndexValue = clamp(
+                (0.60f * precipitationProbabilityNorm)
+                        + (0.40f * precipitationNorm));
+
+        float rainCoolingFactor = rainImpactIndexValue;
+
+        float heatStressIndexValue = clamp(
+                ((0.65f * tempStress)
+                        + (0.35f * vpdStress))
+                        * (1f - (0.30f * rainCoolingFactor)));
+
+        float waterBalanceIndexValue = clamp(
+                0.5f +
+                        ((precipitationNorm - evapotranspirationNorm) / 2f));
+
+        float plantStressIndexValue = clamp(
+                (0.25f * tempStress)
+                        + (0.20f * vpdStress)
+                        + (0.35f * (1f - waterBalanceIndexValue))
+                        + (0.20f * rainImpactIndexValue));
+
+        DerivedWeatherDataDTO plantStressIndex = new DerivedWeatherDataDTO(
+                toFourDigitsDecimal(plantStressIndexValue),
                 "normalized");
-        DerivedWeatherDataDTO heatStressIndex = new DerivedWeatherDataDTO(toFourDigitsDecimal(heatStressIndexValue),
-                "normalized");
-        DerivedWeatherDataDTO rainImpactIndex = new DerivedWeatherDataDTO(toFourDigitsDecimal(rainImpactIndexValue),
-                "normalized");
-        DerivedWeatherDataDTO waterBalanceIndex = new DerivedWeatherDataDTO(toFourDigitsDecimal(waterBalanceIndexValue),
+
+        DerivedWeatherDataDTO heatStressIndex = new DerivedWeatherDataDTO(
+                toFourDigitsDecimal(heatStressIndexValue),
                 "normalized");
 
-        DerivedWeatherDataModel derivedWeatherDataModel = new DerivedWeatherDataModel(plantStressIndex, heatStressIndex,
-                rainImpactIndex, waterBalanceIndex, model.getId());
+        DerivedWeatherDataDTO rainImpactIndex = new DerivedWeatherDataDTO(
+                toFourDigitsDecimal(rainImpactIndexValue),
+                "normalized");
 
-        return derivedWeatherDataModel;
+        DerivedWeatherDataDTO waterBalanceIndex = new DerivedWeatherDataDTO(
+                toFourDigitsDecimal(waterBalanceIndexValue),
+                "normalized");
+
+        return new DerivedWeatherDataModel(
+                plantStressIndex,
+                heatStressIndex,
+                rainImpactIndex,
+                waterBalanceIndex,
+                model.getId());
+    }
+
+    private float clamp(float value) {
+        return Math.max(0f, Math.min(1f, value));
     }
 
     private float toFourDigitsDecimal(float value) {

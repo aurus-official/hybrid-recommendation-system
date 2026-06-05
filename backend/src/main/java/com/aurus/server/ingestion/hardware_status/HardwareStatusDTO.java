@@ -1,6 +1,6 @@
-package com.aurus.server.ingestion.health_check;
+package com.aurus.server.ingestion.hardware_status;
 
-public record RawHealthCheckDataDTO(
+public record HardwareStatusDTO(
         boolean ads1,
         boolean ads2,
         boolean bme280,
