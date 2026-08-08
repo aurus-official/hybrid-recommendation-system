@@ -1,7 +1,7 @@
 version: 3
 
 agent:
-  authtoken: "29izKknNkS7AYHMcRiMw6DlMdB2_7vG4SxuxyH3oCbR2bNVzQ"
+  authtoken: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 endpoints:
   - name: thesis-server
