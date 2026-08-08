@@ -1,6 +1,6 @@
 package com.aurus.server.batch.aggregate.sensor;
 
-import com.aurus.server.notification.health_status.NotificationHighPriorityHealthStatusDTO;
+import com.aurus.server.notification.reading_status.NotificationHighPriorityReadingStatusDTO;
 import com.aurus.server.reading_status.ReadingStatusModel;
 import com.aurus.server.reading_status.ReadingStatusService;
 
@@ -40,10 +40,10 @@ public class AggregatedSensorDataWriter implements ItemWriter<AggregatedSensorDa
         if (isThereInvalidValue) {
             ReadingStatusModel readingStatusModel = readingStatusService
                     .addReadingStatusModel(chunk.getItems().get(0));
-            NotificationHighPriorityHealthStatusDTO notificationHighPriorityHealthStatusDTO = new NotificationHighPriorityHealthStatusDTO(
+            NotificationHighPriorityReadingStatusDTO notificationHighPriorityReadingStatusDTO = new NotificationHighPriorityReadingStatusDTO(
                     readingStatusModel.getCreatedAt(),
                     readingStatusModel.getId());
-            executionContext.put("health-status-dto", notificationHighPriorityHealthStatusDTO);
+            executionContext.put("reading-status-dto", notificationHighPriorityReadingStatusDTO);
             return;
         }
 

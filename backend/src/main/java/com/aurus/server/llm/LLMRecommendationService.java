@@ -16,13 +16,9 @@ import com.aurus.server.batch.process.weather.ProcessedWeatherDataModel;
 import com.aurus.server.batch.process.weather.ProcessedWeatherDataRepository;
 import com.aurus.server.engine.EngineCategoryOutputDTO;
 import com.aurus.server.engine.EngineEvaluationOutputDTO;
-import com.aurus.server.ingestion.hardware_status.HardwareStatusModel;
-import com.aurus.server.ingestion.hardware_status.HardwareStatusRepository;
 import com.aurus.server.notification.NotificationEventPublisher;
 import com.aurus.server.notification.recommendation.NotificationHighPriorityRecommendationDTO;
-import com.aurus.server.reading_status.ReadingStatusModel;
-import com.aurus.server.reading_status.ReadingStatusRepository;
-import com.aurus.server.shared.AllDataDTO;
+import com.aurus.server.shared.AllLLMRelatedDataDTO;
 import com.aurus.server.shared.CategoryType;
 import com.aurus.server.shared.SeverityLevel;
 import com.aurus.server.sse.SSEEventPublisher;
@@ -48,8 +44,6 @@ public class LLMRecommendationService {
     private final AggregatedWeatherDataRepository aggregatedWeatherDataRepository;
     private final DerivedWeatherDataRepository derivedWeatherDataRepository;
     private final LLMRecommendationRepository llmRecommendationRepository;
-    private final HardwareStatusRepository hardwareStatusRepository;
-    private final ReadingStatusRepository readingStatusRepository;
 
     public LLMRecommendationService(LLMGenerator llmGenerator, LLMPromptBuilder llmPromptBuilder,
             SSEEventPublisher sseEventPublisher, NotificationEventPublisher notificationEventPublisher,
@@ -58,9 +52,7 @@ public class LLMRecommendationService {
             AggregatedSensorDataRepository aggregatedSensorDataRepository,
             AggregatedWeatherDataRepository aggregatedWeatherDataRepository,
             DerivedWeatherDataRepository derivedWeatherDataRepository,
-            LLMRecommendationRepository llmRecommendationRepository,
-            HardwareStatusRepository hardwareStatusRepository,
-            ReadingStatusRepository readingStatusRepository) {
+            LLMRecommendationRepository llmRecommendationRepository) {
         this.llmGenerator = llmGenerator;
         this.llmPromptBuilder = llmPromptBuilder;
         this.sseEventPublisher = sseEventPublisher;
@@ -71,8 +63,6 @@ public class LLMRecommendationService {
         this.aggregatedWeatherDataRepository = aggregatedWeatherDataRepository;
         this.derivedWeatherDataRepository = derivedWeatherDataRepository;
         this.llmRecommendationRepository = llmRecommendationRepository;
-        this.hardwareStatusRepository = hardwareStatusRepository;
-        this.readingStatusRepository = readingStatusRepository;
     }
 
     public void generateRecommendationsAndSaveToDb(EngineEvaluationOutputDTO engineEvaluationOutputDTO)
@@ -136,7 +126,7 @@ public class LLMRecommendationService {
         return new LLMPageRecommendationDTO(llmRecommendationSummaryDTOs, recommendationModelsPage.getTotalPages());
     }
 
-    public AllDataDTO getAllDataDTO(long id) {
+    public AllLLMRelatedDataDTO getAllLLMRelatedDataDTO(long id) {
         LLMRecommendationModel llmRecommendationModel = llmRecommendationRepository.findById(id).get();
 
         DerivedSensorDataModel derivedSensorDataModel = derivedSensorDataRepository
@@ -155,19 +145,12 @@ public class LLMRecommendationService {
                 .findById(aggregatedWeatherDataModel.getProcessedWeatherDataId())
                 .orElseGet(() -> new ProcessedWeatherDataModel());
 
-        HardwareStatusModel hardwareStatusModel = hardwareStatusRepository.findFirstByOrderByIdDesc()
-                .orElseGet(() -> new HardwareStatusModel());
-        ReadingStatusModel readingStatusModel = readingStatusRepository.findFirstByOrderByIdDesc()
-                .orElseGet(() -> new ReadingStatusModel());
-
-        return new AllDataDTO(
+        return new AllLLMRelatedDataDTO(
                 derivedSensorDataModel,
                 derivedWeatherDataModel,
                 aggregatedSensorDataModel,
                 aggregatedWeatherDataModel,
                 processedWeatherDataModel,
-                llmRecommendationModel,
-                hardwareStatusModel,
-                readingStatusModel);
+                llmRecommendationModel);
     }
 }

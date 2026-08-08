@@ -4,20 +4,21 @@ import ParamCard from '../../components/paramCard';
 import IconTable from '../../utils/iconTable';
 import TitleTable from '../../utils/titleTable';
 import ParamCardLoading from '../../components/paramCardLoading';
-import { useFarmData } from '../../contexts/farmDataProvider';
+import { useStore } from '../../store/useStore';
 
 const Monitoring = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
-    const { farmData, dataSource } = useFarmData();
+    const displayFarmData = useStore((state) => state.displayFarmData)
+    const farmDataSource = useStore((state) => state.farmDataSource)
     const iconTable = IconTable(theme);
     const titleTable = TitleTable.call();
 
     const card1Data = [];
     const card2Data = [];
 
-    if (farmData != null) {
-        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = farmData;
+    if (displayFarmData != null && displayFarmData["aggregatedSensorDataModel"] != null & displayFarmData["aggregatedWeatherDataModel"] != null) {
+        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = displayFarmData;
 
         const {
             startingWindow, endingWindow,
@@ -25,7 +26,7 @@ const Monitoring = () => {
             ...aggregatedSensorDataModel
         }
 
-        Object.entries({ ...aggregatedSensorDataModelRemovedTime }).filter(([key, value]) => !(key === "id")).forEach(([key, value]) => {
+        Object.entries({ ...aggregatedSensorDataModelRemovedTime }).filter(([key, _]) => !(key === "id") && !(key === "createdAt")).forEach(([key, value]) => {
             const text = titleTable[key];
             const icon = iconTable[key];
             card1Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={`${value.value} ${value.unit}`} icon={icon} />);
@@ -38,7 +39,7 @@ const Monitoring = () => {
             ...aggregatedWeatherDataModel
         }
 
-        Object.entries({ ...aggregatedWeatherDataModelRemovedTime }).filter(([key, value]) => !(key === "id")).forEach(([key, value]) => {
+        Object.entries({ ...aggregatedWeatherDataModelRemovedTime }).filter(([key, _]) => !(key === "id")).forEach(([key, value]) => {
             const text = titleTable[key];
             const icon = iconTable[key];
             card2Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={`${value.value} ${value.unit == "normalized" ? "" : value.unit}`} icon={icon} />);
@@ -50,8 +51,8 @@ const Monitoring = () => {
         <ScrollView style={{ ...styles.viewStyles, backgroundColor: theme.screenBackgroundColor }}>
             <View style={styles.viewContainerStyles} >
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Data Monitoring</Text>
-                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Environmental snapshots synchronized every 20 minutes.</Text>
-                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : {dataSource}</Text>
+                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Environmental snapshots synchronized every 10 minutes.</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Farm Data Source : {farmDataSource}</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -112,12 +113,12 @@ export default Monitoring
 const styles = StyleSheet.create({
     viewStyles: {
         flex: 1,
+        width: "100%",
     },
     viewContainerStyles: {
-        marginLeft: 24,
-        marginRight: 24,
-        marginTop: 20,
         width: "100%",
+        paddingHorizontal: 24,
+        marginTop: 20,
         height: "auto"
     },
     title1: {
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
         marginTop: 16,
         marginBottom: 24,
         paddingBottom: 24,
-        width: "90%",
+        width: "100%",
         borderRadius: 12,
         display: "flex",
         flexDirection: "row",
@@ -143,7 +144,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-evenly",
         rowGap: 24,
         height: "auto",
-
     },
     subTitle2Container: {
         borderRadius: 12,
@@ -175,4 +175,5 @@ const styles = StyleSheet.create({
         paddingLeft: 8,
         paddingRight: 8,
     },
-})
+});
+

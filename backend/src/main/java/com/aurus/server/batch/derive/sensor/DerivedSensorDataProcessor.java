@@ -1,7 +1,6 @@
 package com.aurus.server.batch.derive.sensor;
 
 import com.aurus.server.batch.aggregate.sensor.AggregatedSensorDataModel;
-import com.aurus.server.shared.TdsWindowNormalization;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.listener.StepExecutionListener;
@@ -10,10 +9,7 @@ import org.springframework.batch.infrastructure.item.ItemProcessor;
 public class DerivedSensorDataProcessor
         implements ItemProcessor<AggregatedSensorDataModel, DerivedSensorDataModel>, StepExecutionListener {
 
-    private final TdsWindowNormalization tdsWindowNormalization;
-
-    public DerivedSensorDataProcessor(TdsWindowNormalization tdsWindowNormalization) {
-        this.tdsWindowNormalization = tdsWindowNormalization;
+    public DerivedSensorDataProcessor() {
     }
 
     @Override
@@ -29,11 +25,11 @@ public class DerivedSensorDataProcessor
 
         float tdsNorm = calculateTdsNorm(model.getTds().value());
 
+        System.out.println("TDS NORM : " + tdsNorm);
+
         float combinedSoilMoistureValue = clamp(
                 (0.65f * model.getCapacitiveMoisture().value() / 100f) +
                         (0.35f * model.getProngMoisture().value()) / 100f);
-
-        System.out.println("COMBINE SOIL MOISTURE VALUE : " + combinedSoilMoistureValue);
 
         float plantStressIndexValue = clamp(
                 (0.45f * (1f - combinedSoilMoistureValue)) +
@@ -47,7 +43,7 @@ public class DerivedSensorDataProcessor
                         (0.20f * uvStressIndexValue));
 
         float soilTempSuitability = clamp(
-                1f - (Math.abs(model.getSoilTemp().value() - 24f)
+                1f - (Math.abs(model.getSoilTemp().value() - 26f)
                         / 12f));
 
         float soilFertilityIndexValue = clamp(
@@ -129,10 +125,6 @@ public class DerivedSensorDataProcessor
         return Math.round(value * 10_000.0f) / 10_000.0f;
     }
 
-    private float normalizeFixedRange(float value, float min, float max) {
-        return clamp((value - min) / (max - min));
-    }
-
     private float tempStress(float temp) {
 
         if (temp <= 26f)
@@ -154,29 +146,13 @@ public class DerivedSensorDataProcessor
 
     private float calculateTdsNorm(float tdsValue) {
 
-        tdsWindowNormalization.addTdsToWindow(tdsValue);
-
-        if (tdsWindowNormalization.getSize() < 5) {
-            return normalizeFixedRange(tdsValue, 300f, 1200f);
-        }
-
-        float dynamicMin = tdsWindowNormalization.getMinValue();
-        float dynamicMax = tdsWindowNormalization.getMaxValue();
-
-        if ((dynamicMax - dynamicMin) < 50f) {
-            return normalizeFixedRange(tdsValue, 300f, 1200f);
-        }
-
-        float dynamicNorm = (tdsValue - dynamicMin) /
-                (dynamicMax - dynamicMin);
-
-        dynamicNorm = clamp(dynamicNorm);
-
-        float fixedNorm = normalizeFixedRange(tdsValue, 300f, 1200f);
+        float optimal = 500f;
+        float tolerance = 400f;
 
         return clamp(
-                (0.6f * fixedNorm) +
-                        (0.4f * dynamicNorm));
+                1f -
+                        (Math.abs(tdsValue - optimal)
+                                / tolerance));
     }
 
 }

@@ -2,11 +2,12 @@ import { Image, StyleSheet, Text, View } from 'react-native'
 import LogoImage from "../assets/logo.png"
 
 
-const HeaderLeft = ({ titleName }) => {
+const HeaderLeft = ({ titleName, currentTheme }) => {
+    const theme = currentTheme;
     return (
         <View style={styles.viewStyle}>
             <Image style={styles.logoStyle} source={LogoImage}></Image>
-            <Text style={styles.textStyle}>{titleName || "AgriSmart"}</Text>
+            <Text style={{ ...styles.textStyle, color: theme.whitePrimaryColor }}>{titleName || "AgriSmart"}</Text>
         </View>
     )
 }
@@ -29,7 +30,6 @@ const styles = StyleSheet.create({
         resizeMode: "contain",
     },
     textStyle: {
-        color: "#ffffff",
         marginLeft: 12,
         fontSize: 20,
         textAlign: "center"

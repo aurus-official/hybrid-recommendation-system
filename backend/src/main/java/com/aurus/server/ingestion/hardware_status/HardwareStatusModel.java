@@ -10,8 +10,6 @@ import jakarta.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-// TODO: Implement if no data is being collected, flag the device as offline
-
 @Table(name = "hardware_status")
 @Entity(name = "hardware_status")
 public class HardwareStatusModel {

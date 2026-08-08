@@ -9,14 +9,15 @@ import TitleTable from '../../utils/titleTable';
 import SeverityTable from '../../utils/severityTable';
 import ParamCardLoading from '../../components/paramCardLoading';
 import RecoCardLoading from '../../components/recoCardLoading';
-import { useFarmData } from '../../contexts/farmDataProvider';
 import { useNavigation } from 'expo-router';
+import { useStore } from '../../store/useStore';
 
 
 const Dashboard = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
-    const { farmData, dataSource } = useFarmData();
+    const displayFarmData = useStore((state) => state.displayFarmData)
+    const farmDataSource = useStore((state) => state.farmDataSource)
     const iconTable = IconTable(theme);
     const titleTable = TitleTable();
     const severityTable = SeverityTable(theme);
@@ -48,12 +49,12 @@ const Dashboard = () => {
 
     const card3Data = [];
 
-    if (farmData != null) {
+    if (displayFarmData != null && displayFarmData["llmRecommendationModel"] != null) {
 
         const { irrigation, soilNutrient, microclimate, cropOperation, irrigationSeverityValue,
             soilNutrientSeverityValue, microclimateSeverityValue, cropOperationSeverityValue,
         } = {
-            ...farmData["llmRecommendationModel"]
+            ...displayFarmData["llmRecommendationModel"]
         }
 
 
@@ -114,7 +115,7 @@ const Dashboard = () => {
         severityData.text = severityTable[severityValue].text;
         severityData.color = severityTable[severityValue].color;
 
-        const { derivedSensorDataModel, derivedWeatherDataModel } = farmData;
+        const { derivedSensorDataModel, derivedWeatherDataModel } = displayFarmData;
 
         const {
             aggregatedSensorDataId,
@@ -155,7 +156,7 @@ const Dashboard = () => {
 
 
 
-        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = farmData;
+        const { aggregatedSensorDataModel, aggregatedWeatherDataModel } = displayFarmData;
 
         const {
             startingWindow, endingWindow,
@@ -204,7 +205,7 @@ const Dashboard = () => {
             <View style={styles.viewContainerStyles} >
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Recommended Actions</Text>
                 <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Precise actions tailored to your field's current conditions.</Text>
-                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : {dataSource}</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Farm Data Source : {farmDataSource}</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -225,8 +226,8 @@ const Dashboard = () => {
                                     navigation.navigate("insights");
                                 }} activeOpacity={0.75}>
                                     <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.critical ? theme.highSeverityColor : theme.whitePrimaryColor, borderColor: theme.highSeverityColor }}>
-                                        <Text style={{ ...styles.subTitle3, color: isPressed.critical ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
-                                        <Ionicons name='arrow-forward' size={20} color={isPressed.critical ? theme.whitePrimaryColor : theme.textPrimaryColor} />
+                                        <Text style={{ ...styles.subTitle3, color: isPressed.critical ? theme.whitePrimaryColor : theme.primaryColor }} >Recommendations</Text>
+                                        <Ionicons style={{ ...styles.icons }} name='arrow-forward' size={20} color={isPressed.critical ? theme.whitePrimaryColor : theme.primaryColor} />
                                     </View>
                                 </TouchableOpacity>
                             </>
@@ -246,7 +247,7 @@ const Dashboard = () => {
 
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Smart Metrics Snapshot</Text>
                 <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Key indicators showing your crop and environmental health.</Text>
-                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : {dataSource}</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Farm Data Source : {farmDataSource}</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -268,8 +269,8 @@ const Dashboard = () => {
                                     navigation.navigate("insights");
                                 }} activeOpacity={0.75}>
                                     <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.derived ? theme.textPrimaryColor : theme.whitePrimaryColor, borderColor: theme.primaryColor }}>
-                                        <Text style={{ ...styles.subTitle3, color: isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
-                                        <Ionicons name='arrow-forward' size={20} color={isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor} />
+                                        <Text style={{ ...styles.subTitle3, color: isPressed.derived ? theme.whitePrimaryColor : theme.primaryColor }} >Other Metrics</Text>
+                                        <Ionicons style={styles.icons} name='arrow-forward' size={20} color={isPressed.derived ? theme.whitePrimaryColor : theme.primaryColor} />
                                     </View>
                                 </TouchableOpacity>
                             </>
@@ -291,7 +292,7 @@ const Dashboard = () => {
 
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Quick Data View</Text>
                 <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Sensor and environmental data feed.</Text>
-                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : {dataSource}</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Farm Data Source : {farmDataSource}</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -311,8 +312,8 @@ const Dashboard = () => {
                                     navigation.navigate("monitoring");
                                 }} activeOpacity={0.75}>
                                     <View style={{ ...styles.moreButtonContainer, backgroundColor: isPressed.derived ? theme.textPrimaryColor : theme.whitePrimaryColor, borderColor: theme.primaryColor }}>
-                                        <Text style={{ ...styles.subTitle3, color: isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor }} >More Details</Text>
-                                        <Ionicons name='arrow-forward' size={20} color={isPressed.derived ? theme.whitePrimaryColor : theme.textPrimaryColor} />
+                                        <Text style={{ ...styles.subTitle3, color: isPressed.derived ? theme.whitePrimaryColor : theme.primaryColor }} >Other Readings</Text>
+                                        <Ionicons style={styles.icons} name='arrow-forward' size={20} color={isPressed.derived ? theme.whitePrimaryColor : theme.primaryColor} />
                                     </View>
                                 </TouchableOpacity>
                             </>
@@ -329,7 +330,6 @@ const Dashboard = () => {
                             <ParamCardLoading currentTheme={theme} />
                         </>
                     }
-
                 </View>
             </View>
         </ScrollView>
@@ -341,12 +341,12 @@ export default Dashboard
 const styles = StyleSheet.create({
     viewStyles: {
         flex: 1,
+        width: "100%",
     },
     viewContainerStyles: {
-        marginLeft: 24,
-        marginRight: 24,
-        marginTop: 20,
         width: "100%",
+        paddingHorizontal: 24,
+        marginTop: 20,
         height: "auto"
     },
     title1: {
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
         marginTop: 16,
         marginBottom: 24,
         paddingBottom: 24,
-        width: "90%",
+        width: "100%",
         borderRadius: 12,
         display: "flex",
         flexDirection: "row",
@@ -385,7 +385,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-evenly",
         rowGap: 24,
         height: "auto",
-
     },
     subTitle2Container: {
         borderRadius: 12,
@@ -406,7 +405,6 @@ const styles = StyleSheet.create({
     },
     moreButtonContainer: {
         borderRadius: 12,
-        boxSizing: "border-box",
         borderWidth: 1,
         display: "flex",
         flexDirection: "row",
@@ -422,5 +420,10 @@ const styles = StyleSheet.create({
         marginRight: 12,
         paddingTop: 8,
         paddingBottom: 8,
+
     },
-})
+    icons: {
+        paddingTop: 4
+    }
+});
+

@@ -197,7 +197,17 @@ const IconTable = (currentTheme) => {
         uv: (
             <Entypo color={theme.whitePrimaryColor} name="light-up" size={20} />
         ),
+        uvVolts: (
+            <Entypo color={theme.whitePrimaryColor} name="light-up" size={20} />
+        ),
         tds: (
+            <MaterialCommunityIcons
+                color={theme.whitePrimaryColor}
+                name="flask"
+                size={20}
+            />
+        ),
+        tdsVolts: (
             <MaterialCommunityIcons
                 color={theme.whitePrimaryColor}
                 name="flask"

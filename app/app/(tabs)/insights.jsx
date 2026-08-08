@@ -6,13 +6,14 @@ import SeverityTable from '../../utils/severityTable';
 import RecoCard from '../../components/recoCard';
 import ParamCardLoading from '../../components/paramCardLoading';
 import RecoCardLoading from '../../components/recoCardLoading';
-import { useFarmData } from '../../contexts/farmDataProvider';
 import { Colors } from '../../constants/Colors';
+import { useStore } from '../../store/useStore';
 
 const Insights = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
-    const { farmData, dataSource } = useFarmData();
+    const displayFarmData = useStore((state) => state.displayFarmData)
+    const farmDataSource = useStore((state) => state.farmDataSource)
     const iconTable = IconTable(theme);
     const titleTable = TitleTable.call();
     const severityTable = SeverityTable(theme);
@@ -20,11 +21,11 @@ const Insights = () => {
     const card1Data = [];
     const card2Data = [];
 
-    if (farmData != null) {
+    if (displayFarmData != null && displayFarmData["llmRecommendationModel"] != null) {
         const { irrigation, soilNutrient, microclimate, cropOperation, irrigationSeverityValue,
             soilNutrientSeverityValue, microclimateSeverityValue, cropOperationSeverityValue,
         } = {
-            ...farmData["llmRecommendationModel"]
+            ...displayFarmData["llmRecommendationModel"]
         }
 
         const categoryWithSeverity = {
@@ -46,26 +47,29 @@ const Insights = () => {
             }
         }
 
-        const categoryWithSeveritySorted = new Map();
+        const categoryGroupedBySeverity = new Map();
 
         Object.entries({ ...categoryWithSeverity }).forEach(
             ([key, value]) => {
-                if (categoryWithSeveritySorted.has(value.severityValue)) {
-                    const existing = categoryWithSeveritySorted.get(value.severityValue)
-                    existing.push({
+                if (categoryGroupedBySeverity.has(value.severityValue)) {
+                    const existing = categoryGroupedBySeverity.get(value.severityValue)
+                    existing.unshift({
                         ...value,
                         title: key
                     })
                     return;
                 }
-                categoryWithSeveritySorted.set(value.severityValue, [{
+                categoryGroupedBySeverity.set(value.severityValue, [{
                     ...value,
                     title: key
                 }])
             });
 
+        const categorySortedBySeverity = new Map([...categoryGroupedBySeverity.entries()].sort(([key1, value1], [key2, value2]) => {
+            return key1 - key2;
+        }));
 
-        categoryWithSeveritySorted.forEach((key, value) => {
+        categorySortedBySeverity.forEach((key, value) => {
             const { text, color } = severityTable[value];
             const data = [];
             key.forEach(value2 => {
@@ -73,8 +77,8 @@ const Insights = () => {
                 const icon = iconTable[value2.title];
                 data.push(<RecoCard key={value2.title} currentTheme={theme} text={recoTitle} subText={value2.text} icon={icon} />);
             })
-            card1Data.unshift(
-                <View key={key} style={{
+            card1Data.push(
+                <View key={key + value} style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
                     boxShadow: [{
@@ -84,8 +88,8 @@ const Insights = () => {
                         color: theme.paramBorderColor
                     }]
                 }}>
-                    <View key={key} style={{ ...styles.subTitle2Container, backgroundColor: color }}>
-                        <Text key={key} style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>{text}</Text>
+                    <View key={key + value} style={{ ...styles.subTitle2Container, backgroundColor: color }}>
+                        <Text key={key + value} style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>{text}</Text>
                     </View>
                     {data}
                 </View>
@@ -93,7 +97,7 @@ const Insights = () => {
         })
 
 
-        const { derivedSensorDataModel, derivedWeatherDataModel } = farmData;
+        const { derivedSensorDataModel, derivedWeatherDataModel } = displayFarmData;
 
         const {
             aggregatedSensorDataId,
@@ -139,7 +143,7 @@ const Insights = () => {
             <View style={styles.viewContainerStyles} >
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Insights and Recommendations</Text>
                 <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Prioritized tasks based on latest sensor analysis.</Text>
-                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Data Source : {dataSource}</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Farm Data Source : {farmDataSource}</Text>
                 {card1Data.length > 0 ?
                     card1Data
                     :
@@ -192,16 +196,15 @@ const Insights = () => {
 }
 
 export default Insights
-
 const styles = StyleSheet.create({
     viewStyles: {
         flex: 1,
+        width: "100%",
     },
     viewContainerStyles: {
-        marginLeft: 24,
-        marginRight: 24,
-        marginTop: 20,
         width: "100%",
+        paddingHorizontal: 24,
+        marginTop: 20,
         height: "auto"
     },
     title1: {
@@ -219,7 +222,7 @@ const styles = StyleSheet.create({
         marginTop: 16,
         marginBottom: 24,
         paddingBottom: 24,
-        width: "90%",
+        width: "100%",
         borderRadius: 12,
         display: "flex",
         flexDirection: "row",
@@ -227,7 +230,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-evenly",
         rowGap: 24,
         height: "auto",
-
     },
     subTitle2Container: {
         borderRadius: 12,
@@ -259,4 +261,5 @@ const styles = StyleSheet.create({
         paddingLeft: 8,
         paddingRight: 8,
     },
-})
+});
+

@@ -26,7 +26,7 @@ public class RawWeatherDataScheduler {
     }
 
     // @Scheduled(fixedDelay = 600_000l, initialDelay = 600_000l)
-    @Scheduled(fixedDelay = 6_000_000l, initialDelay = 6_000_000l)
+    @Scheduled(fixedDelay = 600_000l, initialDelay = 600_000l)
     public void getWeather() {
         String url = UriComponentsBuilder
                 .fromUriString("https://api.open-meteo.com/v1/forecast")

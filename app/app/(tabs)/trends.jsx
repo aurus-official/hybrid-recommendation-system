@@ -2,18 +2,20 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } 
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { useState } from 'react';
-import { useFarmData } from '../../contexts/farmDataProvider';
 import Trend from '../../components/trendCard';
 import TrendCardLoading from '../../components/trendCardLoading';
-import HistoryModal from '../../components/historyModal';
 import RecoCardLoading from '../../components/recoCardLoading';
 import TitleTable from '../../utils/titleTable';
-
+import { useStore } from '../../store/useStore';
+import FarmDataHistoryModal from '../../components/farmDataHistoryModal';
 
 const Trends = () => {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] || Colors.light;
-    const { farmData, setDataSource, dataSource } = useFarmData();
+    const displayFarmData = useStore((state) => state.displayFarmData);
+    const farmDataSource = useStore((state) => state.farmDataSource);
+    const resumeLiveFarmData = useStore((state) => state.resumeLiveFarmData);
+    const isLiveFarmDataMode = useStore((state) => state.isLiveFarmDataMode);
     const [isLoadPastPageData, setLoadPastPageData] = useState(false);
     const titleTable = TitleTable();
 
@@ -22,12 +24,14 @@ const Trends = () => {
         setLoadPastPageData(prev => !prev)
     }
 
-    const trend1Temperature = [];
-    const trend2PrecipitationProbability = [];
+    const trend1TemperatureHourly = [];
+    const trend2PrecipitationProbabilityHourly = [];
+    const trend3TemperatureDaily = [];
+    const trend4PrecipitationProbabilityDaily = [];
     const card1Data = [];
 
-    if (farmData != null) {
-        const { processedWeatherDataModel } = farmData;
+    if (displayFarmData != null && displayFarmData["processedWeatherDataModel"] != null) {
+        const { processedWeatherDataModel } = displayFarmData;
         const { processedWeatherDataPointsHourly, processedWeatherDataPointsDaily } = processedWeatherDataModel;
 
         processedWeatherDataPointsHourly.slice(0, 6).forEach((element, index) => {
@@ -36,7 +40,7 @@ const Trends = () => {
                 hour12: true
             });
             if (index === 0) {
-                trend1Temperature.push({
+                trend1TemperatureHourly.push({
                     value: element.temperature,
                     label: currentHour,
                     frontColor: theme.primaryColor,
@@ -45,7 +49,7 @@ const Trends = () => {
                 })
                 return;
             }
-            trend1Temperature.push({
+            trend1TemperatureHourly.push({
                 value: element.temperature,
                 label: currentHour,
                 frontColor: 'transparent',
@@ -57,7 +61,7 @@ const Trends = () => {
         });
 
         card1Data.push(
-            <Trend key={1} currentTheme={theme} data={trend1Temperature} title={titleTable["temperature"]} suffix={"°C"} />
+            <Trend key={1} currentTheme={theme} data={trend1TemperatureHourly} title={titleTable["temperatureHourly"]} suffix={"°C"} maxValue={50} />
         )
 
         processedWeatherDataPointsHourly.slice(0, 6).forEach((element, index) => {
@@ -66,7 +70,7 @@ const Trends = () => {
                 hour12: true
             });
             if (index === 0) {
-                trend2PrecipitationProbability.push({
+                trend2PrecipitationProbabilityHourly.push({
                     value: element.precipitationProbability,
                     label: currentHour,
                     frontColor: theme.primaryColor,
@@ -75,7 +79,7 @@ const Trends = () => {
                 })
                 return;
             }
-            trend2PrecipitationProbability.push({
+            trend2PrecipitationProbabilityHourly.push({
                 value: element.precipitationProbability,
                 label: currentHour,
                 frontColor: 'transparent', // Makes it "outline only"
@@ -87,7 +91,67 @@ const Trends = () => {
         });
 
         card1Data.push(
-            <Trend key={2} currentTheme={theme} data={trend2PrecipitationProbability} title={titleTable["precipitationProbability"]} suffix={"%"} />
+            <Trend key={2} currentTheme={theme} data={trend2PrecipitationProbabilityHourly} title={titleTable["precipitationProbabilityHourly"]} suffix={"%"} maxValue={100} />
+        )
+
+        const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+
+        processedWeatherDataPointsDaily.slice(0, 7).forEach((element, index) => {
+            const currentDay = new Date(element.date).toLocaleDateString('en-US', {
+                day: '2-digit',
+            });
+            if (index === 0) {
+                trend3TemperatureDaily.push({
+                    value: element.temperature2mMax,
+                    label: currentDay,
+                    frontColor: theme.primaryColor,
+                    dashWidth: 5,
+                    dashGap: 3
+                })
+                return;
+            }
+            trend3TemperatureDaily.push({
+                value: element.temperature2mMax,
+                label: currentDay,
+                frontColor: 'transparent', // Makes it "outline only"
+                barBorderColor: theme.primaryColor,
+                barBorderWidth: 2,
+                dashWidth: 5,
+                dashGap: 3
+            })
+        });
+
+        card1Data.push(
+            <Trend key={3} currentTheme={theme} data={trend3TemperatureDaily} title={`${titleTable["temperatureDaily"]}  -  ${currentMonth}`} suffix={"°C"} maxValue={50} />
+        )
+
+        processedWeatherDataPointsDaily.slice(0, 7).forEach((element, index) => {
+            const currentDay = new Date(element.date).toLocaleDateString('en-US', {
+                day: '2-digit',
+            });
+            if (index === 0) {
+                trend4PrecipitationProbabilityDaily.push({
+                    value: element.precipitationProbabilityMax,
+                    label: currentDay,
+                    frontColor: theme.primaryColor,
+                    dashWidth: 5,
+                    dashGap: 3
+                })
+                return;
+            }
+            trend4PrecipitationProbabilityDaily.push({
+                value: element.precipitationProbabilityMax,
+                label: currentDay,
+                frontColor: 'transparent', // Makes it "outline only"
+                barBorderColor: theme.primaryColor,
+                barBorderWidth: 2,
+                dashWidth: 5,
+                dashGap: 3
+            })
+        });
+
+        card1Data.push(
+            <Trend key={4} currentTheme={theme} data={trend4PrecipitationProbabilityDaily} title={`${titleTable["precipitationProbabilityDaily"]}  -  ${currentMonth}`} suffix={"%"} maxValue={100} />
         )
 
     }
@@ -97,6 +161,7 @@ const Trends = () => {
             <View style={styles.viewContainerStyles} >
                 <Text style={{ ...styles.title1, color: theme.textPrimaryColor }}>Historical Records</Text>
                 <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Tracking the success of previous directions.</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Farm Data Source : {farmDataSource}</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -110,11 +175,11 @@ const Trends = () => {
                     <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
                         <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }}>View Historical Data</Text>
                     </View>
-                    <HistoryModal currentTheme={theme} isLoadPastPageDataClicked={isLoadPastPageData} handleLoadPastPageDataClick={handleLoadPastPageDataClick} />
+                    <FarmDataHistoryModal currentTheme={theme} isLoadPastPageDataClicked={isLoadPastPageData} handleLoadPastPageDataClick={handleLoadPastPageDataClick} />
                     {(card1Data.length > 0) ?
                         <>
-                            <Text style={styles.historicalStyleText}>Current Data Loaded</Text>
-                            <Text style={styles.historicalStyleTextSecond}>{dataSource}</Text>
+                            <Text style={styles.historicalStyleText}>Farm Data Source Loaded</Text>
+                            <Text style={styles.historicalStyleTextSecond}>{farmDataSource}</Text>
                             <View style={styles.buttonContainer} >
                                 <TouchableOpacity name="" onPressIn={handleLoadPastPageDataClick} activeOpacity={0.75}>
                                     <View style={{ ...styles.moreButtonContainer, backgroundColor: theme.primaryColor, borderColor: theme.primaryColor }}>
@@ -122,7 +187,7 @@ const Trends = () => {
                                         <Text style={{ ...styles.subTitle3, color: theme.whitePrimaryColor }} >Load Past Data</Text>
                                     </View>
                                 </TouchableOpacity>
-                                <TouchableOpacity name="" onPressIn={() => setDataSource("Latest")} activeOpacity={0.5}>
+                                <TouchableOpacity disabled={isLiveFarmDataMode} style={isLiveFarmDataMode ? { opacity: 0.25 } : { opacity: 1 }} name="" onPressIn={resumeLiveFarmData} activeOpacity={0.5}>
                                     <View style={{ ...styles.moreButtonContainer, backgroundColor: theme.whitePrimaryColor, borderColor: theme.primayColor }}>
                                         <MaterialIcons style={styles.buttonIconStyle} name='reset-tv' size={20} color={theme.textPrimaryColor} />
                                         <Text style={{ ...styles.subTitle3, color: theme.textPrimaryColor }} >Reset to Latest</Text>
@@ -151,12 +216,12 @@ export default Trends
 const styles = StyleSheet.create({
     viewStyles: {
         flex: 1,
+        width: "100%",
     },
     viewContainerStyles: {
-        marginLeft: 24,
-        marginRight: 24,
-        marginTop: 20,
         width: "100%",
+        paddingHorizontal: 24,
+        marginTop: 20,
     },
     title1: {
         fontSize: 24,
@@ -173,17 +238,15 @@ const styles = StyleSheet.create({
         marginTop: 16,
         marginBottom: 24,
         paddingBottom: 24,
-        width: "90%",
+        width: "100%",
         borderRadius: 12,
         display: "flex",
         flexDirection: "column",
-        flexWrap: "wrap",
         justifyContent: "center",
         alignItems: "center",
         rowGap: 24,
         height: "auto",
         flex: 1
-
     },
     subTitle2Container: {
         borderRadius: 12,
@@ -202,9 +265,22 @@ const styles = StyleSheet.create({
         paddingTop: 12,
         paddingBottom: 12,
     },
+    subSubTitle1: {
+        fontSize: 13,
+        fontFamily: "Inter_500Regular",
+        letterSpacing: -0.5,
+        marginLeft: 1,
+        alignSelf: "flex-start",
+        marginTop: 8,
+        borderRadius: 8,
+        paddingTop: 4,
+        paddingBottom: 4,
+        paddingLeft: 8,
+        paddingRight: 8,
+    },
     moreButtonContainer: {
+        width: "100%",
         borderRadius: 12,
-        boxSizing: "border-box",
         borderWidth: 1,
         display: "flex",
         flexDirection: "row",
@@ -222,7 +298,7 @@ const styles = StyleSheet.create({
         paddingBottom: 8,
     },
     graphContainer: {
-        width: "90%",
+        width: "100%",
     },
     legendWrapper: {
         flexDirection: 'row',
@@ -251,7 +327,6 @@ const styles = StyleSheet.create({
         fontSize: 20,
         marginTop: -12,
         marginBottom: 8
-
     },
     buttonContainer: {
         display: "flex",
@@ -261,5 +336,5 @@ const styles = StyleSheet.create({
     buttonIconStyle: {
         marginLeft: 20,
     }
+});
 
-})

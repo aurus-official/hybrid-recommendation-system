@@ -31,7 +31,7 @@ export default ParamCard
 const styles = StyleSheet.create({
     paramCardStyle: {
         width: "42%",
-        minHeight: "148",
+        minHeight: 148,
         borderStyle: "solid",
         borderWidth: 1.25,
         borderRadius: 12,
@@ -45,28 +45,25 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         alignSelf: "flex-start",
-        width: "81%",
         marginLeft: 16,
+        paddingRight: 16,
         marginTop: 16,
-        marginRight: 16
-
     },
     viewStyleImage: {
         padding: 8,
         borderRadius: 54,
         overflow: "hidden",
-
     },
     dataText: {
         fontSize: 20,
         marginTop: 32,
         marginBottom: 28,
-        fontWeight: "bold"
+        fontWeight: 400
     },
     subText: {
         marginLeft: 8,
         flex: 1,
         flexShrink: 1
-
     }
-})
+});
+

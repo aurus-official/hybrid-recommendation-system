@@ -1,4 +1,4 @@
-package com.aurus.server.notification.health_status;
+package com.aurus.server.notification.reading_status;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,13 +23,13 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NotificationHighPriorityHealthStatusService {
+public class NotificationHighPriorityReadingStatusService {
 
     private final NotificationDeviceRepository notificationDeviceRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationEventPublisher notificationEventPublisher;
 
-    public NotificationHighPriorityHealthStatusService(NotificationDeviceRepository notificationDeviceRepository,
+    public NotificationHighPriorityReadingStatusService(NotificationDeviceRepository notificationDeviceRepository,
             NotificationRepository notificationRepository,
             NotificationEventPublisher notificationEventPublisher) {
         this.notificationDeviceRepository = notificationDeviceRepository;
@@ -38,7 +38,7 @@ public class NotificationHighPriorityHealthStatusService {
     }
 
     public void startPushNotification(
-            NotificationHighPriorityHealthStatusDTO notificationHighPriorityHealthStatusDTO)
+            NotificationHighPriorityReadingStatusDTO notificationHighPriorityReadingStatusDTO)
             throws IOException {
 
         List<NotificationDeviceModel> notificationDeviceModels = notificationDeviceRepository.findAll();
@@ -56,13 +56,13 @@ public class NotificationHighPriorityHealthStatusService {
                 .build();
 
         Map<String, Object> data = new HashMap<>();
-        data.put("id", String.valueOf(notificationHighPriorityHealthStatusDTO.id()));
-        data.put("createdAt", notificationHighPriorityHealthStatusDTO.createdAt().toString());
+        data.put("id", String.valueOf(notificationHighPriorityReadingStatusDTO.id()));
+        data.put("createdAt", notificationHighPriorityReadingStatusDTO.createdAt().toString());
 
         PushNotification pushNotification = new PushNotification();
         pushNotification.setTo(to);
-        pushNotification.setTitle("Invalid Sensor Value In A Timeframe Detected");
-        pushNotification.setBody("Check the system health logs.");
+        pushNotification.setTitle("Sensor Out Of Range");
+        pushNotification.setBody("Abnormal reading detected. Check status panel.");
         pushNotification.setData(data);
 
         List<PushNotification> notifications = new ArrayList<>();
@@ -70,9 +70,9 @@ public class NotificationHighPriorityHealthStatusService {
 
         List<TicketResponse.Ticket> response = client.sendPushNotifications(notifications);
 
-        NotificationModel notificationDataModel = new NotificationModel(notificationHighPriorityHealthStatusDTO.id(),
-                notificationHighPriorityHealthStatusDTO.createdAt(),
-                com.aurus.server.notification.NotificationType.SYSTEM_HEALTH_ISSUE);
+        NotificationModel notificationDataModel = new NotificationModel(notificationHighPriorityReadingStatusDTO.id(),
+                notificationHighPriorityReadingStatusDTO.createdAt(),
+                com.aurus.server.notification.NotificationType.READING_STATUS_ISSUE);
         notificationRepository.save(notificationDataModel);
 
         boolean isThereNewPushNotification = false;

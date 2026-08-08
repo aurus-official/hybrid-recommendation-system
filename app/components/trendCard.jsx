@@ -3,7 +3,7 @@ import { BarChart } from 'react-native-gifted-charts';
 
 const width = Dimensions.get("window").width
 
-const TrendCard = ({ currentTheme, data, title, suffix }) => {
+const TrendCard = ({ currentTheme, data, title, suffix, maxValue }) => {
     const theme = currentTheme;
     return (
         <View style={{
@@ -21,7 +21,7 @@ const TrendCard = ({ currentTheme, data, title, suffix }) => {
 
             </View>
             <View style{...styles.graphContainer}>
-                <BarChart maxValue={50} stepValue={10} frontColor={theme.primaryColor} adjustToWidth={true} parentWidth={width * 0.90 * 0.83}
+                <BarChart maxValue={maxValue} stepValue={10} frontColor={theme.primaryColor} adjustToWidth={true} parentWidth={width * 0.90 * 0.83}
                     yAxisThickness={0} yAxisLabelSuffix={suffix} yAxisLabelWidth={width * 0.1} data={data} />
             </View>
             <View style={styles.legendWrapper}>
@@ -49,17 +49,15 @@ const styles = StyleSheet.create({
         marginTop: 16,
         marginBottom: 24,
         paddingBottom: 24,
-        width: "90%",
+        width: "100%",
         borderRadius: 12,
         display: "flex",
         flexDirection: "column",
-        flexWrap: "wrap",
         justifyContent: "center",
         alignItems: "center",
         rowGap: 24,
         height: "auto",
         flex: 1
-
     },
     subTitle2Container: {
         borderRadius: 12,
@@ -79,7 +77,8 @@ const styles = StyleSheet.create({
         paddingBottom: 12,
     },
     graphContainer: {
-        width: "90%",
+        width: "100%",
+        paddingHorizontal: 24
     },
     legendWrapper: {
         flexDirection: 'row',
@@ -100,4 +99,5 @@ const styles = StyleSheet.create({
     legendText: {
         fontSize: 12,
     },
-})
+});
+

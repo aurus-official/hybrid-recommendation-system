@@ -41,9 +41,8 @@ import com.aurus.server.ingestion.sensor.RawSensorDataRepository;
 import com.aurus.server.ingestion.weather.RawWeatherDataModel;
 import com.aurus.server.ingestion.weather.RawWeatherDataRepository;
 import com.aurus.server.notification.NotificationEventPublisher;
-import com.aurus.server.notification.health_status.NotificationHighPriorityHealthStatusDTO;
+import com.aurus.server.notification.reading_status.NotificationHighPriorityReadingStatusDTO;
 import com.aurus.server.reading_status.ReadingStatusService;
-import com.aurus.server.shared.TdsWindowNormalization;
 
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.configuration.JobRegistry;
@@ -180,10 +179,10 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
                     Boolean isThereInvalidValue = (value != null) ? (Boolean) value : false;
 
                     if (batchStatus == BatchStatus.FAILED && isThereInvalidValue) {
-                        NotificationHighPriorityHealthStatusDTO notificationHighPriorityHealthStatusDTO = (NotificationHighPriorityHealthStatusDTO) jobExecution
-                                .getExecutionContext().get("health-status-dto");
-                        notificationEventPublisher.publishNotificationHighPriorityHealthStatusEvent(
-                                notificationHighPriorityHealthStatusDTO);
+                        NotificationHighPriorityReadingStatusDTO notificationHighPriorityReadingStatusDTO = (NotificationHighPriorityReadingStatusDTO) jobExecution
+                                .getExecutionContext().get("reading-status-dto");
+                        notificationEventPublisher.publishNotificationHighPriorityReadingStatusEvent(
+                                notificationHighPriorityReadingStatusDTO);
                         return;
                     }
 
@@ -310,9 +309,8 @@ public class BatchConfig extends JdbcDefaultBatchConfiguration {
     }
 
     @Bean
-    ItemProcessor<AggregatedSensorDataModel, DerivedSensorDataModel> derivingSensorDataProcessor(
-            TdsWindowNormalization tdsWindowNormalization) {
-        return new DerivedSensorDataProcessor(tdsWindowNormalization);
+    ItemProcessor<AggregatedSensorDataModel, DerivedSensorDataModel> derivingSensorDataProcessor() {
+        return new DerivedSensorDataProcessor();
     }
 
     @Bean

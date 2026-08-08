@@ -25,7 +25,7 @@ public class SSEController {
     public SseEmitter stream(HttpServletRequest httpServletRequest) throws IOException {
         String expoPushToken = httpServletRequest.getHeader("X-Expo-Push-Token");
         String deviceId = httpServletRequest.getHeader("X-Device-Id");
-        logger.info(String.format("\"%s\" was subscribed to SSE.", httpServletRequest.getLocalAddr()));
+        logger.info(String.format("\"%s\" was subscribed to SSE.", httpServletRequest.getRemoteAddr()));
         return sseBroadcaster.subscribe(expoPushToken, deviceId);
     }
 
