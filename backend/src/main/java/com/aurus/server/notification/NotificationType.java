@@ -1,7 +1,8 @@
 package com.aurus.server.notification;
 
 public enum NotificationType {
-    RECOMMENDATION_SEVERITY_ISSUE("recommendation_severity_issue"), SYSTEM_HEALTH_ISSUE("system_health_issue");
+    RECOMMENDATION_SEVERITY_ISSUE("recommendation_severity_issue"), READING_STATUS_ISSUE("reading_status_issue"),
+    HARDWARE_STATUS_ISSUE("hardware_status_issue");
 
     String name;
 

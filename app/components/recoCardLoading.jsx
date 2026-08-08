@@ -1,5 +1,4 @@
-import { StyleSheet, useColorScheme, View } from 'react-native'
-import { Colors } from '../constants/Colors';
+import { StyleSheet, View } from 'react-native'
 import { Skeleton } from 'moti/skeleton';
 
 const RecoCardLoading = ({ currentTheme }) => {
@@ -27,40 +26,13 @@ export default RecoCardLoading
 
 const styles = StyleSheet.create({
     recoCardStyle: {
-        width: "89%",
-        minHeight: "148",
+        minHeight: 148,
         borderStyle: "solid",
         borderWidth: 1.25,
         borderRadius: 12,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+        marginHorizontal: 24
     },
-    viewStyleSubText: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        alignSelf: "flex-start",
-        marginLeft: 16,
-        marginTop: 16,
-    },
-    viewStyleImage: {
-        padding: 8,
-        borderRadius: 54,
-        overflow: "hidden",
-    },
-    dataText: {
-        fontSize: 16,
-        marginTop: 20,
-        marginBottom: 28,
-        marginLeft: 24,
-        marginRight: 24,
-        fontWeight: "semibold",
-        opacity: 0.75
-    },
-    subText: {
-        marginLeft: 12,
-        fontSize: 16
-    }
-})
+});

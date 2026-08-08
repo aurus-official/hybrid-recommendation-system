@@ -2,8 +2,10 @@ package com.aurus.server.notification;
 
 import java.io.IOException;
 
-import com.aurus.server.notification.health_status.NotificationHighPriorityHealthStatusEvent;
-import com.aurus.server.notification.health_status.NotificationHighPriorityHealthStatusService;
+import com.aurus.server.notification.hardware_status.NotificationHighPriorityHardwareStatusEvent;
+import com.aurus.server.notification.hardware_status.NotificationHighPriorityHardwareStatusService;
+import com.aurus.server.notification.reading_status.NotificationHighPriorityReadingStatusEvent;
+import com.aurus.server.notification.reading_status.NotificationHighPriorityReadingStatusService;
 import com.aurus.server.notification.recommendation.NotificationHighPriorityRecommendationEvent;
 import com.aurus.server.notification.recommendation.NotificationHighPriorityRecommendationService;
 import com.aurus.server.sse.SSEBroadcaster;
@@ -18,15 +20,18 @@ import org.springframework.stereotype.Component;
 public class NotificationEventListener {
 
     private final NotificationHighPriorityRecommendationService notificationHighPriorityRecommendationService;
-    private final NotificationHighPriorityHealthStatusService notificationHighPriorityHealthStatusService;
+    private final NotificationHighPriorityReadingStatusService notificationHighPriorityReadingStatusService;
+    private final NotificationHighPriorityHardwareStatusService notificationHighPriorityHardwareStatusService;
     private final SSEBroadcaster sseBroadcaster;
 
     public NotificationEventListener(
             NotificationHighPriorityRecommendationService notificationHighPriorityRecommendationService,
-            NotificationHighPriorityHealthStatusService notificationHighPriorityHealthStatusService,
+            NotificationHighPriorityReadingStatusService notificationHighPriorityReadingStatusService,
+            NotificationHighPriorityHardwareStatusService notificationHighPriorityHardwareStatusService,
             SSEBroadcaster sseBroadcaster) {
         this.notificationHighPriorityRecommendationService = notificationHighPriorityRecommendationService;
-        this.notificationHighPriorityHealthStatusService = notificationHighPriorityHealthStatusService;
+        this.notificationHighPriorityReadingStatusService = notificationHighPriorityReadingStatusService;
+        this.notificationHighPriorityHardwareStatusService = notificationHighPriorityHardwareStatusService;
         this.sseBroadcaster = sseBroadcaster;
     }
 
@@ -41,11 +46,20 @@ public class NotificationEventListener {
 
     @Async
     @EventListener
-    public void listenNotificationHighPriorityHealthStatusEvent(
-            NotificationHighPriorityHealthStatusEvent notificationHighPriorityHealthStatusEvent)
+    public void listenNotificationHighPriorityReadingStatusEvent(
+            NotificationHighPriorityReadingStatusEvent notificationHighPriorityReadingStatusEvent)
             throws IOException {
-        notificationHighPriorityHealthStatusService.startPushNotification(
-                notificationHighPriorityHealthStatusEvent.notificationHighPriorityHealthStatusDTO());
+        notificationHighPriorityReadingStatusService.startPushNotification(
+                notificationHighPriorityReadingStatusEvent.notificationHighPriorityReadingStatusDTO());
+    }
+
+    @Async
+    @EventListener
+    public void listenNotificationHighPriorityHardwareStatusEvent(
+            NotificationHighPriorityHardwareStatusEvent notificationHighPriorityHardwareStatusEvent)
+            throws IOException {
+        notificationHighPriorityHardwareStatusService.startPushNotification(
+                notificationHighPriorityHardwareStatusEvent.notificationHighPriorityHardwareStatusDTO());
     }
 
     @Async

@@ -103,6 +103,12 @@ public class SSEDataManager {
         this.processedWeatherDataModel = processedWeatherDataRepository
                 .findById(this.aggregatedWeatherDataModel.getProcessedWeatherDataId())
                 .orElseGet(() -> new ProcessedWeatherDataModel());
+
+        this.hardwareStatusModel = hardwareStatusRepository.findFirstByOrderByIdDesc()
+                .orElseGet(() -> new HardwareStatusModel());
+        this.readingStatusModel = readingStatusRepository.findFirstByOrderByIdDesc()
+                .orElseGet(() -> new ReadingStatusModel());
+
     }
 
     @PostConstruct

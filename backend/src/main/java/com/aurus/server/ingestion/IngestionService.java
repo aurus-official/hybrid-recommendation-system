@@ -7,6 +7,8 @@ import com.aurus.server.ingestion.hardware_status.HardwareStatusRepository;
 import com.aurus.server.ingestion.sensor.RawSensorDataDTO;
 import com.aurus.server.ingestion.sensor.RawSensorDataModel;
 import com.aurus.server.ingestion.sensor.RawSensorDataRepository;
+import com.aurus.server.notification.NotificationEventPublisher;
+import com.aurus.server.notification.hardware_status.NotificationHighPriorityHardwareStatusDTO;
 
 import org.springframework.batch.core.job.parameters.InvalidJobParametersException;
 import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException;
@@ -20,13 +22,16 @@ public class IngestionService {
     private final RawSensorDataRepository rawSensorDataRepository;
     private final HardwareStatusRepository hardwareStatusRepository;
     private final BatchEventPublisher batchEventPublisher;
+    private final NotificationEventPublisher notificationEventPublisher;
     private final float INVALID_VALUE = -1f;
 
     IngestionService(RawSensorDataRepository rawSensorDataRepository,
-            HardwareStatusRepository hardwareStatusRepository, BatchEventPublisher batchEventPublisher) {
+            HardwareStatusRepository hardwareStatusRepository, BatchEventPublisher batchEventPublisher,
+            NotificationEventPublisher notificationEventPublisher) {
         this.rawSensorDataRepository = rawSensorDataRepository;
         this.hardwareStatusRepository = hardwareStatusRepository;
         this.batchEventPublisher = batchEventPublisher;
+        this.notificationEventPublisher = notificationEventPublisher;
     }
 
     void ingestRawSensorDataToDatabase(RawSensorDataDTO rawSensorDataDTO) throws JobInstanceAlreadyCompleteException,
@@ -56,7 +61,6 @@ public class IngestionService {
         if (!validateSensorData(rawSensorDataModel.getPressure(), "PRESSURE")) {
             rawSensorDataModel.setPressure(INVALID_VALUE);
         }
-        System.out.println(String.format("LUX : %f", rawSensorDataModel.getLux()));
 
         if (!validateSensorData(rawSensorDataModel.getLux(), "LUX")) {
             rawSensorDataModel.setLux(INVALID_VALUE);
@@ -92,7 +96,20 @@ public class IngestionService {
                 hardwareStatusDTO.ads2(), hardwareStatusDTO.bme280(), hardwareStatusDTO.guvas12sd(),
                 hardwareStatusDTO.ds18b20());
 
-        hardwareStatusRepository.save(hardwareStatusModel);
+        HardwareStatusModel returnedHardwareStatusModel = hardwareStatusRepository.save(hardwareStatusModel);
+
+        if (!hardwareStatusDTO.ads1() ||
+                !hardwareStatusDTO.ads2() ||
+                !hardwareStatusDTO.bme280() ||
+                !hardwareStatusDTO.guvas12sd() ||
+                !hardwareStatusDTO.ds18b20()) {
+
+            NotificationHighPriorityHardwareStatusDTO notificationHighPriorityHardwareStatusDTO = new NotificationHighPriorityHardwareStatusDTO(
+                    returnedHardwareStatusModel.getCreatedAt(), returnedHardwareStatusModel.getId());
+            notificationEventPublisher
+                    .publishNotificationHighPriorityHardwareStatusEvent(notificationHighPriorityHardwareStatusDTO);
+            return;
+        }
 
     }
 
@@ -109,19 +126,19 @@ public class IngestionService {
         float PRESSURE_MIN = 850f;
         float PRESSURE_MAX = 1100f;
 
-        float LUX_MIN = -1f;
+        float LUX_MIN = -0.0001f;
         float LUX_MAX = 120000f;
 
-        float UV_VOLTS_MIN = 0f;
+        float UV_VOLTS_MIN = -0.0001f;
         float UV_VOLTS_MAX = 3.3f;
 
-        float TDS_VOLTS_MIN = 0f;
+        float TDS_VOLTS_MIN = -0.0001f;
         float TDS_VOLTS_MAX = 3.3f;
 
-        float PRONG_MOISTURE_MIN = 0f;
+        float PRONG_MOISTURE_MIN = -0.0001f;
         float PRONG_MOISTURE_MAX = 5f;
 
-        float CAPACITIVE_MOISTURE_MIN = 0f;
+        float CAPACITIVE_MOISTURE_MIN = -0.0001f;
         float CAPACITIVE_MOISTURE_MAX = 5f;
 
         switch (sensorName) {

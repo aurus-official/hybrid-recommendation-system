@@ -23,10 +23,8 @@ public class ProcessedSensorDataProcessor implements ItemProcessor<RawSensorData
     @Override
     public @Nullable ProcessedSensorDataModel process(RawSensorDataModel item) throws Exception {
         final float uvScalingFactor = 5.5f;
-        final float ecCalibrationFactor = 320f;
-        final float tdsCalibrationFactor = 0.6f;
         final float tdsMaxOutput = 2.3f;
-        final float prongMoistureDry = 3.7f;
+        final float prongMoistureDry = 3.5f;
         final float prongMoistureWet = 0f;
         final float capacitiveMoistureDry = 2.8f;
         final float capacitiveMoistureWet = 0f;

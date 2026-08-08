@@ -1,0 +1,11 @@
+version: 3
+
+agent:
+  authtoken: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+endpoints:
+  - name: thesis-server
+    url: https://armanda-uncontracted-jasper.ngrok-free.dev
+    upstream:
+      url: http://0.0.0.0:8080
+

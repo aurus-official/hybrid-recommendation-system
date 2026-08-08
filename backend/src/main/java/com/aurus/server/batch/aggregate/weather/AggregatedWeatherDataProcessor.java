@@ -32,8 +32,8 @@ public class AggregatedWeatherDataProcessor
                 .max()
                 .orElse(0.0);
 
-        float tempStressValue = 0.65f * avgStress +
-                0.35f * maxStress;
+        float tempStressValue = 0.85f * avgStress +
+                0.15f * maxStress;
         float humidityValue = average(model.getProcessedWeatherDataPointsHourly().stream()
                 .map(ProcessedWeatherDataPointHourly::getHumidity).map(a -> (float) a).collect(Collectors.toList()));
         float vapourPressureDeficitValue = model.getProcessedWeatherDataPointsHourly().get(0)
@@ -44,7 +44,7 @@ public class AggregatedWeatherDataProcessor
                 .max(Comparator.comparingDouble(ProcessedWeatherDataPointHourly::getPrecipitationProbability)).get()
                 .getPrecipitationProbability();
         float evapotranspirationValue = model.getProcessedWeatherDataPointsHourly().stream()
-                .map(ProcessedWeatherDataPointHourly::getPrecipitation).reduce(0f, (val, accu) -> (accu + val));
+                .map(ProcessedWeatherDataPointHourly::getEvapotranspiration).reduce(0f, (val, accu) -> (accu + val));
 
         ProcessedWeatherDataHourlyUnit processedWeatherDataHourlyUnit = model.getProcessedWeatherDataHourlyUnit();
 
@@ -83,7 +83,7 @@ public class AggregatedWeatherDataProcessor
     private float tempStress(float tempValue) {
 
         float optimal = 26f;
-        float scale = 80f;
+        float scale = 130f;
 
         return clamp(1f - (float) Math.exp(
                 -Math.pow((tempValue - optimal), 2) / scale));

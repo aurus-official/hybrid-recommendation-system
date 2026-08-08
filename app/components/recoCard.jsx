@@ -1,5 +1,4 @@
-import { StyleSheet, Text, useColorScheme, View } from 'react-native'
-import { Colors } from '../constants/Colors';
+import { StyleSheet, Text, View } from 'react-native'
 
 const RecoCard = ({ text, icon, subText, currentTheme }) => {
     const theme = currentTheme;
@@ -31,14 +30,14 @@ export default RecoCard
 
 const styles = StyleSheet.create({
     recoCardStyle: {
-        width: "89%",
-        minHeight: "148",
+        minHeight: 148,
         borderStyle: "solid",
         borderWidth: 1.25,
         borderRadius: 12,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+        marginHorizontal: 24
     },
     viewStyleSubText: {
         display: "flex",
@@ -46,7 +45,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         alignSelf: "flex-start",
-        marginLeft: 16,
+        marginHorizontal: 16,
         marginTop: 16,
     },
     viewStyleImage: {
@@ -58,13 +57,13 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginTop: 20,
         marginBottom: 28,
-        marginLeft: 24,
-        marginRight: 24,
-        fontWeight: "semibold",
+        marginHorizontal: 24,
+        fontWeight: "400",
         opacity: 0.75
     },
     subText: {
         marginLeft: 8,
         fontSize: 16
     }
-})
+});
+

@@ -4,12 +4,10 @@ const BASE_URL = "http://192.168.18.3:8080";
 
 export function createSSE(
     setSSEData,
-    setDataSource,
     setNotificationData,
     expoPushToken,
     deviceId
 ) {
-    console.log("PUSH TOKEN SSE : " + expoPushToken);
     const es = new EventSource(`${BASE_URL}/sse/latest`, {
         headers: {
             "X-Expo-Push-Token": `${expoPushToken}`,
@@ -19,7 +17,6 @@ export function createSSE(
 
     es.addEventListener("open", () => {
         console.log("SSE connected");
-        setDataSource("Latest");
     });
 
     es.addEventListener("all-realtime-data", (event) => {

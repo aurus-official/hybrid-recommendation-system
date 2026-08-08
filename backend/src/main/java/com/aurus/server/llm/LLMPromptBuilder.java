@@ -34,6 +34,7 @@ public class LLMPromptBuilder {
 
                 The response must clearly state the action, reflect urgency based on severityLevel, include a short but specific explanation using only relevant DATA (cause → effect), and remain directly actionable for a pechay farmer while maintaining smooth and natural sentence flow.
 
+
                 HERE IS THE DATA:
                 %s
                 """

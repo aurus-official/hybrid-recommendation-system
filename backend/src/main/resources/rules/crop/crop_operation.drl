@@ -20,11 +20,6 @@ function float clampConfidence(float c) {
     return c;
 }
 
-
-/* =========================================================
-   FACTORY FUNCTION
-   ========================================================= */
-
 function EngineCategoryOutputDTO buildCropOutput(
     String action,
     SeverityLevel severity,
@@ -50,18 +45,13 @@ function EngineCategoryOutputDTO buildCropOutput(
         multiplier = 0.95f;
     }
 
-    float scaledConfidence = confidence * multiplier;
-
-    out.setConfidence(
-        clampConfidence(scaledConfidence)
-    );
-
+    out.setConfidence(clampConfidence(confidence * multiplier));
     return out;
 }
 
 
 /* =========================================================
-   CRITICAL - EXTREME CROP STRESS
+   CRITICAL - EXTREME STRESS
    ========================================================= */
 
 rule "Crop - Extreme Stress Emergency"
@@ -71,7 +61,6 @@ when
         plantStressIndex >= 0.68f ||
         heatStressIndex >= 0.72f
     )
-
     $w : DerivedWeatherDataModel()
 then
 
@@ -86,32 +75,17 @@ then
 
     EngineCategoryOutputDTO out =
         buildCropOutput(
-            "suspend_field_operations_and_protect_pechay_from_severe_environmental_stress",
+            "Immediately relocate planter box to a shaded or cooler balcony area and avoid any handling or disturbance of the plant.",
             SeverityLevel.CRITICAL,
             PriorityLevel.P0,
             confidence
         );
 
     out.setRationale(
-        "Severe crop stress detected. Immediate protection measures are recommended."
-    );
-
-    out.addEvidence(
-        "Plant Stress Index",
-        psi,
-        0.68f,
-        ">="
-    );
-
-    out.addEvidence(
-        "Heat Stress Index",
-        hsi,
-        0.72f,
-        ">="
+        "Severe environmental stress detected in pechay grown in a container system, indicating high risk of rapid wilting, loss of turgidity, and irreversible leaf damage. Balcony conditions may be amplifying heat exposure; immediate relocation and reduction of stress exposure are required."
     );
 
     intermediateOutputs.add(out);
-
 end
 
 
@@ -126,7 +100,6 @@ when
         heatStressIndex >= 0.60f,
         heatStressIndex < 0.72f
     )
-
     $w : DerivedWeatherDataModel()
 then
 
@@ -141,32 +114,17 @@ then
 
     EngineCategoryOutputDTO out =
         buildCropOutput(
-            "limit_midday_field_operations_and_reduce_crop_heat_exposure",
+            "Avoid midday exposure of planter box to direct sunlight; move to shaded balcony area or apply temporary shading cover.",
             SeverityLevel.HIGH,
             PriorityLevel.P1,
             confidence
         );
 
     out.setRationale(
-        "Elevated heat stress increases the risk of crop damage during field operations."
-    );
-
-    out.addEvidence(
-        "Heat Stress Index",
-        hsi,
-        0.60f,
-        ">="
-    );
-
-    out.addEvidence(
-        "Heat Stress Index",
-        hsi,
-        0.72f,
-        "<"
+        "Elevated heat conditions increase transpiration and moisture loss in container-grown pechay, where soil volume is limited and heats up faster than ground soil. Reducing direct sun exposure helps stabilize leaf turgidity."
     );
 
     intermediateOutputs.add(out);
-
 end
 
 
@@ -181,7 +139,6 @@ when
         plantStressIndex >= 0.52f,
         plantStressIndex < 0.68f
     )
-
     $w : DerivedWeatherDataModel()
 then
 
@@ -196,32 +153,17 @@ then
 
     EngineCategoryOutputDTO out =
         buildCropOutput(
-            "delay_non_essential_crop_operations_until_plant_stress_reduces",
+            "Delay non-essential container handling such as pruning, repotting, or repositioning of the planter box until plant stabilizes.",
             SeverityLevel.HIGH,
             PriorityLevel.P1,
             confidence
         );
 
     out.setRationale(
-        "Crop stress remains elevated and may worsen if unnecessary operations continue."
-    );
-
-    out.addEvidence(
-        "Plant Stress Index",
-        psi,
-        0.52f,
-        ">="
-    );
-
-    out.addEvidence(
-        "Plant Stress Index",
-        psi,
-        0.68f,
-        "<"
+        "Container-grown pechay under elevated stress becomes more sensitive to disturbance due to limited root space and faster moisture fluctuation in planter boxes."
     );
 
     intermediateOutputs.add(out);
-
 end
 
 
@@ -235,7 +177,6 @@ when
     $w : DerivedWeatherDataModel(
         rainImpactIndex >= 0.68f
     )
-
     $s : DerivedSensorDataModel()
 then
 
@@ -248,25 +189,17 @@ then
 
     EngineCategoryOutputDTO out =
         buildCropOutput(
-            "postpone_field_activities_due_to_expected_heavy_rainfall",
+            "Ensure planter box has unobstructed drainage holes and elevate container to prevent waterlogging during heavy rainfall.",
             SeverityLevel.HIGH,
             PriorityLevel.P1,
             confidence
         );
 
     out.setRationale(
-        "Heavy rainfall conditions may negatively affect planned cultivation activities."
-    );
-
-    out.addEvidence(
-        "Rain Impact Index",
-        rain,
-        0.68f,
-        ">="
+        "Heavy rainfall increases water retention risk in container systems, but drainage holes may still be insufficient under sustained rain. Proper elevation prevents root stress caused by saturation."
     );
 
     intermediateOutputs.add(out);
-
 end
 
 
@@ -281,7 +214,6 @@ when
         plantStressIndex >= 0.35f,
         plantStressIndex < 0.52f
     )
-
     $w : DerivedWeatherDataModel()
 then
 
@@ -296,32 +228,17 @@ then
 
     EngineCategoryOutputDTO out =
         buildCropOutput(
-            "perform_crop_operations_cautiously_and_reduce_plant_disturbance",
+            "Perform light container care while minimizing disturbance, such as gentle watering and avoiding soil compression.",
             SeverityLevel.MODERATE,
             PriorityLevel.P2,
             confidence
         );
 
     out.setRationale(
-        "Moderate crop stress requires careful handling during cultivation activities."
-    );
-
-    out.addEvidence(
-        "Plant Stress Index",
-        psi,
-        0.35f,
-        ">="
-    );
-
-    out.addEvidence(
-        "Plant Stress Index",
-        psi,
-        0.52f,
-        "<"
+        "Moderate stress in container-grown pechay indicates early imbalance in moisture and heat regulation, requiring careful handling to avoid additional fluctuation."
     );
 
     intermediateOutputs.add(out);
-
 end
 
 
@@ -336,7 +253,6 @@ when
         plantStressIndex >= 0.18f,
         plantStressIndex < 0.35f
     )
-
     $w : DerivedWeatherDataModel()
 then
 
@@ -351,32 +267,17 @@ then
 
     EngineCategoryOutputDTO out =
         buildCropOutput(
-            "continue_routine_crop_operations_with_regular_crop_monitoring",
+            "Continue routine container care including watering, monitoring drainage, and light maintenance.",
             SeverityLevel.LOW,
             PriorityLevel.P3,
             confidence
         );
 
     out.setRationale(
-        "Crop conditions remain acceptable for routine cultivation activities."
-    );
-
-    out.addEvidence(
-        "Plant Stress Index",
-        psi,
-        0.18f,
-        ">="
-    );
-
-    out.addEvidence(
-        "Plant Stress Index",
-        psi,
-        0.35f,
-        "<"
+        "Container-grown pechay remains stable with adequate moisture and heat balance. Regular monitoring ensures early detection of stress changes common in small soil-volume systems."
     );
 
     intermediateOutputs.add(out);
-
 end
 
 
@@ -391,7 +292,6 @@ when
         plantStressIndex < 0.18f,
         heatStressIndex < 0.22f
     )
-
     $w : DerivedWeatherDataModel()
 then
 
@@ -406,37 +306,22 @@ then
 
     EngineCategoryOutputDTO out =
         buildCropOutput(
-            "proceed_with_normal_crop_operations_under_stable_conditions",
+            "Proceed with normal container gardening activities under stable balcony conditions.",
             SeverityLevel.LOW,
             PriorityLevel.P3,
             confidence
         );
 
     out.setRationale(
-        "Crop and environmental conditions are currently within optimal operating ranges."
-    );
-
-    out.addEvidence(
-        "Plant Stress Index",
-        psi,
-        0.18f,
-        "<"
-    );
-
-    out.addEvidence(
-        "Heat Stress Index",
-        hsi,
-        0.22f,
-        "<"
+        "Pechay is in stable condition within a container environment, with balanced moisture and heat exposure suitable for normal growth."
     );
 
     intermediateOutputs.add(out);
-
 end
 
 
 /* =========================================================
-   FALLBACK - GUARANTEED SAFE OUTPUT
+   FALLBACK
    ========================================================= */
 
 rule "Crop - Fallback Monitoring"
@@ -447,14 +332,14 @@ then
 
     EngineCategoryOutputDTO out =
         buildCropOutput(
-            "continue_monitoring_crop_conditions_before_major_field_operations",
+            "Continue monitoring container conditions before performing any major handling or repositioning of planter box.",
             SeverityLevel.LOW,
             PriorityLevel.P3,
             0.05f
         );
 
     out.setRationale(
-        "No crop operation intervention requiring action was detected."
+        "No critical stress detected in container-grown pechay. Continued monitoring is recommended due to rapid microclimate changes typical in balcony environments."
     );
 
     intermediateOutputs.add(out);

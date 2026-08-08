@@ -1,36 +1,71 @@
-import { ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { Colors } from '../../constants/Colors';
 import ParamCard from '../../components/paramCard';
 import IconTable from '../../utils/iconTable';
 import TitleTable from '../../utils/titleTable';
 import ParamCardLoading from '../../components/paramCardLoading';
-import { useFarmData } from '../../contexts/farmDataProvider';
-
+import { useStore } from '../../store/useStore';
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import ReadingStatusHistoryModal from '../../components/readingStatusHistoryModal';
+import HardwareStatusHistoryModal from '../../components/hardwareStatusHistoryModal';
 
 const Status = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
-    const { farmData } = useFarmData();
+    const displayReadingStatus = useStore((state) => state.displayReadingStatus);
+    const readingStatusSource = useStore((state) => state.readingStatusSource)
+    const displayHardwareStatus = useStore((state) => state.displayHardwareStatus);
+    const hardwareStatusSource = useStore((state) => state.hardwareStatusSource)
     const iconTable = IconTable(theme);
-    const titleTable = TitleTable.call();
+    const titleTable = TitleTable()
+    const [isLoadHardwarePastPageData, setLoadHardwarePastPageData] = useState(false);
+    const [isLoadReadingPastPageData, setLoadReadingPastPageData] = useState(false);
+
+    const handleLoadingHardwarePastPageDataClick = () => {
+        setLoadHardwarePastPageData(prev => !prev)
+    }
+
+    const handleLoadingReadingPastPageDataClick = () => {
+        setLoadReadingPastPageData(prev => !prev)
+    }
 
     const card1Data = [];
+    const card2Data = [];
 
-    if (farmData != null) {
-        const { rawHealthCheckDataModel: { id, createdAt, ...parameters } } = farmData;
+    if (displayReadingStatus != null && displayHardwareStatus != null) {
+        const { id: hsId, createdAt: hsCreatedAt, ...hsParameters } = displayHardwareStatus;
 
-        Object.entries(parameters).forEach(([key, value]) => {
+        Object.entries(hsParameters).forEach(([key, value]) => {
             const text = titleTable[key];
             const icon = iconTable[key];
-            card1Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={value ? "On" : "Off"} icon={icon}></ParamCard>)
+            card1Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={value ? "Online" : "Offline"} icon={icon}></ParamCard>)
         })
+
+        const { id: rsId, createdAt: rsCreatedAt, ...rsParameters } = displayReadingStatus;
+
+        Object.entries(rsParameters).forEach(([key, value]) => {
+            const keyArray = key.substring(7).split("");
+            keyArray[0] = keyArray[0].toLowerCase();
+            const finalizedKey = keyArray.join("");
+            const text = titleTable[finalizedKey];
+            const icon = iconTable[finalizedKey];
+            if (rsCreatedAt === null) {
+                card2Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={"Unavailable"} icon={icon}></ParamCard>)
+                return;
+            }
+
+            card2Data.push(<ParamCard key={key + value} currentTheme={theme} text={text} subText={value ? "Valid" : "Invalid"} icon={icon}></ParamCard>)
+        })
+
     }
 
     return (
         <ScrollView style={{ ...styles.viewStyles, backgroundColor: theme.screenBackgroundColor }}>
             <View style={styles.viewContainerStyles} >
-                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >System Health Check</Text>
-                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Diagnostic overview ensuring hardware are working.</Text>
+                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Hardware Status Log</Text>
+                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >See if your devices are currently working.</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Hardware Status Source : {hardwareStatusSource}</Text>
                 <View style={{
                     ...styles.card1Container,
                     backgroundColor: theme.cardBackgroundColor,
@@ -42,10 +77,54 @@ const Status = () => {
                     }]
                 }}>
                     <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
-                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >One-Wire Sensor and ADC</Text>
+                        <HardwareStatusHistoryModal currentTheme={theme} isLoadPastPageDataClicked={isLoadHardwarePastPageData}
+                            handleLoadPastPageDataClick={handleLoadingHardwarePastPageDataClick} />
+                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >Hardware</Text>
+                        {(card1Data.length > 0) ?
+                            <TouchableOpacity name="" onPressIn={handleLoadingHardwarePastPageDataClick} activeOpacity={0.75}>
+                                <View style={{ ...styles.moreButtonContainer, backgroundColor: theme.whitePrimaryColor, borderColor: theme.primaryColor }}>
+                                    <Text style={{ ...styles.subTitle3, color: theme.primaryColor }}>Hardware Logs</Text>
+                                    <Ionicons style={styles.icons} name='arrow-forward' size={20} color={theme.primaryColor} />
+                                </View>
+                            </TouchableOpacity> : ""}
                     </View>
                     {(card1Data.length > 0) ?
                         card1Data :
+                        <>
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                            <ParamCardLoading currentTheme={theme} />
+                        </>
+                    }
+                </View>
+                <Text style={{ ...styles.title1, color: theme.textPrimaryColor }} >Reading Status Out of Range Log</Text>
+                <Text style={{ ...styles.subTitle1, color: theme.textSecondaryColor }} >Flags current metrics that are out of range and need attention.</Text>
+                <Text style={{ ...styles.subSubTitle1, backgroundColor: theme.primaryColor, color: theme.whitePrimaryColor }} >Reading Status Source : {readingStatusSource}</Text>
+                <View style={{
+                    ...styles.card1Container,
+                    backgroundColor: theme.cardBackgroundColor,
+                    boxShadow: [{
+                        offsetX: 0,
+                        offsetY: 0,
+                        blurRadius: 4,
+                        color: theme.paramBorderColor
+                    }]
+                }}>
+                    <View style={{ ...styles.subTitle2Container, backgroundColor: theme.primaryColor }}>
+                        <ReadingStatusHistoryModal currentTheme={theme} isLoadPastPageDataClicked={isLoadReadingPastPageData}
+                            handleLoadPastPageDataClick={handleLoadingReadingPastPageDataClick} />
+                        <Text style={{ ...styles.subTitle2, color: theme.whitePrimaryColor }} >Sensor Plausibility</Text>
+                        {(card2Data.length > 0) ?
+                            <TouchableOpacity name="" onPressIn={handleLoadingReadingPastPageDataClick} activeOpacity={0.75}>
+                                <View style={{ ...styles.moreButtonContainer, backgroundColor: theme.whitePrimaryColor, borderColor: theme.primaryColor }}>
+                                    <Text style={{ ...styles.subTitle3, color: theme.primaryColor }}>Reading Logs</Text>
+                                    <Ionicons style={styles.icons} name='arrow-forward' size={20} color={theme.primaryColor} />
+                                </View>
+                            </TouchableOpacity> : ""}
+                    </View>
+                    {(card2Data.length > 0) ?
+                        card2Data :
                         <>
                             <ParamCardLoading currentTheme={theme} />
                             <ParamCardLoading currentTheme={theme} />
@@ -64,12 +143,12 @@ export default Status
 const styles = StyleSheet.create({
     viewStyles: {
         flex: 1,
+        width: "100%",
     },
     viewContainerStyles: {
-        marginLeft: 24,
-        marginRight: 24,
-        marginTop: 20,
         width: "100%",
+        paddingHorizontal: 24,
+        marginTop: 20,
         height: "auto"
     },
     title1: {
@@ -83,11 +162,24 @@ const styles = StyleSheet.create({
         letterSpacing: -0.5,
         marginLeft: 1
     },
+    subSubTitle1: {
+        fontSize: 13,
+        fontFamily: "Inter_500Regular",
+        letterSpacing: -0.5,
+        marginLeft: 1,
+        alignSelf: "flex-start",
+        marginTop: 8,
+        borderRadius: 8,
+        paddingTop: 4,
+        paddingBottom: 4,
+        paddingLeft: 8,
+        paddingRight: 8,
+    },
     card1Container: {
         marginTop: 16,
         marginBottom: 24,
         paddingBottom: 24,
-        width: "90%",
+        width: "100%",
         borderRadius: 12,
         display: "flex",
         flexDirection: "row",
@@ -95,7 +187,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-evenly",
         rowGap: 24,
         height: "auto",
-
     },
     subTitle2Container: {
         borderRadius: 12,
@@ -116,7 +207,6 @@ const styles = StyleSheet.create({
     },
     moreButtonContainer: {
         borderRadius: 12,
-        boxSizing: "border-box",
         borderWidth: 1,
         display: "flex",
         flexDirection: "row",
@@ -133,18 +223,8 @@ const styles = StyleSheet.create({
         paddingTop: 8,
         paddingBottom: 8,
     },
-    subSubTitle1: {
-        fontSize: 13,
-        fontFamily: "Inter_500Regular",
-        letterSpacing: -0.5,
-        marginLeft: 1,
-        alignSelf: "flex-start",
-        marginTop: 8,
-        borderRadius: 8,
-        paddingTop: 4,
-        paddingBottom: 4,
-        paddingLeft: 8,
-        paddingRight: 8,
-    },
-})
+    icons: {
+        paddingTop: 4
+    }
+});
 

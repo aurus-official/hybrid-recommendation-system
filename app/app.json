@@ -1,38 +1,52 @@
 {
-    "expo": {
-        "scheme": "app",
-        "name": "app",
-        "slug": "app",
-        "version": "1.0.0",
-        "orientation": "portrait",
-        "icon": "./assets/icon.png",
-        "userInterfaceStyle": "light",
-        "splash": {
-            "image": "./assets/splash-icon.png",
-            "resizeMode": "contain",
-            "backgroundColor": "#ffffff"
-        },
-        "ios": {
-            "supportsTablet": true
-        },
-        "android": {
-            "adaptiveIcon": {
-                "foregroundImage": "./assets/adaptive-icon.png",
-                "backgroundColor": "#ffffff"
-            },
-            "package": "dev.expo.hybridrecommendationsystem",
-            "googleServicesFile": "../google-services.json"
-        },
-        "web": {
-            "favicon": "./assets/favicon.png"
-        },
-        "plugins": ["expo-router"],
-        "extra": {
-            "router": {},
-            "eas": {
-                "projectId": "27b92671-0e9b-4125-9bd9-4fac674030d6"
-            }
-        },
-        "owner": "qqq223542"
-    }
+  "expo": {
+    "scheme": "pechai",
+    "name": "PechAI",
+    "slug": "app",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "dev.expo.hybridrecommendationsystem",
+      "googleServicesFile": "../google-services.json",
+      "permissions": [
+        "android.permission.INTERNET"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": true,
+          "hidden": false,
+          "style": "dark"
+        }
+      ],
+      "react-native-navigation-mode"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3d12c6ea-a771-4a4e-8657-c60b1190217a"
+      },
+      "expo-navigation-bar": {
+        "enforceContrast": true,
+        "hidden": false,
+        "style": "dark"
+      }
+    },
+    "owner": "rururus223"
+  }
 }

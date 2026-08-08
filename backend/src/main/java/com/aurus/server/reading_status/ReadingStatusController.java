@@ -20,13 +20,11 @@ public class ReadingStatusController {
     public ResponseEntity<ReadingStatusPageDTO> getRecommendationTimeIdPage(
             @PathVariable() int pageNumber) {
         ReadingStatusPageDTO readingStatusPageDTO = readingStatusService.getReadingStatusPageDTO(pageNumber);
-        System.out.println("PAGEE");
         return ResponseEntity.ok(readingStatusPageDTO);
     }
 
     @GetMapping("/id/{id}")
     public ResponseEntity<ReadingStatusDTO> getAllDataDTO(@PathVariable long id) {
-        System.out.println("IDDEEE");
         ReadingStatusDTO readingStatusDTO = readingStatusService.getReadingStatusDTO(id);
 
         return ResponseEntity.ok(readingStatusDTO);

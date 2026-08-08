@@ -4,22 +4,26 @@ import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../constants/Colors'
 import NotifBell from '../../components/notifBell'
 import HeaderLeft from '../../components/headerLeft'
-
+import { NavModeContext } from '../_layout';
+import { useContext } from 'react'
 
 const GroupLayout = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] || Colors.light;
+    const navMode = useContext(NavModeContext);
+    const { type, navigationBarHeight } = navMode;
+    const defautHeight = 60;
 
     return (
         <Tabs screenOptions={{
-            tabBarStyle: styles.tabBarStyle,
+            tabBarStyle: (type === "gesture") ? { height: defautHeight } : { height: defautHeight + navigationBarHeight },
             tabBarActiveTintColor: theme.textPrimaryColor,
             headerStyle: { ...styles.headerStyle, backgroundColor: theme.primaryColor },
             headerRight: ((props) => (<NotifBell currentTheme={theme} {...props} />)),
         }} >
             <Tabs.Screen name="dashboard" options={{
                 tabBarLabel: "Dashboard",
-                headerTitle: ((props) => (<HeaderLeft {...props} titleName="Dashboard" />)),
+                headerTitle: ((props) => (<HeaderLeft {...props} currentTheme={theme} titleName="Dashboard" />)),
                 tabBarIcon: (({ focused }) => {
                     return <Ionicons
                         name={focused ? 'home' : 'home-outline'}
@@ -31,7 +35,7 @@ const GroupLayout = () => {
             }}  ></Tabs.Screen>
             <Tabs.Screen name="monitoring" options={{
                 tabBarLabel: "Monitoring",
-                headerTitle: ((props) => (<HeaderLeft {...props} titleName="Monitoring" />)),
+                headerTitle: ((props) => (<HeaderLeft {...props} currentTheme={theme} titleName="Monitoring" />)),
                 tabBarIcon: (({ focused }) => {
                     return <Ionicons
                         name={focused ? 'leaf' : 'leaf-outline'}
@@ -42,7 +46,7 @@ const GroupLayout = () => {
             }}></Tabs.Screen>
             <Tabs.Screen name="insights" options={{
                 tabBarLabel: "Insights",
-                headerTitle: ((props) => (<HeaderLeft {...props} titleName="Insights" />)),
+                headerTitle: ((props) => (<HeaderLeft {...props} currentTheme={theme} titleName="Insights" />)),
                 tabBarIcon: (({ focused }) => {
                     return <Ionicons
                         name={focused ? 'bulb' : 'bulb-outline'}
@@ -53,7 +57,7 @@ const GroupLayout = () => {
             }}></Tabs.Screen>
             <Tabs.Screen name="trends" options={{
                 tabBarLabel: "Trends",
-                headerTitle: ((props) => (<HeaderLeft {...props} titleName="Trends" />)),
+                headerTitle: ((props) => (<HeaderLeft {...props} currentTheme={theme} titleName="Trends" />)),
                 tabBarIcon: (({ focused }) => {
                     return <Ionicons
                         name={focused ? 'receipt' : 'receipt-outline'}
@@ -64,7 +68,7 @@ const GroupLayout = () => {
             }}></Tabs.Screen>
             <Tabs.Screen name="status" options={{
                 tabBarLabel: "Status",
-                headerTitle: ((props) => (<HeaderLeft{...props} titleName="Status" />)),
+                headerTitle: ((props) => (<HeaderLeft{...props} currentTheme={theme} titleName="Status" />)),
                 tabBarIcon: (({ focused }) => {
                     return <Ionicons
                         name={focused ? 'settings' : 'settings-outline'}
@@ -80,10 +84,7 @@ const GroupLayout = () => {
 export default GroupLayout
 
 const styles = StyleSheet.create({
-    tabBarStyle: {
-        height: 56,
-    },
     headerStyle: {
-        height: 108,
+        height: 104,
     },
 })

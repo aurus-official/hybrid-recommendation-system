@@ -20,13 +20,12 @@ const TrendCardLoading = ({ currentTheme }) => {
             </View>
             <View style={{
                 ...styles.graphContainer,
-                backgroundColor: theme.cardBackgroundColor,
-                borderColor: theme.paramBorderColor,
+                borderColor: theme.recoBorderColor,
                 boxShadow: [{
                     offsetX: 0,
                     offsetY: 0,
                     blurRadius: 4,
-                    color: theme.paramBorderColor
+                    color: theme.recoBorderColor
                 }]
             }}>
                 <Skeleton colorMode={theme} width="100%" height="190">
@@ -43,17 +42,15 @@ const styles = StyleSheet.create({
         marginTop: 16,
         marginBottom: 24,
         paddingBottom: 24,
-        width: "90%",
+        width: "100%",
         borderRadius: 12,
         display: "flex",
         flexDirection: "column",
-        flexWrap: "wrap",
         justifyContent: "center",
         alignItems: "center",
         rowGap: 24,
         height: "auto",
         flex: 1
-
     },
     subTitle2Container: {
         borderRadius: 12,
@@ -73,30 +70,15 @@ const styles = StyleSheet.create({
         paddingBottom: 12,
     },
     graphContainer: {
-        width: "90%",
+        marginHorizontal: 24,
+        minHeight: 148,
+        borderStyle: "solid",
         borderWidth: 1.25,
         borderRadius: 12,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+        marginHorizontal: 24
     },
-    legendWrapper: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginBottom: 8,
-    },
-    legendItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginHorizontal: 10,
-    },
-    legendBox: {
-        height: 12,
-        width: 12,
-        borderRadius: 2,
-        marginRight: 6,
-    },
-    legendText: {
-        fontSize: 12,
-    },
-})
+});
+

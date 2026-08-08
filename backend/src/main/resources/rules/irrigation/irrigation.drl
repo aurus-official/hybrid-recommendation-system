@@ -9,15 +9,15 @@ import com.aurus.server.shared.CategoryType;
 
 global java.util.List intermediateOutputs;
 
-
 /* =========================================================
-   FACTORY FUNCTION (WITH GLOBAL CONFIDENCE SCALING)
+   FACTORY FUNCTION
    ========================================================= */
+
 function EngineCategoryOutputDTO buildIrrigationOutput(
-    String action,
-    SeverityLevel severity,
-    PriorityLevel priority,
-    float confidence
+        String action,
+        SeverityLevel severity,
+        PriorityLevel priority,
+        float confidence
 ) {
     EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
 
@@ -40,260 +40,341 @@ function EngineCategoryOutputDTO buildIrrigationOutput(
 
     float c = confidence * multiplier;
 
-    if (c < 0f) c = 0f;
-    if (c > 1f) c = 1f;
+    if (c < 0f) {
+        c = 0f;
+    }
+
+    if (c > 1f) {
+        c = 1f;
+    }
 
     out.setConfidence(c);
 
     return out;
 }
 
+/* =========================================================
+   DYNAMIC IRRIGATION CALCULATOR
+
+   Calibrated for:
+   - 54cm × 36cm planter
+   - ~13cm effective soil depth (66% filled)
+   - 6 pechay plants
+   - Urban container cultivation
+
+   Maximum irrigation = 2.0L
+   Target moisture = 0.65
+   ========================================================= */
+
+function float calculateIrrigationLiters(float soilMoisture) {
+
+    float target = 0.65f;
+
+    float deficit =
+            Math.max(
+                    0f,
+                    target - soilMoisture
+            );
+
+    float liters =
+            (deficit / target) * 2.0f;
+
+    return Math.round(
+            liters * 10f
+    ) / 10f;
+}
 
 /* =========================================================
    CRITICAL - EMERGENCY IRRIGATION
    ========================================================= */
+
 rule "IRR - Emergency Irrigation"
 salience 100
 when
     $s : DerivedSensorDataModel(
-        combinedSoilMoisture < 0.25f
+            combinedSoilMoisture < 0.15f
     )
 
     $w : DerivedWeatherDataModel()
 then
+
     float sm = $s.getCombinedSoilMoisture();
     float dry = $s.getEvaporationDryingRisk();
-    float rain = $w.getRainImpactIndex();
+    float wb = $w.getWaterBalanceIndex();
+
+    float liters =
+            calculateIrrigationLiters(sm);
 
     float confidence =
-        (0.65f * (1f - sm))
-      + (0.25f * dry)
-      + (0.10f * (1f - rain));
+            (0.55f * (1f - sm))
+                    + (0.30f * dry)
+                    + (0.15f * (1f - wb));
 
     EngineCategoryOutputDTO out =
-        buildIrrigationOutput(
-            "apply_emergency_irrigation",
-            SeverityLevel.CRITICAL,
-            PriorityLevel.P0,
-            confidence
-        );
+            buildIrrigationOutput(
+                    "Apply approximately "
+                            + liters
+                            + " liters of water evenly across the planter immediately.",
+                    SeverityLevel.CRITICAL,
+                    PriorityLevel.P0,
+                    confidence
+            );
 
     out.setRationale(
-        "Critical soil moisture deficit detected with elevated drying conditions."
+            "Critical soil moisture deficit detected. Immediate irrigation is required to prevent severe plant stress and growth reduction."
     );
 
     out.addEvidence(
-        "Soil Moisture",
-        sm,
-        0.25f,
-        "<"
+            "Combined Soil Moisture",
+            sm,
+            0.15f,
+            "<"
     );
 
     out.addEvidence(
-        "Evaporation Drying Risk",
-        dry,
-        0.70f,
-        ">"
-    );
-
-    out.addEvidence(
-        "Rain Impact Index",
-        rain,
-        0.75f,
-        "<"
+            "Evaporation Drying Risk",
+            dry,
+            0.70f,
+            ">"
     );
 
     intermediateOutputs.add(out);
 end
-
 
 /* =========================================================
    HIGH - INCREASE IRRIGATION
    ========================================================= */
-rule "IRR - Increase Irrigation"
+
+rule "IRR - Heavy Irrigation"
 salience 90
 when
     $s : DerivedSensorDataModel(
-        combinedSoilMoisture >= 0.25f,
-        combinedSoilMoisture < 0.40f
+            combinedSoilMoisture >= 0.15f,
+            combinedSoilMoisture < 0.30f
     )
 
-    $w : DerivedWeatherDataModel()
+    $w : DerivedWeatherDataModel(
+            waterBalanceIndex < 0.75f
+    )
 then
+
     float sm = $s.getCombinedSoilMoisture();
     float dry = $s.getEvaporationDryingRisk();
-    float rain = $w.getRainImpactIndex();
+    float wb = $w.getWaterBalanceIndex();
+
+    float liters =
+            calculateIrrigationLiters(sm);
 
     float confidence =
-        (0.55f * (1f - sm))
-      + (0.30f * dry)
-      + (0.15f * (1f - rain));
+            (0.55f * (1f - sm))
+                    + (0.25f * dry)
+                    + (0.20f * (1f - wb));
 
     EngineCategoryOutputDTO out =
-        buildIrrigationOutput(
-            "increase_irrigation_frequency",
-            SeverityLevel.HIGH,
-            PriorityLevel.P1,
-            confidence
-        );
+            buildIrrigationOutput(
+                    "Apply approximately "
+                            + liters
+                            + " liters of water evenly across the planter.",
+                    SeverityLevel.HIGH,
+                    PriorityLevel.P1,
+                    confidence
+            );
 
     out.setRationale(
-        "Soil moisture is below the recommended cultivation range."
+            "Soil moisture is below the recommended range for pechay cultivation and supplemental irrigation is required."
     );
 
     out.addEvidence(
-        "Soil Moisture",
-        sm,
-        0.40f,
-        "<"
+            "Combined Soil Moisture",
+            sm,
+            0.30f,
+            "<"
     );
 
     out.addEvidence(
-        "Evaporation Drying Risk",
-        dry,
-        0.60f,
-        ">"
-    );
-
-    out.addEvidence(
-        "Rain Impact Index",
-        rain,
-        0.75f,
-        "<"
+            "Water Balance Index",
+            wb,
+            0.75f,
+            "<"
     );
 
     intermediateOutputs.add(out);
 end
 
-
 /* =========================================================
-   MODERATE - ADJUST IRRIGATION
+   MODERATE - MODERATE IRRIGATION
    ========================================================= */
+
 rule "IRR - Moderate Irrigation"
 salience 80
 when
     $s : DerivedSensorDataModel(
-        combinedSoilMoisture >= 0.40f,
-        combinedSoilMoisture < 0.60f
+            combinedSoilMoisture >= 0.30f,
+            combinedSoilMoisture < 0.45f
     )
 
-    $w : DerivedWeatherDataModel()
+    $w : DerivedWeatherDataModel(
+            waterBalanceIndex < 0.70f
+    )
 then
+
     float sm = $s.getCombinedSoilMoisture();
     float dry = $s.getEvaporationDryingRisk();
-    float rain = $w.getRainImpactIndex();
+    float wb = $w.getWaterBalanceIndex();
+
+    float liters =
+            calculateIrrigationLiters(sm);
 
     float confidence =
-        (0.45f * sm)
-      + (0.35f * (1f - dry))
-      + (0.20f * rain);
+            (0.50f * (1f - sm))
+                    + (0.20f * dry)
+                    + (0.30f * (1f - wb));
 
     EngineCategoryOutputDTO out =
-        buildIrrigationOutput(
-            "maintain_or_adjust_irrigation",
-            SeverityLevel.MODERATE,
-            PriorityLevel.P2,
-            confidence
-        );
+            buildIrrigationOutput(
+                    "Apply approximately "
+                            + liters
+                            + " liters of water across the planter.",
+                    SeverityLevel.MODERATE,
+                    PriorityLevel.P2,
+                    confidence
+            );
 
     out.setRationale(
-        "Soil moisture remains within an acceptable cultivation range."
+            "Soil moisture is slightly below the preferred cultivation range and moderate irrigation is recommended."
     );
 
     out.addEvidence(
-        "Soil Moisture",
-        sm,
-        0.40f,
-        ">="
-    );
-
-    out.addEvidence(
-        "Soil Moisture",
-        sm,
-        0.60f,
-        "<"
-    );
-
-    out.addEvidence(
-        "Rain Impact Index",
-        rain,
-        0.50f,
-        ">="
+            "Combined Soil Moisture",
+            sm,
+            0.45f,
+            "<"
     );
 
     intermediateOutputs.add(out);
 end
 
-
 /* =========================================================
-   LOW - MAINTAIN IRRIGATION
+   LOW - LIGHT IRRIGATION
    ========================================================= */
-rule "IRR - Maintain Irrigation"
+
+rule "IRR - Light Irrigation"
 salience 70
 when
     $s : DerivedSensorDataModel(
-        combinedSoilMoisture >= 0.60f
+            combinedSoilMoisture >= 0.45f,
+            combinedSoilMoisture < 0.65f
     )
 
-    $w : DerivedWeatherDataModel()
+    $w : DerivedWeatherDataModel(
+            waterBalanceIndex < 0.55f
+    )
 then
+
     float sm = $s.getCombinedSoilMoisture();
-    float dry = $s.getEvaporationDryingRisk();
-    float rain = $w.getRainImpactIndex();
+    float wb = $w.getWaterBalanceIndex();
+
+    float liters =
+            calculateIrrigationLiters(sm);
 
     float confidence =
-        (0.55f * sm)
-      + (0.25f * (1f - dry))
-      + (0.20f * rain);
+            (0.60f * sm)
+                    + (0.40f * (1f - wb));
 
     EngineCategoryOutputDTO out =
-        buildIrrigationOutput(
-            "maintain_current_irrigation_schedule",
-            SeverityLevel.LOW,
-            PriorityLevel.P3,
-            confidence
-        );
+            buildIrrigationOutput(
+                    "Apply approximately "
+                            + liters
+                            + " liters of water only if drying conditions persist.",
+                    SeverityLevel.LOW,
+                    PriorityLevel.P3,
+                    confidence
+            );
 
     out.setRationale(
-        "Soil moisture is within the optimal cultivation range."
+            "Soil moisture remains acceptable but mild drying conditions are emerging."
     );
 
     out.addEvidence(
-        "Soil Moisture",
-        sm,
-        0.60f,
-        ">="
+            "Combined Soil Moisture",
+            sm,
+            0.45f,
+            ">="
     );
 
     out.addEvidence(
-        "Rain Impact Index",
-        rain,
-        0.50f,
-        ">="
+            "Combined Soil Moisture",
+            sm,
+            0.65f,
+            "<"
     );
 
     intermediateOutputs.add(out);
 end
 
+/* =========================================================
+   LOW - NO IRRIGATION REQUIRED
+   ========================================================= */
+
+rule "IRR - No Irrigation Required"
+salience 60
+when
+    $s : DerivedSensorDataModel(
+            combinedSoilMoisture >= 0.65f
+    )
+
+    $w : DerivedWeatherDataModel()
+then
+
+    float sm = $s.getCombinedSoilMoisture();
+    float wb = $w.getWaterBalanceIndex();
+
+    float confidence =
+            (0.70f * sm)
+                    + (0.30f * wb);
+
+    EngineCategoryOutputDTO out =
+            buildIrrigationOutput(
+                    "No irrigation is currently required. Continue monitoring soil moisture conditions.",
+                    SeverityLevel.LOW,
+                    PriorityLevel.P3,
+                    confidence
+            );
+
+    out.setRationale(
+            "Soil moisture is within the optimal range for container-grown pechay."
+    );
+
+    out.addEvidence(
+            "Combined Soil Moisture",
+            sm,
+            0.65f,
+            ">="
+    );
+
+    intermediateOutputs.add(out);
+end
 
 /* =========================================================
-   FALLBACK - GUARANTEED SAFE OUTPUT
+   FALLBACK
    ========================================================= */
+
 rule "IRR - Fallback"
 salience -999
 when
     $s : DerivedSensorDataModel()
 then
+
     EngineCategoryOutputDTO out =
-        buildIrrigationOutput(
-            "monitor_conditions_only",
-            SeverityLevel.LOW,
-            PriorityLevel.P3,
-            0.05f
-        );
+            buildIrrigationOutput(
+                    "Continue monitoring environmental and soil moisture conditions before performing irrigation.",
+                    SeverityLevel.LOW,
+                    PriorityLevel.P3,
+                    0.05f
+            );
 
     out.setRationale(
-        "No irrigation condition requiring intervention was detected."
+            "No irrigation condition requiring intervention was detected."
     );
 
     intermediateOutputs.add(out);

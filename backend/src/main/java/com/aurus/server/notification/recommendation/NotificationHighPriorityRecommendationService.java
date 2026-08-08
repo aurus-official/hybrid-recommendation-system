@@ -66,8 +66,10 @@ public class NotificationHighPriorityRecommendationService {
 
         PushNotification pushNotification = new PushNotification();
         pushNotification.setTo(to);
-        pushNotification.setTitle(String.format("%s Severity Detected!", firstWord.toString()));
-        pushNotification.setBody("Check the status and recommendations.");
+        pushNotification.setTitle(String.format("%s Alert Generated", firstWord.toString()));
+        pushNotification.setBody(String.format(
+                "A %s severity system event requires your immediate attention. Check the status and recommendations.",
+                notificationHighPriorityRecommendationDTO.severityLevel().getValue()));
         pushNotification.setData(data);
 
         List<PushNotification> notifications = new ArrayList<>();

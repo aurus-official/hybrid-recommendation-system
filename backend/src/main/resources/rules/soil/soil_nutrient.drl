@@ -9,16 +9,15 @@ import com.aurus.server.shared.CategoryType;
 
 global java.util.List intermediateOutputs;
 
-
 /* =========================================================
    FACTORY FUNCTION
    ========================================================= */
 
 function EngineCategoryOutputDTO buildSoilOutput(
-    String action,
-    SeverityLevel severity,
-    PriorityLevel priority,
-    float confidence
+        String action,
+        SeverityLevel severity,
+        PriorityLevel priority,
+        float confidence
 ) {
     EngineCategoryOutputDTO out = new EngineCategoryOutputDTO();
 
@@ -27,53 +26,60 @@ function EngineCategoryOutputDTO buildSoilOutput(
     out.setSeverityLevel(severity);
     out.setPriorityLevel(priority);
 
-    float c = confidence;
+    float multiplier;
 
-    if (c < 0f) c = 0f;
-    if (c > 1f) c = 1f;
+    if (severity == SeverityLevel.CRITICAL) {
+        multiplier = 1.15f;
+    } else if (severity == SeverityLevel.HIGH) {
+        multiplier = 1.08f;
+    } else if (severity == SeverityLevel.MODERATE) {
+        multiplier = 1.00f;
+    } else {
+        multiplier = 0.95f;
+    }
 
-    out.setConfidence(c);
+    float scaledConfidence = confidence * multiplier;
 
+    if (scaledConfidence < 0f) scaledConfidence = 0f;
+    if (scaledConfidence > 1f) scaledConfidence = 1f;
+
+    out.setConfidence(scaledConfidence);
     return out;
 }
 
-
 /* =========================================================
-   CRITICAL - SUSPEND FERTILIZER
+   CRITICAL - SUSPEND FERTILIZER APPLICATION
    ========================================================= */
 
 rule "Soil - Suspend Fertilizer Application"
 salience 100
 when
     $s : DerivedSensorDataModel(
-        soilFertilityIndex < 0.45f
+            soilFertilityIndex < 0.45f
     )
-
-    $w : DerivedWeatherDataModel()
+    $w : DerivedWeatherDataModel(
+            rainImpactIndex >= 0.85f
+    )
 then
 
     float sfi = $s.getSoilFertilityIndex();
 
     float confidence =
-        (0.55f * (1f - sfi))
-        +
-        (0.45f * $w.getRainImpactIndex());
+            (0.55f * (1f - sfi))
+          + (0.45f * $w.getRainImpactIndex());
 
     String action =
-        "Soil fertility index is critically low (" +
-        String.format("%.2f", sfi) +
-        "). Suspend fertilizer application temporarily due to elevated nutrient leaching risk from expected rainfall.";
+            "Heavy rainfall conditions combined with low nutrient availability detected in container-grown pechay. Suspend fertilizer application to prevent rapid nutrient leaching through planter box drainage holes.";
 
     intermediateOutputs.add(
-        buildSoilOutput(
-            action,
-            SeverityLevel.CRITICAL,
-            PriorityLevel.P0,
-            confidence
-        )
+            buildSoilOutput(
+                    action,
+                    SeverityLevel.CRITICAL,
+                    PriorityLevel.P0,
+                    confidence
+            )
     );
 end
-
 
 /* =========================================================
    CRITICAL - DELAY FERTILIZATION
@@ -83,37 +89,32 @@ rule "Soil - Delay Fertilization"
 salience 95
 when
     $s : DerivedSensorDataModel(
-        soilFertilityIndex < 0.40f
+            soilFertilityIndex < 0.40f
     )
-
     $w : DerivedWeatherDataModel(
-        rainImpactIndex >= 0.65f,
-        rainImpactIndex < 0.85f
+            rainImpactIndex >= 0.65f,
+            rainImpactIndex < 0.85f
     )
 then
 
     float sfi = $s.getSoilFertilityIndex();
 
     float confidence =
-        (0.60f * (1f - sfi))
-        +
-        (0.40f * $w.getRainImpactIndex());
+            (0.60f * (1f - sfi))
+          + (0.40f * $w.getRainImpactIndex());
 
     String action =
-        "Soil fertility index is " +
-        String.format("%.2f", sfi) +
-        " with significant rainfall influence detected. Delay fertilizer application until soil moisture and weather conditions stabilize.";
+            "Rainfall may accelerate nutrient loss in planter box soil due to drainage holes and limited soil volume. Delay fertilization until rainfall intensity decreases.";
 
     intermediateOutputs.add(
-        buildSoilOutput(
-            action,
-            SeverityLevel.CRITICAL,
-            PriorityLevel.P0,
-            confidence
-        )
+            buildSoilOutput(
+                    action,
+                    SeverityLevel.CRITICAL,
+                    PriorityLevel.P0,
+                    confidence
+            )
     );
 end
-
 
 /* =========================================================
    HIGH - IMMEDIATE NUTRIENT RECOVERY
@@ -123,36 +124,31 @@ rule "Soil - Immediate Nutrient Recovery"
 salience 92
 when
     $s : DerivedSensorDataModel(
-        soilFertilityIndex < 0.25f
+            soilFertilityIndex < 0.25f
     )
-
     $w : DerivedWeatherDataModel(
-        rainImpactIndex < 0.65f
+            rainImpactIndex < 0.65f
     )
 then
 
     float sfi = $s.getSoilFertilityIndex();
 
     float confidence =
-        (0.75f * (1f - sfi))
-        +
-        (0.25f * (1f - $w.getRainImpactIndex()));
+            (0.75f * (1f - sfi))
+          + (0.25f * (1f - $w.getRainImpactIndex()));
 
     String action =
-        "Soil fertility index is extremely low (" +
-        String.format("%.2f", sfi) +
-        "). Apply immediate nutrient recovery measures and reassess soil conditions during the next monitoring cycle.";
+            "Severely low nutrient levels detected in planter box soil. Apply a diluted nitrogen-rich fertilizer (e.g., urea or ammonium sulfate) in small doses suitable for container-grown pechay to avoid salt buildup.";
 
     intermediateOutputs.add(
-        buildSoilOutput(
-            action,
-            SeverityLevel.HIGH,
-            PriorityLevel.P1,
-            confidence
-        )
+            buildSoilOutput(
+                    action,
+                    SeverityLevel.HIGH,
+                    PriorityLevel.P1,
+                    confidence
+            )
     );
 end
-
 
 /* =========================================================
    HIGH - INCREASE FERTILITY SUPPORT
@@ -162,109 +158,131 @@ rule "Soil - Increase Fertility Support"
 salience 90
 when
     $s : DerivedSensorDataModel(
-        soilFertilityIndex >= 0.25f,
-        soilFertilityIndex < 0.40f
+            soilFertilityIndex >= 0.25f,
+            soilFertilityIndex < 0.40f
     )
-
     $w : DerivedWeatherDataModel(
-        rainImpactIndex < 0.65f
+            rainImpactIndex < 0.65f
     )
 then
 
     float sfi = $s.getSoilFertilityIndex();
 
     float confidence =
-        (0.70f * (1f - sfi))
-        +
-        (0.30f * (1f - $w.getRainImpactIndex()));
+            (0.70f * (1f - sfi))
+          + (0.30f * (1f - $w.getRainImpactIndex()));
 
     String action =
-        "Soil fertility index is below the desired range (" +
-        String.format("%.2f", sfi) +
-        "). Increase nutrient support gradually and monitor soil fertility trends before the next fertilization cycle.";
+            "Low nutrient availability detected in container soil. Apply a moderate, well-diluted fertilizer dose appropriate for planter box systems and avoid over-application due to limited soil buffering capacity.";
 
     intermediateOutputs.add(
-        buildSoilOutput(
-            action,
-            SeverityLevel.HIGH,
-            PriorityLevel.P1,
-            confidence
-        )
+            buildSoilOutput(
+                    action,
+                    SeverityLevel.HIGH,
+                    PriorityLevel.P1,
+                    confidence
+            )
     );
 end
 
+/* =========================================================
+   HIGH - NUTRIENT LEACHING RISK
+   ========================================================= */
+
+rule "Soil - Nutrient Leaching Risk"
+salience 85
+when
+    $s : DerivedSensorDataModel(
+            soilFertilityIndex >= 0.40f,
+            soilFertilityIndex < 0.60f
+    )
+    $w : DerivedWeatherDataModel(
+            rainImpactIndex >= 0.80f
+    )
+then
+
+    float confidence =
+            (0.60f * $w.getRainImpactIndex())
+          + (0.40f * (1f - $s.getSoilFertilityIndex()));
+
+    String action =
+            "Heavy rainfall increases nutrient washout risk in planter boxes due to direct drainage flow. Check nutrient status after rainfall and reapply fertilizer only if necessary.";
+
+    intermediateOutputs.add(
+            buildSoilOutput(
+                    action,
+                    SeverityLevel.HIGH,
+                    PriorityLevel.P1,
+                    confidence
+            )
+    );
+end
 
 /* =========================================================
-   MODERATE - MAINTAIN STABILITY
+   MODERATE - MAINTAIN NUTRIENT STABILITY
    ========================================================= */
 
 rule "Soil - Maintain Nutrient Stability"
 salience 80
 when
     $s : DerivedSensorDataModel(
-        soilFertilityIndex >= 0.40f,
-        soilFertilityIndex < 0.60f
+            soilFertilityIndex >= 0.40f,
+            soilFertilityIndex < 0.60f
+    )
+    $w : DerivedWeatherDataModel(
+            rainImpactIndex < 0.80f
     )
 then
 
     float sfi = $s.getSoilFertilityIndex();
 
-    float confidence =
-        1f - Math.abs(sfi - 0.50f);
+    float confidence = 1f - Math.abs(sfi - 0.50f);
 
     String action =
-        "Soil fertility index is within the acceptable operating range (" +
-        String.format("%.2f", sfi) +
-        "). Maintain the current nutrient program and continue routine monitoring.";
+            "Soil nutrient levels in the planter box are balanced for pechay growth. Maintain current fertilization practices and avoid unnecessary nutrient adjustments due to limited container buffering capacity.";
 
     intermediateOutputs.add(
-        buildSoilOutput(
-            action,
-            SeverityLevel.MODERATE,
-            PriorityLevel.P2,
-            confidence
-        )
+            buildSoilOutput(
+                    action,
+                    SeverityLevel.MODERATE,
+                    PriorityLevel.P2,
+                    confidence
+            )
     );
 end
 
-
 /* =========================================================
-   LOW - BALANCED CONDITION
+   LOW - BALANCED NUTRIENT CONDITION
    ========================================================= */
 
 rule "Soil - Balanced Nutrient Condition"
 salience 70
 when
     $s : DerivedSensorDataModel(
-        soilFertilityIndex >= 0.60f,
-        soilFertilityIndex < 0.80f
+            soilFertilityIndex >= 0.60f,
+            soilFertilityIndex < 0.80f
     )
-
     $w : DerivedWeatherDataModel()
 then
 
     float sfi = $s.getSoilFertilityIndex();
 
     float confidence =
-        (0.75f * sfi)
-        +
-        (0.25f * $w.getWaterBalanceIndex());
+            (0.75f * sfi)
+          + (0.25f * $w.getWaterBalanceIndex());
 
     String action =
-        "Soil fertility index is healthy (" +
-        String.format("%.2f", sfi) +
-        "). Maintain balanced nutrient management and avoid unnecessary fertilizer additions.";
+            "Nutrient levels in planter box soil are favorable for healthy pechay growth. No fertilizer is required at this stage. Continue normal watering with attention to drainage.";
 
     intermediateOutputs.add(
-        buildSoilOutput(
-            action,
-            SeverityLevel.LOW,
-            PriorityLevel.P3,
-            confidence
-        )
+            buildSoilOutput(
+                    action,
+                    SeverityLevel.LOW,
+                    PriorityLevel.P3,
+                    confidence
+            )
     );
 end
-
 
 /* =========================================================
    LOW - EXCESS NUTRIENT CONDITION
@@ -274,34 +292,29 @@ rule "Soil - Reduce Excess Nutrient Input"
 salience 65
 when
     $s : DerivedSensorDataModel(
-        soilFertilityIndex >= 0.80f
+            soilFertilityIndex >= 0.80f
     )
-
     $w : DerivedWeatherDataModel()
 then
 
     float sfi = $s.getSoilFertilityIndex();
 
     float confidence =
-        (0.80f * sfi)
-        +
-        (0.20f * $w.getWaterBalanceIndex());
+            (0.80f * sfi)
+          + (0.20f * $w.getWaterBalanceIndex());
 
     String action =
-        "Soil fertility index is elevated (" +
-        String.format("%.2f", sfi) +
-        "). Reduce additional fertilizer inputs and prioritize nutrient-use efficiency.";
+            "Elevated nutrient levels detected in planter box soil. Avoid further fertilization to prevent nutrient accumulation and salt stress, which is more likely in container-grown pechay due to limited soil volume.";
 
     intermediateOutputs.add(
-        buildSoilOutput(
-            action,
-            SeverityLevel.LOW,
-            PriorityLevel.P3,
-            confidence
-        )
+            buildSoilOutput(
+                    action,
+                    SeverityLevel.LOW,
+                    PriorityLevel.P3,
+                    confidence
+            )
     );
 end
-
 
 /* =========================================================
    FALLBACK
@@ -314,11 +327,11 @@ when
 then
 
     intermediateOutputs.add(
-        buildSoilOutput(
-            "Continue monitoring soil fertility conditions and reassess nutrient management requirements during the next recommendation cycle.",
-            SeverityLevel.LOW,
-            PriorityLevel.P3,
-            0.05f
-        )
+            buildSoilOutput(
+                    "Continue monitoring nutrient conditions in planter box soil and reassess fertilization needs during the next cycle.",
+                    SeverityLevel.LOW,
+                    PriorityLevel.P3,
+                    0.05f
+            )
     );
 end

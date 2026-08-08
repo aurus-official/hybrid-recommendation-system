@@ -24,9 +24,6 @@ public class DerivedWeatherDataProcessor
         float precipitationProbabilityNorm = clamp(
                 model.getPrecipitationProbability().value() / 100.0f);
 
-        float evapotranspirationNorm = clamp(
-                model.getEvapotranspiration().value() / 3.0f);
-
         float rainImpactIndexValue = clamp(
                 (0.60f * precipitationProbabilityNorm)
                         + (0.40f * precipitationNorm));
@@ -39,14 +36,17 @@ public class DerivedWeatherDataProcessor
                         * (1f - (0.30f * rainCoolingFactor)));
 
         float waterBalanceIndexValue = clamp(
-                0.5f +
-                        ((precipitationNorm - evapotranspirationNorm) / 2f));
+                (1.3f * model.getPrecipitation().value())
+                        /
+                        ((1.3f * model.getPrecipitation().value())
+                                + model.getEvapotranspiration().value()
+                                + 0.001f));
 
         float plantStressIndexValue = clamp(
-                (0.25f * tempStress)
-                        + (0.20f * vpdStress)
-                        + (0.35f * (1f - waterBalanceIndexValue))
-                        + (0.20f * rainImpactIndexValue));
+                (0.15f * tempStress)
+                        + (0.15f * vpdStress)
+                        + (0.65f * (1f - waterBalanceIndexValue))
+                        + (0.05f * rainImpactIndexValue));
 
         DerivedWeatherDataDTO plantStressIndex = new DerivedWeatherDataDTO(
                 toFourDigitsDecimal(plantStressIndexValue),

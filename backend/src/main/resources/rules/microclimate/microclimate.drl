@@ -258,8 +258,8 @@ then
     EngineCategoryOutputDTO out =
         buildMicroclimateOutput(
             "maintain_light_shading_and_continue_monitoring",
-            SeverityLevel.MODERATE,
-            PriorityLevel.P2,
+            SeverityLevel.LOW,
+            PriorityLevel.P1,
             confidence
         );
 
